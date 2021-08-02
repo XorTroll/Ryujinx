@@ -662,7 +662,7 @@ namespace Ryujinx.Ui
                     Logger.Info?.Print(LogClass.Application, "Loading firmware...");
 
                     // _emulationContext.LoadNca(path);
-                    // _emulationContext.LoadSystemTitle(_contentManager, 0x010000000000100C);
+                    _emulationContext.LoadSystemTitle(_contentManager, 0x010000000000100C);
                     // _emulationContext.LoadSystemTitle(_contentManager, 0x0100000000001012);
                     _emulationContext.LoadSystemTitle(_contentManager, 0x0100000000001000);
                     // _emulationContext.LoadSystemTitle(_contentManager, 0x01008BB00013C000);
