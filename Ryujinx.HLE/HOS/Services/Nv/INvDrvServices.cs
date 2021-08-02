@@ -23,7 +23,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv
     [Service("nvdrv:t")]
     class INvDrvServices : IpcService
     {
-        private static Dictionary<string, Type> _deviceFileRegistry = new Dictionary<string, Type>()
+        private static readonly Dictionary<string, Type> _deviceFileRegistry = new Dictionary<string, Type>()
         {
             { "/dev/nvmap",           typeof(NvMapDeviceFile)         },
             { "/dev/nvhost-ctrl",     typeof(NvHostCtrlDeviceFile)    },
@@ -44,7 +44,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv
 
         private bool _transferMemInitialized = false;
 
-        public INvDrvServices(ServiceCtx context) : base(context.Device.System.NvDrvServer)
+        public INvDrvServices()
         {
             _owner = 0;
         }

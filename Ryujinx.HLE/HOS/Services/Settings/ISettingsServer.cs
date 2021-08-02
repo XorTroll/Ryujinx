@@ -8,7 +8,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
     [Service("set")]
     class ISettingsServer : IpcService
     {
-        public ISettingsServer(ServiceCtx context) { }
+        public ISettingsServer() { }
 
         [CommandHipc(0)]
         // GetLanguageCode() -> nn::settings::LanguageCode

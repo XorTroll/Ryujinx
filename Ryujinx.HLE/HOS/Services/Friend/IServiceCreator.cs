@@ -13,7 +13,7 @@ namespace Ryujinx.HLE.HOS.Services.Friend
     {
         private FriendServicePermissionLevel _permissionLevel;
 
-        public IServiceCreator(ServiceCtx context, FriendServicePermissionLevel permissionLevel)
+        public IServiceCreator(FriendServicePermissionLevel permissionLevel)
         {
             _permissionLevel = permissionLevel;
         }

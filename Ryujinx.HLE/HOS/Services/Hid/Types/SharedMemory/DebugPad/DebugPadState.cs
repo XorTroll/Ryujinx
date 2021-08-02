@@ -1,6 +1,6 @@
-﻿using Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Common;
+﻿using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Common;
 
-namespace Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.DebugPad
+namespace Ryujinx.HLE.HOS.Services.Hid.SharedMemory.DebugPad
 {
     struct DebugPadState : ISampledData
     {

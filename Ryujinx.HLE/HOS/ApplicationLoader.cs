@@ -10,6 +10,7 @@ using LibHac.Ns;
 using Ryujinx.Common.Configuration;
 using Ryujinx.Common.Logging;
 using Ryujinx.HLE.FileSystem;
+using Ryujinx.HLE.FileSystem.Content;
 using Ryujinx.HLE.HOS.Kernel.Process;
 using Ryujinx.HLE.Loaders.Executables;
 using Ryujinx.HLE.Loaders.Npdm;
@@ -283,6 +284,65 @@ namespace Ryujinx.HLE.HOS
             LoadExeFs(nsp);
         }
 
+        public void LoadSystemBuiltinTitles(ContentManager manager)
+        {
+            var pkg2_content_path = manager.GetInstalledContentPath(0x0100000000000819, StorageId.NandSystem, NcaContentType.Data);
+            if (!string.IsNullOrEmpty(pkg2_content_path))
+            {
+                var path = _device.Configuration.VirtualFileSystem.SwitchPathToSystemPath(pkg2_content_path);
+                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read))
+                {
+                    var pkg2_nca = new Nca(_device.Configuration.VirtualFileSystem.KeySet, fs.AsStorage());
+
+                    var romfs = pkg2_nca.OpenFileSystem(NcaSectionType.Data, IntegrityCheckLevel.ErrorOnInvalid);
+                    if(romfs.OpenFile(out var file, "/nx/package2".ToU8Span(), OpenMode.Read).IsSuccess())
+                    {
+                        file.GetSize(out var file_size);
+                        var file_data = new byte[file_size];
+                        if(file.Read(out _, 0, file_data).IsSuccess())
+                        {
+                            using(var mem = new MemoryStream(file_data))
+                            {
+                                var pkg2 = new LibHac.Boot.Package2StorageReader();
+                                if(pkg2.Initialize(_device.Configuration.VirtualFileSystem.KeySet, mem.AsStorage()).IsSuccess())
+                                {
+                                    if(pkg2.OpenIni(out var ini_storage).IsSuccess())
+                                    {
+                                        var ini = new Ini1(ini_storage);
+                                        foreach(var kip in ini.Kips)
+                                        {
+                                            Logger.Info?.Print(LogClass.Loader, "Loading built-in process '" + kip.Name.ToString() + "'...");
+                                            TitleIs64Bit = kip.Is64Bit;
+                                            TitleId = kip.ProgramId;
+                                            _titleName = kip.Name.ToString();
+
+                                            if (ProgramLoader.LoadKip(_device.System.KernelContext, new KipExecutable(kip)))
+                                            {
+                                                return;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            throw new Exception("Bad");
+        }
+
+        public void LoadSystemTitle(ContentManager manager, ulong app_id)
+        {
+            var content_path = manager.GetInstalledContentPath(app_id, StorageId.NandSystem, NcaContentType.Program);
+            if(!string.IsNullOrEmpty(content_path))
+            {
+                Logger.Info?.Print(LogClass.Loader, "Found system title NCA: '" + content_path + "'");
+                var path = _device.Configuration.VirtualFileSystem.SwitchPathToSystemPath(content_path);
+                Logger.Info?.Print(LogClass.Loader, "Found path NCA: '" + path + "'");
+                LoadNca(path);
+            }
+        }
+
         public void LoadNca(string ncaFile)
         {
             FileStream file = new FileStream(ncaFile, FileMode.Open, FileAccess.Read);
@@ -485,6 +545,11 @@ namespace Ryujinx.HLE.HOS
 
                 codeFs.OpenFile(out IFile nsoFile, $"/{name}".ToU8Span(), OpenMode.Read).ThrowIfFailure();
 
+                nsoFile.GetSize(out var size);
+                var span = new Span<byte>(new byte[size]);
+                nsoFile.Read(out var read, 0, span);
+                File.WriteAllBytes("E:\\" + TitleId.ToString("X16") + "." + name, span.ToArray());
+
                 nsos[i] = new NsoExecutable(nsoFile.AsStorage(), name);
             }
 
@@ -514,7 +579,7 @@ namespace Ryujinx.HLE.HOS
                 Logger.Warning?.Print(LogClass.Ptc, $"Detected unsupported ExeFs modifications. PPTC disabled.");
             }
 
-            Graphics.Gpu.GraphicsConfig.TitleId = TitleIdText;
+            Graphics.Gpu.GraphicsConfig.ProgramIds.Add(TitleIdText);
             _device.Gpu.HostInitalized.Set();
 
             Ptc.Initialize(TitleIdText, DisplayVersion, usePtc, _device.Configuration.MemoryManagerMode);
@@ -616,8 +681,8 @@ namespace Ryujinx.HLE.HOS
             TitleId      = metaData.Aci0.TitleId;
             TitleIs64Bit = metaData.Is64Bit;
 
-            // Explicitly null titleid to disable the shader cache
-            Graphics.Gpu.GraphicsConfig.TitleId = null;
+            // ** Explicitly null titleid to disable the shader cache
+            // Graphics.Gpu.GraphicsConfig.TitleId = null;
             _device.Gpu.HostInitalized.Set();
 
             ProgramLoader.LoadNsos(_device.System.KernelContext, out ProcessTamperInfo tamperInfo, metaData, executables: executable);

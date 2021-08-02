@@ -1,7 +1,7 @@
 ﻿using Ryujinx.Common.Memory;
-using Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Common;
+using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Common;
 
-namespace Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.TouchScreen
+namespace Ryujinx.HLE.HOS.Services.Hid.SharedMemory.TouchScreen
 {
     struct TouchScreenState : ISampledData
     {

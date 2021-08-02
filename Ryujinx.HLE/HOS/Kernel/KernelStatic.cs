@@ -57,7 +57,7 @@ namespace Ryujinx.HLE.HOS.Kernel
 
         internal static KProcess GetCurrentProcess()
         {
-            return GetCurrentThread().Owner;
+            return GetCurrentThread()?.Owner;
         }
     }
 }

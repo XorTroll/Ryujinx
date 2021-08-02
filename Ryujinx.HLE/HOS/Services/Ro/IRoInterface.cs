@@ -33,7 +33,7 @@ namespace Ryujinx.HLE.HOS.Services.Ro
 
         private static Random _random = new Random();
 
-        public IRoInterface(ServiceCtx context)
+        public IRoInterface()
         {
             _nrrInfos = new List<NrrInfo>(MaxNrr);
             _nroInfos = new List<NroInfo>(MaxNro);

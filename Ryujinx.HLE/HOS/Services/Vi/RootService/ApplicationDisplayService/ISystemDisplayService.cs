@@ -38,15 +38,38 @@ namespace Ryujinx.HLE.HOS.Services.Vi.RootService.ApplicationDisplayService
             return _applicationDisplayService.CreateStrayLayer(context);
         }
 
+        [CommandHipc(3000)]
+        // ListDisplayModes() -> buffer
+        public ResultCode ListDisplayModes(ServiceCtx context)
+        {
+            var unk_val = context.RequestData.ReadUInt64();
+            context.ResponseData.Write((ulong)1);
+
+            var modes_buf = context.Request.ReceiveBuff[0];
+
+            ulong offset = 0;
+            context.Memory.Write(modes_buf.Position + offset, DisplayModeInfo.DefaultDisplayMode.Width);
+            offset += sizeof(uint);
+            context.Memory.Write(modes_buf.Position + offset, DisplayModeInfo.DefaultDisplayMode.Height);
+            offset += sizeof(uint);
+            context.Memory.Write(modes_buf.Position + offset, DisplayModeInfo.DefaultDisplayMode.Unk);
+            offset += sizeof(float);
+            context.Memory.Write(modes_buf.Position + offset, DisplayModeInfo.DefaultDisplayMode.Unk2);
+
+            Logger.Stub?.PrintStub(LogClass.ServiceVi, new { unk_val });
+
+            return ResultCode.Success;
+        }
+
         [CommandHipc(3200)]
         // GetDisplayMode(u64) -> nn::vi::DisplayModeInfo
         public ResultCode GetDisplayMode(ServiceCtx context)
         {
             // TODO: De-hardcode resolution.
-            context.ResponseData.Write(1280);
-            context.ResponseData.Write(720);
-            context.ResponseData.Write(60.0f);
-            context.ResponseData.Write(0);
+            context.ResponseData.Write(DisplayModeInfo.DefaultDisplayMode.Width);
+            context.ResponseData.Write(DisplayModeInfo.DefaultDisplayMode.Height);
+            context.ResponseData.Write(DisplayModeInfo.DefaultDisplayMode.Unk);
+            context.ResponseData.Write(DisplayModeInfo.DefaultDisplayMode.Unk2);
 
             return ResultCode.Success;
         }

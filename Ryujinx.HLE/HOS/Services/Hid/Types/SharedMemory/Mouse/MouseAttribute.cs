@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Mouse
+namespace Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Mouse
 {
     [Flags]
     enum MouseAttribute : uint

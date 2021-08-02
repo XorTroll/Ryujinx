@@ -2,6 +2,7 @@ using Ryujinx.Common.Logging;
 using Ryujinx.Cpu;
 using Ryujinx.HLE.HOS.Kernel.Common;
 using Ryujinx.HLE.HOS.Kernel.Process;
+using Ryujinx.HLE.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -199,7 +200,7 @@ namespace Ryujinx.HLE.HOS.Kernel.Threading
 
             ThreadUid = KernelContext.NewThreadUid();
 
-            HostThread.Name = customThreadStart != null ? $"HLE.OsThread.{ThreadUid}" : $"HLE.GuestThread.{ThreadUid}";
+            HostThread.Name = "DefaultThread"; // Not "MainThread" to distinguish from actual names from the TLS ThreadType object on actual process threads
 
             _hasBeenInitialized = true;
 
@@ -1009,6 +1010,30 @@ namespace Ryujinx.HLE.HOS.Kernel.Threading
         public void AddCpuTime(long ticks)
         {
             Interlocked.Add(ref _totalTimeRunning, ticks);
+        }
+
+        public string GetName()
+        {
+            // Try parsing the actual name on the TLS.
+            // TODO: libnx thread support
+
+            var name = HostThread.Name;
+
+            var currentThreadTypePtrAddr = TlsAddress + 0x1F8;
+
+            var currentThreadTypePtr = Owner.CpuMemory.Read<ulong>(currentThreadTypePtrAddr);
+            // Thread ptr might still not be set
+            if (currentThreadTypePtr != 0)
+            {
+                // New SDK versions have it at 0x180
+                name = MemoryHelper.ReadAsciiString(Owner.CpuMemory, currentThreadTypePtr + 0x180, 0x20);
+                if (string.IsNullOrEmpty(name))
+                {
+                    // Old SDK versions have it at 0x188
+                    name = MemoryHelper.ReadAsciiString(Owner.CpuMemory, currentThreadTypePtr + 0x188, 0x20);
+                }
+            }
+            return name;
         }
 
         public void StartHostThread()

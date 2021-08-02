@@ -3,6 +3,6 @@
     [Service("ldn:s")]
     class ISystemServiceCreator : IpcService
     {
-        public ISystemServiceCreator(ServiceCtx context) { }
+        public ISystemServiceCreator() { }
     }
 }

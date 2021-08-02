@@ -3,6 +3,6 @@
     [Service("nfc:am")]
     class IAmManager : IpcService
     {
-        public IAmManager(ServiceCtx context) { }
+        public IAmManager() { }
     }
 }

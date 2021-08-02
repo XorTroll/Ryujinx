@@ -60,6 +60,21 @@ namespace Ryujinx.HLE.HOS.Kernel.Common
             return false;
         }
 
+        public static bool UserToKernelBytes(KernelContext context, ulong address, Span<byte> data)
+        {
+            KProcess currentProcess = KernelStatic.GetCurrentProcess();
+
+            if (currentProcess.CpuMemory.IsMapped(address) &&
+                currentProcess.CpuMemory.IsMapped(address + (ulong)data.Length - 1))
+            {
+                currentProcess.CpuMemory.Read(address, data);
+
+                return true;
+            }
+
+            return false;
+        }
+
         public static bool KernelToUserInt32(KernelContext context, ulong address, int value)
         {
             KProcess currentProcess = KernelStatic.GetCurrentProcess();

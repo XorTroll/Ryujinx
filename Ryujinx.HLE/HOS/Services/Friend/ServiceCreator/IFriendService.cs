@@ -310,5 +310,65 @@ namespace Ryujinx.HLE.HOS.Services.Friend.ServiceCreator
 
             return ResultCode.Success;
         }
+
+
+        [CommandHipc(20100)]
+        // GetFriendCount(...) -> u32
+        public ResultCode GetFriendCount(ServiceCtx context)
+        {
+            // TODO
+
+            context.ResponseData.Write((uint)0);
+
+            Logger.Stub?.PrintStub(LogClass.ServiceFriend);
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(20101)]
+        // GetNewlyFriendCount(nn::account::Uid) -> u32
+        public ResultCode GetNewlyFriendCount(ServiceCtx context)
+        {
+            // TODO
+            var userId = context.RequestData.ReadStruct<UserId>();
+
+            context.ResponseData.Write((uint)0);
+
+            Logger.Stub?.PrintStub(LogClass.ServiceFriend);
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(20200)]
+        // GetReceivedFriendRequestCount(nn::account::Uid) -> (u32, u32)
+        public ResultCode GetReceivedFriendRequestCount(ServiceCtx context)
+        {
+            // TODO
+            var userId = context.RequestData.ReadStruct<UserId>();
+
+            context.ResponseData.Write((uint)0);
+            context.ResponseData.Write((uint)0);
+
+            Logger.Stub?.PrintStub(LogClass.ServiceFriend);
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(20701)]
+        // GetPlayHistoryStatistics(nn::account::Uid) -> nn::friends::PlayHistoryStatistics
+        public ResultCode GetPlayHistoryStatistics(ServiceCtx context)
+        {
+            var userId = context.RequestData.ReadStruct<UserId>();
+
+            // TODO: do this properly
+            ulong play_history_local = 0;
+            context.ResponseData.Write(play_history_local);
+            ulong play_history_online = 0;
+            context.ResponseData.Write(play_history_online);
+
+            Logger.Stub?.PrintStub(LogClass.ServiceFriend);
+
+            return ResultCode.Success;
+        }
     }
 }

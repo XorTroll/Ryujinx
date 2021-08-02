@@ -6,6 +6,7 @@ using Ryujinx.Common.Logging;
 using Ryujinx.Common.System;
 using Ryujinx.Common.SystemInfo;
 using Ryujinx.Configuration;
+using Ryujinx.HLE;
 using Ryujinx.Modules;
 using Ryujinx.Ui;
 using Ryujinx.Ui.Widgets;
@@ -30,7 +31,9 @@ namespace Ryujinx
         private extern static int XInitThreads();
 
         static void Main(string[] args)
-        { 
+        {
+            Logger.Helper = new HLELogHelper();
+
             // Parse Arguments.
             string launchPathArg      = null;
             string baseDirPathArg     = null;
@@ -148,6 +151,7 @@ namespace Ryujinx
             // Check if keys exists.
             bool hasSystemProdKeys = File.Exists(Path.Combine(AppDataManager.KeysDirPath, "prod.keys"));
             bool hasCommonProdKeys = AppDataManager.Mode == AppDataManager.LaunchMode.UserProfile && File.Exists(Path.Combine(AppDataManager.KeysDirPathUser, "prod.keys"));
+
             if (!hasSystemProdKeys && !hasCommonProdKeys)
             {
                 UserErrorDialog.CreateUserErrorDialog(UserError.NoKeys);
@@ -160,6 +164,11 @@ namespace Ryujinx
             if (launchPathArg != null)
             {
                 mainWindow.LoadApplication(launchPathArg, startFullscreenArg);
+            }
+            else
+            {
+                // Test loading system titles
+                mainWindow.LoadApplication("@SystemContent:/dummy", false);
             }
 
             if (ConfigurationState.Instance.CheckUpdatesOnStart.Value && Updater.CanUpdate(false))

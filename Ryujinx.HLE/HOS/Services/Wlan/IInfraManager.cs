@@ -3,6 +3,6 @@
     [Service("wlan:inf")]
     class IInfraManager : IpcService
     {
-        public IInfraManager(ServiceCtx context) { }
+        public IInfraManager() { }
     }
 }

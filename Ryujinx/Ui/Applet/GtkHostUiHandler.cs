@@ -1,7 +1,7 @@
 using Gtk;
 using Ryujinx.HLE;
 using Ryujinx.HLE.HOS.Applets;
-using Ryujinx.HLE.HOS.Services.Am.AppletOE.ApplicationProxyService.ApplicationProxy.Types;
+using Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy;
 using Ryujinx.Ui.Widgets;
 using System;
 using System.Threading;

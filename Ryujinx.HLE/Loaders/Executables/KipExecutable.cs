@@ -6,38 +6,34 @@ namespace Ryujinx.HLE.Loaders.Executables
 {
     class KipExecutable : IExecutable
     {
-        public byte[] Program { get; }
+        public byte[] Program { get; private set; }
         public Span<byte> Text => Program.AsSpan().Slice((int)TextOffset, (int)TextSize);
         public Span<byte> Ro   => Program.AsSpan().Slice((int)RoOffset,   (int)RoSize);
         public Span<byte> Data => Program.AsSpan().Slice((int)DataOffset, (int)DataSize);
 
-        public uint TextOffset { get; }
-        public uint RoOffset { get; }
-        public uint DataOffset { get; }
-        public uint BssOffset { get; }
+        public uint TextOffset { get; private set; }
+        public uint RoOffset { get; private set; }
+        public uint DataOffset { get; private set; }
+        public uint BssOffset { get; private set; }
 
-        public uint TextSize { get; }
-        public uint RoSize { get; }
-        public uint DataSize { get; }
-        public uint BssSize { get; }
+        public uint TextSize { get; private set; }
+        public uint RoSize { get; private set; }
+        public uint DataSize { get; private set; }
+        public uint BssSize { get; private set; }
 
-        public int[] Capabilities { get; }
-        public bool UsesSecureMemory { get; }
-        public bool Is64BitAddressSpace { get; }
-        public bool Is64Bit { get; }
-        public ulong ProgramId { get; }
-        public byte Priority { get; }
-        public int StackSize { get; }
-        public byte IdealCoreId { get; }
-        public int Version { get; }
-        public string Name { get; }
+        public int[] Capabilities { get; private set; }
+        public bool UsesSecureMemory { get; private set; }
+        public bool Is64BitAddressSpace { get; private set; }
+        public bool Is64Bit { get; private set; }
+        public ulong ProgramId { get; private set; }
+        public byte Priority { get; private set; }
+        public int StackSize { get; private set; }
+        public byte IdealCoreId { get; private set; }
+        public int Version { get; private set; }
+        public string Name { get; private set; }
 
-        public KipExecutable(IStorage inStorage)
+        private void Load(KipReader reader)
         {
-            KipReader reader = new KipReader();
-
-            reader.Initialize(inStorage).ThrowIfFailure();
-
             TextOffset = (uint)reader.Segments[0].MemoryOffset;
             RoOffset = (uint)reader.Segments[1].MemoryOffset;
             DataOffset = (uint)reader.Segments[2].MemoryOffset;
@@ -69,6 +65,20 @@ namespace Ryujinx.HLE.Loaders.Executables
             TextSize = DecompressSection(reader, KipReader.SegmentType.Text, TextOffset, Program);
             RoSize   = DecompressSection(reader, KipReader.SegmentType.Ro,   RoOffset,   Program);
             DataSize = DecompressSection(reader, KipReader.SegmentType.Data, DataOffset, Program);
+        }
+
+        public KipExecutable(IStorage inStorage)
+        {
+            KipReader reader = new KipReader();
+
+            reader.Initialize(inStorage).ThrowIfFailure();
+
+            Load(reader);
+        }
+
+        public KipExecutable(KipReader reader)
+        {
+            Load(reader);
         }
 
         private static uint DecompressSection(KipReader reader, KipReader.SegmentType segmentType, uint offset, byte[] program)

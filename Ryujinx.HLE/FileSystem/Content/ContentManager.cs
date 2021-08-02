@@ -150,7 +150,7 @@ namespace Ryujinx.HLE.FileSystem.Content
                         }
                     }
 
-                    foreach (string filePath in Directory.EnumerateFiles(contentDirectory))
+                    foreach (string filePath in Directory.EnumerateFiles(registeredDirectory))
                     {
                         if (Path.GetExtension(filePath) == ".nca")
                         {

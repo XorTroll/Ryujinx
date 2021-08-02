@@ -3,6 +3,6 @@
     [Service("wlan:lga")]
     class ILocalGetActionFrame : IpcService
     {
-        public ILocalGetActionFrame(ServiceCtx context) { }
+        public ILocalGetActionFrame() { }
     }
 }

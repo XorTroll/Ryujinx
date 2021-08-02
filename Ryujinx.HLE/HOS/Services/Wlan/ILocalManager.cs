@@ -3,6 +3,6 @@
     [Service("wlan:lcl")]
     class ILocalManager : IpcService
     {
-        public ILocalManager(ServiceCtx context) { }
+        public ILocalManager() { }
     }
 }

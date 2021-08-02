@@ -3,6 +3,6 @@
     [Service("pdm:ntfy")]
     class INotifyService : IpcService
     {
-        public INotifyService(ServiceCtx context) { }
+        public INotifyService() { }
     }
 }

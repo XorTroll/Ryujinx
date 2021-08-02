@@ -1,13 +1,23 @@
 ﻿using Ryujinx.Common.Logging;
-using Ryujinx.HLE.HOS.Services.Hid.HidServer;
-using Ryujinx.HLE.HOS.Services.Hid.Types;
+using Ryujinx.HLE.HOS.Services.Hid.Server;
+using Ryujinx.HLE.HOS.Ipc;
+using Ryujinx.HLE.HOS.Kernel;
+using Ryujinx.HLE.HOS.Kernel.Common;
+using Ryujinx.HLE.HOS.Kernel.Threading;
+using System;
 
 namespace Ryujinx.HLE.HOS.Services.Hid
 {
     [Service("hid:sys")]
     class IHidSystemServer : IpcService
     {
-        public IHidSystemServer(ServiceCtx context) { }
+        private KEvent _joyDetachOnBluetoothOffEvent;
+        private int _joyDetachOnBluetoothOffEventHandle;
+
+        public IHidSystemServer(KernelContext context)
+        {
+            _joyDetachOnBluetoothOffEvent = new KEvent(context);
+        }
 
         [CommandHipc(303)]
         // ApplyNpadSystemCommonPolicy(u64)
@@ -61,6 +71,83 @@ namespace Ryujinx.HLE.HOS.Services.Hid
             context.ResponseData.Write((byte)appletFooterUiType);
 
             return resultCode;
+        }
+
+        [CommandHipc(703)]
+        // GetUniquePadIds() -> u64, buffer
+        public ResultCode GetUniquePadIds(ServiceCtx context)
+        {
+            // TODO: implement this accurately?
+
+            var uniquePadIds = new ulong[] { 0x21, 0x22 };
+            var uniquePadIdBuf = context.Request.RecvListBuff[0];
+            for(var i = 0; i < uniquePadIds.Length; i++)
+            {
+                context.Memory.Write(uniquePadIdBuf.Position + (ulong)i * sizeof(ulong), uniquePadIds[i]);
+            }
+
+            context.ResponseData.Write((ulong)uniquePadIds.Length);
+
+            Logger.Stub?.PrintStub(LogClass.Hid);
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(751)]
+        // AcquireJoyDetachOnBluetoothOffEventHandle() -> handle<copy>
+        public ResultCode AcquireJoyDetachOnBluetoothOffEventHandle(ServiceCtx context)
+        {
+            if (_joyDetachOnBluetoothOffEventHandle == 0)
+            {
+                if (context.Process.HandleTable.GenerateHandle(_joyDetachOnBluetoothOffEvent.ReadableEvent, out _joyDetachOnBluetoothOffEventHandle) != KernelResult.Success)
+                {
+                    throw new InvalidOperationException("Out of handles!");
+                }
+            }
+
+            context.Response.HandleDesc = IpcHandleDesc.MakeCopy(_joyDetachOnBluetoothOffEventHandle);
+
+            Logger.Stub?.PrintStub(LogClass.ServiceHid);
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(850)]
+        // IsUsbFullKeyControllerEnabled() -> bool
+        public ResultCode IsUsbFullKeyControllerEnabled(ServiceCtx context)
+        {
+            // TODO
+
+            context.ResponseData.Write(false);
+
+            Logger.Stub?.PrintStub(LogClass.ServiceHid);
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(1004)]
+        // CheckFirmwareUpdateRequired(nn::hid::system::UniquePadId) -> u64?
+        public ResultCode CheckFirmwareUpdateRequired(ServiceCtx context)
+        {
+            // TODO
+
+            var uniquePadId = context.RequestData.ReadUInt64();
+
+            context.ResponseData.Write((ulong)0);
+
+            Logger.Stub?.PrintStub(LogClass.Hid, new { uniquePadId });
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(1153)]
+        // GetTouchScreenDefaultConfiguration() -> ?
+        public ResultCode GetTouchScreenDefaultConfiguration(ServiceCtx context)
+        {
+            // TODO
+            Logger.Stub?.PrintStub(LogClass.ServiceHid);
+
+            return ResultCode.Success;
         }
 
         private ResultCode GetAppletFooterUiTypeImpl(ServiceCtx context, out AppletFooterUiType appletFooterUiType)

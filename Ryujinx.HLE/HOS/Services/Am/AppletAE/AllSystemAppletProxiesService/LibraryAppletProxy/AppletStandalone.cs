@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Ryujinx.HLE.HOS.Services.Am.Applet;
+using System.Collections.Generic;
 
 namespace Ryujinx.HLE.HOS.Services.Am.AppletAE.AllSystemAppletProxiesService.LibraryAppletProxy
 {

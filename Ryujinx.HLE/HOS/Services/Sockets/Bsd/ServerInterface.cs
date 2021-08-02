@@ -3,6 +3,6 @@
     [Service("bsdcfg")]
     class ServerInterface : IpcService
     {
-        public ServerInterface(ServiceCtx context) { }
+        public ServerInterface() { }
     }
 }

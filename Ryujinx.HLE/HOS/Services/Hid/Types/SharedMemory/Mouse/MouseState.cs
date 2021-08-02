@@ -1,6 +1,6 @@
-﻿using Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Common;
+﻿using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Common;
 
-namespace Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Mouse
+namespace Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Mouse
 {
     struct MouseState : ISampledData
     {

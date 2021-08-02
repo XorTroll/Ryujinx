@@ -11,7 +11,7 @@ namespace Ryujinx.HLE.HOS.Services.Sdb.Pl
     {
         private int _fontSharedMemHandle;
 
-        public ISharedFontManager(ServiceCtx context) { }
+        public ISharedFontManager() { }
 
         [CommandHipc(0)]
         // RequestLoad(u32)

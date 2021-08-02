@@ -1,5 +1,6 @@
 ﻿using Ryujinx.Common.Logging;
 using Ryujinx.HLE.HOS.Ipc;
+using Ryujinx.HLE.HOS.Kernel;
 using Ryujinx.HLE.HOS.Kernel.Common;
 using Ryujinx.HLE.HOS.Kernel.Threading;
 
@@ -10,19 +11,18 @@ namespace Ryujinx.HLE.HOS.Services.Ptm.Psm
         private KEvent _stateChangeEvent;
         private int    _stateChangeEventHandle;
 
-        public IPsmSession(Horizon system)
+        public IPsmSession(KernelContext context)
         {
-            _stateChangeEvent       = new KEvent(system.KernelContext);
-            _stateChangeEventHandle = -1;
+            _stateChangeEvent = new KEvent(context);
         }
 
         [CommandHipc(0)]
         // BindStateChangeEvent() -> KObject
         public ResultCode BindStateChangeEvent(ServiceCtx context)
         {
-            if (_stateChangeEventHandle == -1)
+            if (_stateChangeEventHandle == 0)
             {
-                KernelResult resultCode = context.Process.HandleTable.GenerateHandle(_stateChangeEvent.ReadableEvent, out int stateChangeEventHandle);
+                KernelResult resultCode = context.Process.HandleTable.GenerateHandle(_stateChangeEvent.ReadableEvent, out _stateChangeEventHandle);
 
                 if (resultCode != KernelResult.Success)
                 {
@@ -41,10 +41,10 @@ namespace Ryujinx.HLE.HOS.Services.Ptm.Psm
         // UnbindStateChangeEvent()
         public ResultCode UnbindStateChangeEvent(ServiceCtx context)
         {
-            if (_stateChangeEventHandle != -1)
+            if (_stateChangeEventHandle != 0)
             {
                 context.Process.HandleTable.CloseHandle(_stateChangeEventHandle);
-                _stateChangeEventHandle = -1;
+                _stateChangeEventHandle = 0;
             }
 
             Logger.Stub?.PrintStub(LogClass.ServicePsm);

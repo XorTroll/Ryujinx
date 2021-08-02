@@ -1,4 +1,4 @@
-namespace Ryujinx.HLE.HOS.Services.Hid.Types
+namespace Ryujinx.HLE.HOS.Services.Hid
 {
     struct HidVector
     {

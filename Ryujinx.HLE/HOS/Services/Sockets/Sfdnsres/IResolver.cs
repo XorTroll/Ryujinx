@@ -17,7 +17,7 @@ namespace Ryujinx.HLE.HOS.Services.Sockets.Sfdnsres
     [Service("sfdnsres")]
     class IResolver : IpcService
     {
-        public IResolver(ServiceCtx context) { }
+        public IResolver() { }
 
         [CommandHipc(0)]
         // SetDnsAddressesPrivateRequest(u32, buffer<unknown, 5, 0>)

@@ -7,7 +7,7 @@ namespace Ryujinx.HLE.HOS.Services.Nifm
     [Service("nifm:u")] // Max sessions: 5
     class IStaticService : IpcService
     {
-        public IStaticService(ServiceCtx context) { }
+        public IStaticService() { }
 
         [CommandHipc(4)]
         // CreateGeneralServiceOld() -> object<nn::nifm::detail::IGeneralService>

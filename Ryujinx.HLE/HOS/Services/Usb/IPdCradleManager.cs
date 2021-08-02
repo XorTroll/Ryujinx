@@ -3,6 +3,6 @@
     [Service("usb:pd:c")]
     class IPdCradleManager : IpcService
     {
-        public IPdCradleManager(ServiceCtx context) { }
+        public IPdCradleManager() { }
     }
 }

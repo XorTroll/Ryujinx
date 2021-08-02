@@ -3,6 +3,6 @@
     [Service("eupld:r")]
     class IRequest : IpcService
     {
-        public IRequest(ServiceCtx context) { }
+        public IRequest() { }
     }
 }

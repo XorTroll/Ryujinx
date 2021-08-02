@@ -3,6 +3,6 @@
     [Service("erpt:r")]
     class ISession : IpcService
     {
-        public ISession(ServiceCtx context) { }
+        public ISession() { }
     }
 }

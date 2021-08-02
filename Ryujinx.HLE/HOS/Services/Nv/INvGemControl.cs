@@ -3,6 +3,6 @@
     [Service("nvgem:c")]
     class INvGemControl : IpcService
     {
-        public INvGemControl(ServiceCtx context) { }
+        public INvGemControl() { }
     }
 }

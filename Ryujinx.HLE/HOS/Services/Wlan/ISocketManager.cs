@@ -3,6 +3,6 @@
     [Service("wlan:soc")]
     class ISocketManager : IpcService
     {
-        public ISocketManager(ServiceCtx context) { }
+        public ISocketManager() { }
     }
 }

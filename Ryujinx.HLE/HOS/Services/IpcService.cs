@@ -14,14 +14,14 @@ namespace Ryujinx.HLE.HOS.Services
         public IReadOnlyDictionary<int, MethodInfo> HipcCommands { get; }
         public IReadOnlyDictionary<int, MethodInfo> TipcCommands { get; }
 
-        public ServerBase Server { get; private set; }
+        public ServerManager Server { get; private set; }
 
         private IpcService _parent;
         private IdDictionary _domainObjects;
         private int _selfId;
         private bool _isDomain;
 
-        public IpcService(ServerBase server = null)
+        public IpcService()
         {
             HipcCommands = Assembly.GetExecutingAssembly().GetTypes()
                 .Where(type => type == GetType())
@@ -36,8 +36,6 @@ namespace Ryujinx.HLE.HOS.Services
                 .SelectMany(methodInfo => methodInfo.GetCustomAttributes(typeof(CommandTipcAttribute))
                 .Select(command => (((CommandTipcAttribute)command).Id, methodInfo)))
                 .ToDictionary(command => command.Id, command => command.methodInfo);
-
-            Server = server;
 
             _parent = this;
             _domainObjects = new IdDictionary();
@@ -212,7 +210,7 @@ namespace Ryujinx.HLE.HOS.Services
             {
                 context.Device.System.KernelContext.Syscall.CreateSession(false, 0, out int serverSessionHandle, out int clientSessionHandle);
 
-                obj.Server.AddSessionObj(serverSessionHandle, obj);
+                obj.Server.AddSessionObject(serverSessionHandle, obj);
 
                 context.Response.HandleDesc = IpcHandleDesc.MakeMove(clientSessionHandle);
             }
@@ -227,7 +225,7 @@ namespace Ryujinx.HLE.HOS.Services
             return obj is T t ? t : null;
         }
 
-        public bool TrySetServer(ServerBase newServer)
+        public bool TrySetServer(ServerManager newServer)
         {
             if (Server == null)
             {

@@ -18,7 +18,7 @@ namespace Ryujinx.HLE.HOS.Services.Sockets.Nsd
 
         private bool _isInitialized = false;
 
-        public IManager(ServiceCtx context)
+        public IManager()
         {
             // TODO: Load nsd settings through the savedata 0x80000000000000B0 (nsdsave:/).
 

@@ -1,5 +1,5 @@
-using Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Common;
-using Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.DebugPad;
+using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Common;
+using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.DebugPad;
 
 namespace Ryujinx.HLE.HOS.Services.Hid
 {

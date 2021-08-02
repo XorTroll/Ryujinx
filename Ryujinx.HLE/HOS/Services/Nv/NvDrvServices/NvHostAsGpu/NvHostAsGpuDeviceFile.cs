@@ -46,7 +46,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostAsGpu
                         result = CallIoctlMethod<GetVaRegionsArguments>(GetVaRegions, arguments);
                         break;
                     case 0x09:
-                        result = CallIoctlMethod<InitializeExArguments>(InitializeEx, arguments);
+                        result = CallIoctlMethod<AllocAsExArguments>(AllocAsEx, arguments);
                         break;
                     case 0x14:
                         result = CallIoctlMethod<RemapArguments>(Remap, arguments);
@@ -217,7 +217,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostAsGpu
                 }
             }
 
-            NvMapHandle map = NvMapDeviceFile.GetMapFromHandle(Owner, arguments.NvMapHandle);
+            var map = NvMapDeviceFile.GetMapFromHandle(Owner, arguments.NvMapHandle);
 
             if (map == null)
             {
@@ -296,12 +296,14 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostAsGpu
 
         private NvInternalResult GetVaRegions(ref GetVaRegionsArguments arguments)
         {
+            arguments.BufferSize = 2 * 0x18; // 2 * sizeof(VaRegion)
+
             Logger.Stub?.PrintStub(LogClass.ServiceNv);
 
             return NvInternalResult.Success;
         }
 
-        private NvInternalResult InitializeEx(ref InitializeExArguments arguments)
+        private NvInternalResult AllocAsEx(ref AllocAsExArguments arguments)
         {
             Logger.Stub?.PrintStub(LogClass.ServiceNv);
 

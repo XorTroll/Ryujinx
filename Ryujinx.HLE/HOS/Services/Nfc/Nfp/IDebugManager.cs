@@ -3,9 +3,9 @@
 namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
 {
     [Service("nfp:dbg")]
-    class IAmManager : IpcService
+    class IDebugManager : IpcService
     {
-        public IAmManager(ServiceCtx context) { }
+        public IDebugManager() { }
 
         [CommandHipc(0)]
         // CreateDebugInterface() -> object<nn::nfp::detail::IDebug>

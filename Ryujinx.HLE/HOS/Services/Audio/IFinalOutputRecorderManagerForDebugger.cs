@@ -3,6 +3,6 @@
     [Service("audrec:d")]
     class IFinalOutputRecorderManagerForDebugger : IpcService
     {
-        public IFinalOutputRecorderManagerForDebugger(ServiceCtx context) { }
+        public IFinalOutputRecorderManagerForDebugger() { }
     }
 }

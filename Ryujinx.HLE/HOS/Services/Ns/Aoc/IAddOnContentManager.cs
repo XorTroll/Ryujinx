@@ -1,5 +1,6 @@
 using Ryujinx.Common.Logging;
 using Ryujinx.HLE.HOS.Ipc;
+using Ryujinx.HLE.HOS.Kernel;
 using Ryujinx.HLE.HOS.Kernel.Common;
 using Ryujinx.HLE.HOS.Kernel.Threading;
 using System;
@@ -15,9 +16,9 @@ namespace Ryujinx.HLE.HOS.Services.Ns.Aoc
 
         private ulong _addOnContentBaseId;
 
-        public IAddOnContentManager(ServiceCtx context)
+        public IAddOnContentManager(KernelContext context)
         {
-            _addOnContentListChangedEvent = new KEvent(context.Device.System.KernelContext);
+            _addOnContentListChangedEvent = new KEvent(context);
         }
 
         [CommandHipc(0)] // 1.0.0-6.2.0

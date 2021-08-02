@@ -229,9 +229,9 @@ namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
             return _syscall.GetProcessId(handle, out pid);
         }
 
-        public void Break64([R(0)] ulong reason, [R(1)] ulong x1, [R(2)] ulong info)
+        public void Break64([R(0)] ulong reason, [R(1)] ulong address, [R(2)] ulong size)
         {
-            _syscall.Break(reason);
+            _syscall.Break(reason, address, size);
         }
 
         public void OutputDebugString64([R(0)] ulong strPtr, [R(1)] ulong size)

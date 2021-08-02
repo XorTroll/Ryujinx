@@ -7,7 +7,7 @@ namespace Ryujinx.HLE.HOS.Services.Audio
     [Service("hwopus")]
     class IHardwareOpusDecoderManager : IpcService
     {
-        public IHardwareOpusDecoderManager(ServiceCtx context) { }
+        public IHardwareOpusDecoderManager() { }
 
         [CommandHipc(0)]
         // Initialize(bytes<8, 4>, u32, handle<copy>) -> object<nn::codec::detail::IHardwareOpusDecoder>

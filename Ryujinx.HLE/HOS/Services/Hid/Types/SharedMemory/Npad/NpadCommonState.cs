@@ -1,6 +1,6 @@
-﻿using Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Common;
+﻿using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Common;
 
-namespace Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Npad
+namespace Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Npad
 {
     struct NpadCommonState : ISampledData
     {

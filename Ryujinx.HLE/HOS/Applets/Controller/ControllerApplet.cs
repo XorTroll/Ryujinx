@@ -4,10 +4,9 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Ryujinx.Common.Logging;
 using Ryujinx.HLE.HOS.Services.Hid;
-using Ryujinx.HLE.HOS.Services.Hid.Types;
-using Ryujinx.HLE.HOS.Services.Am.AppletAE;
+using Ryujinx.HLE.HOS.Services.Am.Applet;
 
-using static Ryujinx.HLE.HOS.Services.Hid.HidServer.HidUtils;
+using static Ryujinx.HLE.HOS.Services.Hid.Server.HidUtils;
 
 namespace Ryujinx.HLE.HOS.Applets
 {

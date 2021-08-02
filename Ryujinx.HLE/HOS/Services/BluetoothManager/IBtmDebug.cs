@@ -3,6 +3,6 @@
     [Service("btm:dbg")]
     class IBtmDebug : IpcService
     {
-        public IBtmDebug(ServiceCtx context) { }
+        public IBtmDebug() { }
     }
 }

@@ -3,6 +3,6 @@
     [Service("fsp-ldr")]
     class IFileSystemProxyForLoader : IpcService
     {
-        public IFileSystemProxyForLoader(ServiceCtx context) { }
+        public IFileSystemProxyForLoader() { }
     }
 }

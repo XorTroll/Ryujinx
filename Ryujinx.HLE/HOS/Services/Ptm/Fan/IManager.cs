@@ -3,6 +3,6 @@
     [Service("fan")]
     class IManager : IpcService
     {
-        public IManager(ServiceCtx context) { }
+        public IManager() { }
     }
 }

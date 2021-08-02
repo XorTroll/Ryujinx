@@ -3,6 +3,6 @@
     [Service("nvgem:cd")]
     class INvGemCoreDump : IpcService
     {
-        public INvGemCoreDump(ServiceCtx context) { }
+        public INvGemCoreDump() { }
     }
 }

@@ -596,6 +596,7 @@ namespace Ryujinx.Ui
                     isFirmwareTitle = true;
                 }
 
+                /*
                 if (!SetupValidator.CanStartApplication(_contentManager, path, out UserError userError))
                 {
                     if (SetupValidator.CanFixStartApplication(_contentManager, path, userError, out firmwareVersion))
@@ -652,14 +653,20 @@ namespace Ryujinx.Ui
                         return;
                     }
                 }
+                */
 
                 Logger.Notice.Print(LogClass.Application, $"Using Firmware Version: {firmwareVersion?.VersionString}");
 
                 if (isFirmwareTitle)
                 {
-                    Logger.Info?.Print(LogClass.Application, "Loading as Firmware Title (NCA).");
+                    Logger.Info?.Print(LogClass.Application, "Loading firmware...");
 
-                    _emulationContext.LoadNca(path);
+                    // _emulationContext.LoadNca(path);
+                    // _emulationContext.LoadSystemTitle(_contentManager, 0x010000000000100C);
+                    // _emulationContext.LoadSystemTitle(_contentManager, 0x0100000000001012);
+                    _emulationContext.LoadSystemTitle(_contentManager, 0x0100000000001000);
+                    // _emulationContext.LoadSystemTitle(_contentManager, 0x01008BB00013C000);
+                    // _emulationContext.LoadSystemBuiltinTitles(_contentManager);
                 }
                 else if (Directory.Exists(path))
                 {
@@ -702,6 +709,7 @@ namespace Ryujinx.Ui
                             Logger.Info?.Print(LogClass.Application, "Loading as Homebrew.");
                             try
                             {
+                                _emulationContext.LoadSystemTitle(_contentManager, 0x0100000000001000);
                                 _emulationContext.LoadProgram(path);
                             }
                             catch (ArgumentOutOfRangeException)
@@ -810,7 +818,7 @@ namespace Ryujinx.Ui
 
             _viewBox.Remove(RendererWidget);
             _viewBox.Add(_gameTableWindow);
-
+            
             _gameTableWindow.Expand = true;
 
             Window.Title = $"Ryujinx {Program.Version}";

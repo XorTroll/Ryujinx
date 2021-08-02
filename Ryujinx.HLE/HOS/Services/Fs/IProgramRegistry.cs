@@ -3,6 +3,6 @@
     [Service("fsp-pr")]
     class IProgramRegistry : IpcService
     {
-        public IProgramRegistry(ServiceCtx context) { }
+        public IProgramRegistry() { }
     }
 }

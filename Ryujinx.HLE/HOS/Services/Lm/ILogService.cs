@@ -5,7 +5,7 @@ namespace Ryujinx.HLE.HOS.Services.Lm
     [Service("lm")]
     class ILogService : IpcService
     {
-        public ILogService(ServiceCtx context) { }
+        public ILogService() { }
 
         [CommandHipc(0)]
         // Initialize(u64, pid) -> object<nn::lm::ILogger>

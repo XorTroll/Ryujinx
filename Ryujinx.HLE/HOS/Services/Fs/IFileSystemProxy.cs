@@ -20,9 +20,9 @@ namespace Ryujinx.HLE.HOS.Services.Fs
     {
         private LibHac.FsSrv.IFileSystemProxy _baseFileSystemProxy;
 
-        public IFileSystemProxy(ServiceCtx context)
+        public IFileSystemProxy(Horizon system)
         {
-            _baseFileSystemProxy = context.Device.FileSystem.FsServer.CreateFileSystemProxyService();
+            _baseFileSystemProxy = system.Device.FileSystem.FsServer.CreateFileSystemProxyService();
         }
 
         [CommandHipc(1)]

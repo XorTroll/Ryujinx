@@ -3,6 +3,6 @@
     [Service("irs:sys")]
     class IIrSensorSystemServer : IpcService
     {
-        public IIrSensorSystemServer(ServiceCtx context) { }
+        public IIrSensorSystemServer() { }
     }
 }

@@ -4,9 +4,9 @@ using System.Runtime.CompilerServices;
 using Ryujinx.Common;
 using Ryujinx.Common.Logging;
 using Ryujinx.HLE.HOS.Kernel.Threading;
-using Ryujinx.HLE.HOS.Services.Hid.Types;
-using Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Common;
-using Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Npad;
+using Ryujinx.HLE.HOS.Services.Hid;
+using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Common;
+using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Npad;
 
 namespace Ryujinx.HLE.HOS.Services.Hid
 {

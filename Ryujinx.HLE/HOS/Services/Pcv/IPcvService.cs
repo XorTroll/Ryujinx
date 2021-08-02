@@ -3,6 +3,6 @@
     [Service("pcv")]
     class IPcvService : IpcService
     {
-        public IPcvService(ServiceCtx context) { }
+        public IPcvService() { }
     }
 }

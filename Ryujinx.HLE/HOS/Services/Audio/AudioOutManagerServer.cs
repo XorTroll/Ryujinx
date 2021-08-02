@@ -14,11 +14,9 @@ namespace Ryujinx.HLE.HOS.Services.Audio
 
         private IAudioOutManager _impl;
 
-        public AudioOutManagerServer(ServiceCtx context) : this(context, new AudioOutManager(context.Device.System.AudioOutputManager)) { }
-
-        public AudioOutManagerServer(ServiceCtx context, IAudioOutManager impl) : base(context.Device.System.AudOutServer)
+        public AudioOutManagerServer(Horizon system)
         {
-            _impl = impl;
+            _impl = new AudioOutManager(system.Device.System.AudioOutputManager);
         }
 
         [CommandHipc(0)]

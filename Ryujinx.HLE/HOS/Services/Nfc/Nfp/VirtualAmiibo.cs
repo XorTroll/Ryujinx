@@ -1,7 +1,6 @@
 ﻿using Ryujinx.Common.Configuration;
 using Ryujinx.Common.Memory;
-using Ryujinx.HLE.HOS.Services.Mii;
-using Ryujinx.HLE.HOS.Services.Mii.Types;
+using Ryujinx.HLE.HOS.Services.Sdb.Mii;
 using Ryujinx.HLE.HOS.Services.Nfc.Nfp.NfpManager;
 using System;
 using System.Collections.Generic;

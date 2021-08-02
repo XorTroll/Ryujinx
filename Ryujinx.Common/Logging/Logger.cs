@@ -6,8 +6,17 @@ using System.Threading;
 
 namespace Ryujinx.Common.Logging
 {
+    public interface ILogHelper
+    {
+        public string GetCurrentProcessName();
+
+        public string GetCurrentThreadName();
+    };
+
     public static class Logger
     {
+        public static ILogHelper Helper = null;
+
         private static readonly Stopwatch m_Time;
 
         private static readonly bool[] m_EnabledClasses;
@@ -30,7 +39,7 @@ namespace Ryujinx.Common.Logging
             {
                 if (m_EnabledClasses[(int)logClass])
                 {
-                    Updated?.Invoke(null, new LogEventArgs(Level, m_Time.Elapsed, Thread.CurrentThread.Name, FormatMessage(logClass, "", message)));
+                    Updated?.Invoke(null, new LogEventArgs(Level, m_Time.Elapsed, Helper.GetCurrentProcessName(), Helper.GetCurrentThreadName(), FormatMessage(logClass, "", message)));
                 }
             }
 
@@ -39,7 +48,7 @@ namespace Ryujinx.Common.Logging
             {
                 if (m_EnabledClasses[(int)logClass])
                 {
-                    Updated?.Invoke(null, new LogEventArgs(Level, m_Time.Elapsed, Thread.CurrentThread.Name, FormatMessage(logClass, caller, message)));
+                    Updated?.Invoke(null, new LogEventArgs(Level, m_Time.Elapsed, Helper.GetCurrentProcessName(), Helper.GetCurrentThreadName(), FormatMessage(logClass, caller, message)));
                 }
             }
 
@@ -48,7 +57,7 @@ namespace Ryujinx.Common.Logging
             {
                 if (m_EnabledClasses[(int)logClass])
                 {
-                    Updated?.Invoke(null, new LogEventArgs(Level, m_Time.Elapsed, Thread.CurrentThread.Name, FormatMessage(logClass, caller, message), data));
+                    Updated?.Invoke(null, new LogEventArgs(Level, m_Time.Elapsed, Helper.GetCurrentProcessName(), Helper.GetCurrentThreadName(), FormatMessage(logClass, caller, message), data));
                 }
             }
 
@@ -57,7 +66,7 @@ namespace Ryujinx.Common.Logging
             {
                 if (m_EnabledClasses[(int)logClass])
                 {
-                    Updated?.Invoke(null, new LogEventArgs(Level, m_Time.Elapsed, Thread.CurrentThread.Name, FormatMessage(logClass, caller, "Stubbed. " + message)));
+                    Updated?.Invoke(null, new LogEventArgs(Level, m_Time.Elapsed, Helper.GetCurrentProcessName(), Helper.GetCurrentThreadName(), FormatMessage(logClass, caller, "Stubbed. " + message)));
                 }
             }
 
@@ -66,7 +75,7 @@ namespace Ryujinx.Common.Logging
             {
                 if (m_EnabledClasses[(int)logClass])
                 {
-                    Updated?.Invoke(null, new LogEventArgs(Level, m_Time.Elapsed, Thread.CurrentThread.Name, FormatMessage(logClass, caller, "Stubbed."), data));
+                    Updated?.Invoke(null, new LogEventArgs(Level, m_Time.Elapsed, Helper.GetCurrentProcessName(), Helper.GetCurrentThreadName(), FormatMessage(logClass, caller, "Stubbed."), data));
                 }
             }
 
@@ -75,7 +84,7 @@ namespace Ryujinx.Common.Logging
             {
                 if (m_EnabledClasses[(int)logClass])
                 {
-                    Updated?.Invoke(null, new LogEventArgs(Level, m_Time.Elapsed, Thread.CurrentThread.Name, FormatMessage(logClass, caller, "Stubbed. " + message), data));
+                    Updated?.Invoke(null, new LogEventArgs(Level, m_Time.Elapsed, Helper.GetCurrentProcessName(), Helper.GetCurrentThreadName(), FormatMessage(logClass, caller, "Stubbed. " + message), data));
                 }
             }            
 

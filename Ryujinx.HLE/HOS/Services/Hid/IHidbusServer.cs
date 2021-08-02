@@ -3,6 +3,6 @@
     [Service("hidbus")]
     class IHidbusServer : IpcService
     {
-        public IHidbusServer(ServiceCtx context) { }
+        public IHidbusServer() { }
     }
 }

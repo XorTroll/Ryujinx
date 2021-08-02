@@ -1,7 +1,7 @@
 ﻿using Ryujinx.Common;
 using Ryujinx.Common.Logging;
 using Ryujinx.HLE.HOS.Applets.SoftwareKeyboard;
-using Ryujinx.HLE.HOS.Services.Am.AppletAE;
+using Ryujinx.HLE.HOS.Services.Am.Applet;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;

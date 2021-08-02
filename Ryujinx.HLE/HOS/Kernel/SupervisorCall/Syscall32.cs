@@ -237,9 +237,9 @@ namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
             return result;
         }
 
-        public void Break32([R(0)] uint reason, [R(1)] uint r1, [R(2)] uint info)
+        public void Break32([R(0)] uint reason, [R(1)] uint address, [R(2)] uint size)
         {
-            _syscall.Break(reason);
+            _syscall.Break(reason, address, size);
         }
 
         public void OutputDebugString32([R(0)] uint strPtr, [R(1)] uint size)

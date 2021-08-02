@@ -2,8 +2,9 @@ using Ryujinx.Audio.Backends.CompatLayer;
 using Ryujinx.Audio.Integration;
 using Ryujinx.Graphics.Gpu;
 using Ryujinx.HLE.FileSystem;
+using Ryujinx.HLE.FileSystem.Content;
 using Ryujinx.HLE.HOS;
-using Ryujinx.HLE.HOS.Services.Apm;
+using Ryujinx.HLE.HOS.Services.Ptm.Apm;
 using Ryujinx.HLE.HOS.Services.Hid;
 using Ryujinx.Memory;
 using System;
@@ -105,6 +106,16 @@ namespace Ryujinx.HLE
         public void LoadXci(string xciFile)
         {
             Application.LoadXci(xciFile);
+        }
+
+        public void LoadSystemBuiltinTitles(ContentManager manager)
+        {
+            Application.LoadSystemBuiltinTitles(manager);
+        }
+
+        public void LoadSystemTitle(ContentManager manager, ulong app_id)
+        {
+            Application.LoadSystemTitle(manager, app_id);
         }
 
         public void LoadNca(string ncaFile)

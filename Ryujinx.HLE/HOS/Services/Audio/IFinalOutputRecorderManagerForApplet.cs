@@ -3,6 +3,6 @@
     [Service("audrec:a")]
     class IFinalOutputRecorderManagerForApplet : IpcService
     {
-        public IFinalOutputRecorderManagerForApplet(ServiceCtx context) { }
+        public IFinalOutputRecorderManagerForApplet() { }
     }
 }

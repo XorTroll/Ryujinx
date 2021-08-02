@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Ryujinx.Graphics.Gpu
 {
     /// <summary>
@@ -34,10 +36,10 @@ namespace Ryujinx.Graphics.Gpu
         public static bool EnableMacroJit = true;
 
         /// <summary>
-        /// Title id of the current running game.
+        /// Program IDs of current running processes.
         /// Used by the shader cache.
         /// </summary>
-        public static string TitleId;
+        public static List<string> ProgramIds = new List<string>();
 
         /// <summary>
         /// Enables or disables the shader cache.

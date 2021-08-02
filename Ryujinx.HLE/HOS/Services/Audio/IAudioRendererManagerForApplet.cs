@@ -3,6 +3,6 @@
     [Service("audren:a")]
     class IAudioRendererManagerForApplet : IpcService
     {
-        public IAudioRendererManagerForApplet(ServiceCtx context) { }
+        public IAudioRendererManagerForApplet() { }
     }
 }

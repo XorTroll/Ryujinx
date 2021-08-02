@@ -3,6 +3,6 @@
     [Service("fatal:p")]
     class IPrivateService : IpcService
     {
-        public IPrivateService(ServiceCtx context) { }
+        public IPrivateService() { }
     }
 }

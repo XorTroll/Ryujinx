@@ -3,6 +3,6 @@
     [Service("set:fd")]
     class IFirmwareDebugSettingsServer : IpcService
     {
-        public IFirmwareDebugSettingsServer(ServiceCtx context) { }
+        public IFirmwareDebugSettingsServer() { }
     }
 }

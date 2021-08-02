@@ -1,0 +1,4 @@
+- PTC: not made for multiple processes
+- qlaunch: fix for >= 5.0.0 (related to PCTL?)
+- Fix launching multiple processes which use gfx stuff!
+- Implement many of the left commands

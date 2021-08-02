@@ -3,6 +3,6 @@
     [Service("tcap")]
     class IManager : IpcService
     {
-        public IManager(ServiceCtx context) { }
+        public IManager() { }
     }
 }

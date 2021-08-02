@@ -97,6 +97,8 @@ namespace ARMeilleure.State
         public ulong GetX(int index)              => _nativeContext.GetX(index);
         public void  SetX(int index, ulong value) => _nativeContext.SetX(index, value);
 
+        public ulong GetPC() => _nativeContext.GetPC();
+
         public V128 GetV(int index)             => _nativeContext.GetV(index);
         public void SetV(int index, V128 value) => _nativeContext.SetV(index, value);
 

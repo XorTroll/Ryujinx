@@ -1,6 +1,6 @@
 ﻿using Ryujinx.HLE.HOS.Applets.Browser;
 using Ryujinx.HLE.HOS.Applets.Error;
-using Ryujinx.HLE.HOS.Services.Am.AppletAE;
+using Ryujinx.HLE.HOS.Services.Am.Applet;
 using System;
 using System.Collections.Generic;
 

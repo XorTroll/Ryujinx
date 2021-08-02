@@ -210,6 +210,8 @@ namespace Ryujinx.Memory.Tracking
                     {
                         _invalidAccessHandler?.Invoke(address);
 
+                        Ryujinx.Common.Logging.Logger.Error?.Print(Common.Logging.LogClass.Gpu, "Virtual memory event " + address + ", " + size + ", " + write);
+
                         // We can't continue - it's impossible to remove protection from the page.
                         // Even if the access handler wants us to continue, we wouldn't be able to.
                         throw new InvalidMemoryRegionException();

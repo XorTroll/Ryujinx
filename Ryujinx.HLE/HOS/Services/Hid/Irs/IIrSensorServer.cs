@@ -1,7 +1,7 @@
 using Ryujinx.Common.Logging;
 using Ryujinx.HLE.HOS.Ipc;
 using Ryujinx.HLE.HOS.Kernel.Common;
-using Ryujinx.HLE.HOS.Services.Hid.HidServer;
+using Ryujinx.HLE.HOS.Services.Hid.Server;
 using System;
 
 namespace Ryujinx.HLE.HOS.Services.Hid.Irs
@@ -11,7 +11,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid.Irs
     {
         private int _irsensorSharedMemoryHandle = 0;
 
-        public IIrSensorServer(ServiceCtx context) { }
+        public IIrSensorServer() { }
 
         [CommandHipc(302)]
         // ActivateIrsensor(nn::applet::AppletResourceUserId, pid)

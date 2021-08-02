@@ -4,14 +4,15 @@ using Ryujinx.Common.Configuration.Hid;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Ryujinx.Common.Memory;
-using Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory;
-using Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Common;
-using Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Mouse;
-using Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Keyboard;
-using Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.DebugPad;
-using Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.TouchScreen;
-using Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Npad;
+using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Common;
+using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Mouse;
+using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Keyboard;
+using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.DebugPad;
+using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.TouchScreen;
+using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Npad;
 using Ryujinx.HLE.HOS.Kernel.Memory;
+
+using Shmem = Ryujinx.HLE.HOS.Services.Hid.SharedMemory.SharedMemory;
 
 namespace Ryujinx.HLE.HOS.Services.Hid
 {
@@ -21,7 +22,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 
         private readonly SharedMemoryStorage _storage;
 
-        internal ref SharedMemory SharedMemory => ref _storage.GetRef<SharedMemory>(0);
+        internal ref Shmem SharedMemory => ref _storage.GetRef<Shmem>(0);
 
         internal const int SharedMemEntryCount = 17;
 
@@ -46,7 +47,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
             CheckTypeSizeOrThrow<RingLifo<MouseState>>(0x350);
             CheckTypeSizeOrThrow<RingLifo<KeyboardState>>(0x3D8);
             CheckTypeSizeOrThrow<Array10<NpadState>>(0x32000);
-            CheckTypeSizeOrThrow<SharedMemory>(Horizon.HidSize);
+            CheckTypeSizeOrThrow<Shmem>(Horizon.HidSize);
         }
 
         internal Hid(in Switch device, SharedMemoryStorage storage)
@@ -54,7 +55,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
             _device  = device;
             _storage = storage;
 
-            SharedMemory = SharedMemory.Create();
+            SharedMemory = Shmem.Create();
         }
 
         public void InitDevices()

@@ -66,13 +66,24 @@ namespace Ryujinx.HLE.HOS.Services.Vi.RootService
             MemoryHelper.FillWithZeros(context.Memory, recBuffPtr, 0x60);
 
             // Add only the default display to buffer
-            context.Memory.Write(recBuffPtr, Encoding.ASCII.GetBytes("Default"));
-            context.Memory.Write(recBuffPtr + 0x40, 0x1UL);
-            context.Memory.Write(recBuffPtr + 0x48, 0x1UL);
-            context.Memory.Write(recBuffPtr + 0x50, 1280UL);
-            context.Memory.Write(recBuffPtr + 0x58, 720UL);
+            ulong offset = 0;
+            void WriteDisplay(string name, bool has_layer_limit, ulong max_layer_count, ulong max_width, ulong max_height)
+            {
+                context.Memory.Write(recBuffPtr, Encoding.ASCII.GetBytes(name));
+                context.Memory.Write(recBuffPtr + 0x60 * offset + 0x40, has_layer_limit);
+                context.Memory.Write(recBuffPtr + 0x60 * offset + 0x48, max_layer_count);
+                context.Memory.Write(recBuffPtr + 0x60 * offset + 0x50, max_width);
+                context.Memory.Write(recBuffPtr + 0x60 * offset + 0x58, max_height);
+                offset++;
+            }
 
-            context.ResponseData.Write(1L);
+            WriteDisplay("Default", true, 2, 1280, 720);
+            // WriteDisplay("External", true, 0, 1280, 720);
+            WriteDisplay("Edid", true, 0, 0, 0);
+            // WriteDisplay("Internal", true, 0, 1280, 720);
+            // WriteDisplay("Null", true, 0, 0, 0);
+
+            context.ResponseData.Write(offset);
 
             return ResultCode.Success;
         }

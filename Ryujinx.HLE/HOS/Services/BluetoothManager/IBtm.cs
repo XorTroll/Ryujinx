@@ -3,6 +3,6 @@
     [Service("btm")]
     class IBtm : IpcService
     {
-        public IBtm(ServiceCtx context) { }
+        public IBtm() { }
     }
 }

@@ -5,7 +5,7 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
     [Service("nfp:user")]
     class IUserManager : IpcService
     {
-        public IUserManager(ServiceCtx context) { }
+        public IUserManager() { }
 
         [CommandHipc(0)]
         // CreateUserInterface() -> object<nn::nfp::detail::IUser>

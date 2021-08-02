@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ryujinx.HLE.HOS.Services.Hid.Types
+namespace Ryujinx.HLE.HOS.Services.Hid
 {
     [Flags]
     enum AppletFooterUiType : byte

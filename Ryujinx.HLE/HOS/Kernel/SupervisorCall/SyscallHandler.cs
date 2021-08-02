@@ -21,6 +21,8 @@ namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
         {
             ExecutionContext context = (ExecutionContext)sender;
 
+            // Ryujinx.Common.Logging.Logger.Error?.Print(Ryujinx.Common.Logging.LogClass.KernelSvc, "Calling [0x" + e.Address.ToString("X") + "] SVC 0x" + e.Id.ToString("X"));
+
             if (context.IsAarch32)
             {
                 var svcFunc = SyscallTable.SvcTable32[e.Id];
@@ -43,6 +45,8 @@ namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
 
                 svcFunc(_syscall64, context);
             }
+
+            // Ryujinx.Common.Logging.Logger.Error?.Print(Ryujinx.Common.Logging.LogClass.KernelSvc, "SVC 0x" + e.Id.ToString("X") + " done...");
 
             PostSvcHandler();
         }

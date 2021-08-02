@@ -8,7 +8,7 @@ namespace Ryujinx.HLE.HOS.Services.Account.Acc
     {
         private ApplicationServiceServer _applicationServiceServer;
 
-        public IAccountServiceForSystemService(ServiceCtx context, AccountServiceFlag serviceFlag)
+        public IAccountServiceForSystemService(AccountServiceFlag serviceFlag)
         {
             _applicationServiceServer = new ApplicationServiceServer(serviceFlag);
         }

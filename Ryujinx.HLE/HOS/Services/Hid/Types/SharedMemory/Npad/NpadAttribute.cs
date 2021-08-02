@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Npad
+namespace Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Npad
 {
     [Flags]
     enum NpadAttribute : uint

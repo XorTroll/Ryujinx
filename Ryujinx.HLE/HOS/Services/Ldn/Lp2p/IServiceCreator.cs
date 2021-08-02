@@ -4,6 +4,6 @@
     [Service("lp2p:sys")] // 9.0.0+
     class IServiceCreator : IpcService
     {
-        public IServiceCreator(ServiceCtx context) { }
+        public IServiceCreator() { }
     }
 }

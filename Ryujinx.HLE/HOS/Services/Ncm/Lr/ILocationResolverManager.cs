@@ -6,7 +6,7 @@ namespace Ryujinx.HLE.HOS.Services.Ncm.Lr
     [Service("lr")]
     class ILocationResolverManager : IpcService
     {
-        public ILocationResolverManager(ServiceCtx context) { }
+        public ILocationResolverManager() { }
 
         [CommandHipc(0)]
         // OpenLocationResolver()

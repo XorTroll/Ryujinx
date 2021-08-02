@@ -9,7 +9,7 @@ namespace Ryujinx.HLE.HOS.Services.Olsc
     {
         private bool _initialized;
 
-        public IOlscServiceForApplication(ServiceCtx context) { }
+        public IOlscServiceForApplication() { }
 
         [CommandHipc(0)]
         // Initialize(pid)

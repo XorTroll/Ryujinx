@@ -4,6 +4,6 @@
     [Service("usb:hs:a")] // 7.0.0+
     class IClientRootSession : IpcService
     {
-        public IClientRootSession(ServiceCtx context) { }
+        public IClientRootSession() { }
     }
 }

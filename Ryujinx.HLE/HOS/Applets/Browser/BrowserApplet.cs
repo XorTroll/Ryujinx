@@ -1,6 +1,6 @@
 ﻿using Ryujinx.Common;
 using Ryujinx.Common.Logging;
-using Ryujinx.HLE.HOS.Services.Am.AppletAE;
+using Ryujinx.HLE.HOS.Services.Am.Applet;
 using System;
 using System.Collections.Generic;
 using System.IO;

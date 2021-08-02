@@ -16,6 +16,7 @@ namespace Ryujinx.HLE.HOS
         public IpcMessage Response { get; }
         public BinaryReader RequestData { get; }
         public BinaryWriter ResponseData { get; }
+        public bool IsTipcProtocol { get; }
 
         public ServiceCtx(
             Switch device,
@@ -25,7 +26,8 @@ namespace Ryujinx.HLE.HOS
             IpcMessage request,
             IpcMessage response,
             BinaryReader requestData,
-            BinaryWriter responseData)
+            BinaryWriter responseData,
+            bool isTipcProtocol)
         {
             Device = device;
             Process = process;
@@ -35,6 +37,7 @@ namespace Ryujinx.HLE.HOS
             Response = response;
             RequestData = requestData;
             ResponseData = responseData;
+            IsTipcProtocol = isTipcProtocol;
         }
     }
 }

@@ -5,7 +5,7 @@ namespace Ryujinx.HLE.HOS.Services.Ptm.Psm
     [Service("psm")]
     class IPsmServer : IpcService
     {
-        public IPsmServer(ServiceCtx context) { }
+        public IPsmServer() { }
 
         [CommandHipc(0)]
         // GetBatteryChargePercentage() -> u32
@@ -37,7 +37,7 @@ namespace Ryujinx.HLE.HOS.Services.Ptm.Psm
         // OpenSession() -> IPsmSession
         public ResultCode OpenSession(ServiceCtx context)
         {
-            MakeObject(context, new IPsmSession(context.Device.System));
+            MakeObject(context, new IPsmSession(context.Device.System.KernelContext));
 
             return ResultCode.Success;
         }

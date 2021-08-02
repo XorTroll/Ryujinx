@@ -1488,12 +1488,26 @@ namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
             return KernelStatic.GetCurrentThread().Context.CntpctEl0;
         }
 
-        public void Break(ulong reason)
+        public void Break(ulong reason, ulong address, ulong size)
         {
-            KThread currentThread = KernelStatic.GetCurrentThread();
-
             if ((reason & (1UL << 31)) == 0)
             {
+                var data = new byte[size];
+                if(KernelTransfer.UserToKernelBytes(_context, address, data))
+                {
+                    if (size == 4)
+                    {
+                        var result = BitConverter.ToUInt32(data);
+                        Logger.Error?.Print(LogClass.KernelSvc, "Break result: " + result);
+                    }
+                }
+                else
+                {
+                    Logger.Warning?.Print(LogClass.KernelSvc, "No break data...");
+                }
+
+                KThread currentThread = KernelStatic.GetCurrentThread();
+
                 currentThread.PrintGuestStackTrace();
                 currentThread.PrintGuestRegisterPrintout();
 
@@ -2308,10 +2322,12 @@ namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
 
                 for (; processedHandles < handlesCount; processedHandles++)
                 {
+                    // Logger.Warning?.Print(LogClass.KernelSvc, "Handle: " + handles[processedHandles].ToString("X"));
                     KSynchronizationObject syncObj = currentProcess.HandleTable.GetObject<KSynchronizationObject>(handles[processedHandles]);
 
                     if (syncObj == null)
                     {
+                        Logger.Warning?.Print(LogClass.KernelSvc, "Invalid handle[" + processedHandles + "] (count = " + handlesCount + "): " + handles[processedHandles].ToString("X"));
                         break;
                     }
 

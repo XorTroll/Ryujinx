@@ -10,7 +10,7 @@ namespace Ryujinx.HLE.HOS.Services.Pctl
     {
         private int _permissionFlag;
 
-        public IParentalControlServiceFactory(ServiceCtx context, int permissionFlag)
+        public IParentalControlServiceFactory(int permissionFlag)
         {
             _permissionFlag = permissionFlag;
         }

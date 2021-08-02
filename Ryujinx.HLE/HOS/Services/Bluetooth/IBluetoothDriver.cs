@@ -14,7 +14,7 @@ namespace Ryujinx.HLE.HOS.Services.Bluetooth
         private string _unknownLowEnergy;
 #pragma warning restore CS0414
 
-        public IBluetoothDriver(ServiceCtx context) { }
+        public IBluetoothDriver() { }
 
         [CommandHipc(46)]
         // InitializeBluetoothLe() -> handle<copy>

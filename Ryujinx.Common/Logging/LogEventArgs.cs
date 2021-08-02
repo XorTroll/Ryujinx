@@ -6,26 +6,29 @@ namespace Ryujinx.Common.Logging
     {
         public readonly LogLevel Level;
         public readonly TimeSpan Time;
+        public readonly string   ProcessName;
         public readonly string   ThreadName;
 
         public readonly string Message;
         public readonly object Data;
 
-        public LogEventArgs(LogLevel level, TimeSpan time, string threadName, string message)
+        public LogEventArgs(LogLevel level, TimeSpan time, string processName, string threadName, string message)
         {
-            Level      = level;
-            Time       = time;
-            ThreadName = threadName;
-            Message    = message;
+            Level       = level;
+            Time        = time;
+            ProcessName = processName;
+            ThreadName  = threadName;
+            Message     = message;
         }
 
-        public LogEventArgs(LogLevel level, TimeSpan time, string threadName, string message, object data)
+        public LogEventArgs(LogLevel level, TimeSpan time, string processName, string threadName, string message, object data)
         {
-            Level      = level;
-            Time       = time;
-            ThreadName = threadName;
-            Message    = message;
-            Data       = data;
+            Level       = level;
+            Time        = time;
+            ProcessName = processName;
+            ThreadName  = threadName;
+            Message     = message;
+            Data        = data;
         }
     }
 }

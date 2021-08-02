@@ -1,8 +1,8 @@
-﻿namespace Ryujinx.HLE.HOS.Services.Am.Tcap
+﻿namespace Ryujinx.HLE.HOS.Services.Sdb.Avm
 {
     [Service("avm")] // 6.0.0+
     class IAvmService : IpcService
     {
-        public IAvmService(ServiceCtx context) { }
+        public IAvmService() { }
     }
 }

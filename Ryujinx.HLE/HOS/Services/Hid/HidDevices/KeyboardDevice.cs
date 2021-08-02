@@ -1,5 +1,5 @@
-using Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Common;
-using Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Keyboard;
+using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Common;
+using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Keyboard;
 using System;
 
 namespace Ryujinx.HLE.HOS.Services.Hid

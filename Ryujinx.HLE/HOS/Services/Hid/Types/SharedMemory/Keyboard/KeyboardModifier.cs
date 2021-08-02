@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Keyboard
+namespace Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Keyboard
 {
     // TODO: This seems entirely wrong
     [Flags]

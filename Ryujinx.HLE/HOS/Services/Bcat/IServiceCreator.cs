@@ -1,7 +1,7 @@
 using LibHac;
 using Ryujinx.Common;
 using Ryujinx.HLE.HOS.Services.Bcat.ServiceCreator;
-using Ryujinx.HLE.HOS.Services.Arp;
+using Ryujinx.HLE.HOS.Services.Glue.Arp;
 
 namespace Ryujinx.HLE.HOS.Services.Bcat
 {
@@ -13,9 +13,9 @@ namespace Ryujinx.HLE.HOS.Services.Bcat
     {
         private LibHac.Bcat.Detail.Ipc.IServiceCreator _base;
 
-        public IServiceCreator(ServiceCtx context, string serviceName)
+        public IServiceCreator(Horizon system, string serviceName)
         {
-            context.Device.System.LibHacHorizonClient.Sm.GetService(out _base, serviceName).ThrowIfFailure();
+            system.Device.System.LibHacHorizonClient.Sm.GetService(out _base, serviceName).ThrowIfFailure();
         }
 
         [CommandHipc(0)]

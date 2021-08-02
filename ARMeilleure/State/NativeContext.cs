@@ -118,6 +118,8 @@ namespace ARMeilleure.State
         public int GetCounter() => GetStorage().Counter;
         public void SetCounter(int value) => GetStorage().Counter = value;
 
+        public ulong GetPC() => GetStorage().DispatchAddress;
+
         public bool GetRunning() => GetStorage().Running != 0;
         public void SetRunning(bool value) => GetStorage().Running = value ? 1 : 0;
 

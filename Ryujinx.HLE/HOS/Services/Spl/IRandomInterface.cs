@@ -1,5 +1,4 @@
-﻿using System;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 
 namespace Ryujinx.HLE.HOS.Services.Spl
 {
@@ -10,7 +9,7 @@ namespace Ryujinx.HLE.HOS.Services.Spl
 
         private object _lock = new object();
 
-        public IRandomInterface(ServiceCtx context)
+        public IRandomInterface()
         {
             _rng = new RNGCryptoServiceProvider();
         }

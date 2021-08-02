@@ -111,6 +111,8 @@ namespace Ryujinx.HLE.HOS.Services.Fs.FileSystemProxy
 
             U8Span name = ReadUtf8Span(context);
 
+            Ryujinx.Common.Logging.Logger.Warning?.Print(Common.Logging.LogClass.ServiceFs, "Opening file '" + name.ToString() + "'");
+
             Result result = _fileSystem.OpenFile(out LibHac.Fs.Fsa.IFile file, name, mode);
 
             if (result.IsSuccess())

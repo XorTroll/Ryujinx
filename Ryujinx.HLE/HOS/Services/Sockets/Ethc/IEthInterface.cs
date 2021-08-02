@@ -3,6 +3,6 @@
     [Service("ethc:c")]
     class IEthInterface : IpcService
     {
-        public IEthInterface(ServiceCtx context) { }
+        public IEthInterface() { }
     }
 }

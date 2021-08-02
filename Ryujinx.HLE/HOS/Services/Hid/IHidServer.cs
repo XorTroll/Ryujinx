@@ -1,9 +1,9 @@
 using Ryujinx.Common.Logging;
 using Ryujinx.HLE.HOS.Ipc;
+using Ryujinx.HLE.HOS.Kernel;
 using Ryujinx.HLE.HOS.Kernel.Common;
 using Ryujinx.HLE.HOS.Kernel.Threading;
-using Ryujinx.HLE.HOS.Services.Hid.HidServer;
-using Ryujinx.HLE.HOS.Services.Hid.Types;
+using Ryujinx.HLE.HOS.Services.Hid.Server;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -39,10 +39,10 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         private HidAccelerometerParameters _accelerometerParams;
         private HidVibrationValue          _vibrationValue;
 
-        public IHidServer(ServiceCtx context) : base(context.Device.System.HidServer)
+        public IHidServer(KernelContext context)
         {
-            _xpadIdEvent                 = new KEvent(context.Device.System.KernelContext);
-            _palmaOperationCompleteEvent = new KEvent(context.Device.System.KernelContext);
+            _xpadIdEvent                 = new KEvent(context);
+            _palmaOperationCompleteEvent = new KEvent(context);
 
             _npadJoyAssignmentMode      = HidNpadJoyAssignmentMode.Dual;
             _npadHandheldActivationMode = HidNpadHandheldActivationMode.Dual;

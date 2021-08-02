@@ -3,6 +3,6 @@
     [Service("idle:sys")]
     class IPolicyManagerSystem : IpcService
     {
-        public IPolicyManagerSystem(ServiceCtx context) { }
+        public IPolicyManagerSystem() { }
     }
 }

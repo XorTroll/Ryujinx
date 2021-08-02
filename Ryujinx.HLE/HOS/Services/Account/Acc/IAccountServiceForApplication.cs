@@ -1,7 +1,7 @@
 using Ryujinx.Common.Logging;
 using Ryujinx.Cpu;
 using Ryujinx.HLE.HOS.Services.Account.Acc.AccountService;
-using Ryujinx.HLE.HOS.Services.Arp;
+using Ryujinx.HLE.HOS.Services.Glue.Arp;
 
 namespace Ryujinx.HLE.HOS.Services.Account.Acc
 {
@@ -10,7 +10,7 @@ namespace Ryujinx.HLE.HOS.Services.Account.Acc
     {
         private ApplicationServiceServer _applicationServiceServer;
 
-        public IAccountServiceForApplication(ServiceCtx context, AccountServiceFlag serviceFlag)
+        public IAccountServiceForApplication(AccountServiceFlag serviceFlag)
         {
             _applicationServiceServer = new ApplicationServiceServer(serviceFlag);
         }

@@ -9,7 +9,7 @@ namespace Ryujinx.HLE.HOS.Services.Account.Acc
     {
         private ApplicationServiceServer _applicationServiceServer;
 
-        public IAccountServiceForAdministrator(ServiceCtx context, AccountServiceFlag serviceFlag)
+        public IAccountServiceForAdministrator(AccountServiceFlag serviceFlag)
         {
             _applicationServiceServer = new ApplicationServiceServer(serviceFlag);
         }
@@ -122,6 +122,22 @@ namespace Ryujinx.HLE.HOS.Services.Account.Acc
 
             // Doesn't occur in our case.
             // return ResultCode.NullObject;
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(250)]
+        // GetBaasAccountAdministrator(nn::account::Uid) -> object<nn::account::baas::IAdministrator>
+        public ResultCode GetBaasAccountAdministrator(ServiceCtx context)
+        {
+            ResultCode resultCode = _applicationServiceServer.CheckUserId(context, out UserId userId);
+
+            if (resultCode != ResultCode.Success)
+            {
+                return resultCode;
+            }
+
+            MakeObject(context, new IAdministrator(userId));
 
             return ResultCode.Success;
         }

@@ -10,8 +10,8 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostCtrlGpu
 {
     class NvHostCtrlGpuDeviceFile : NvDeviceFile
     {
-        private static Stopwatch _pTimer    = new Stopwatch();
-        private static double    _ticksToNs = (1.0 / Stopwatch.Frequency) * 1_000_000_000;
+        private static Stopwatch _pTimer          = new Stopwatch();
+        private static readonly double _ticksToNs = (1.0 / Stopwatch.Frequency) * 1_000_000_000;
 
         private KEvent _errorEvent;
         private KEvent _unknownEvent;

@@ -614,6 +614,7 @@ namespace Ryujinx.HLE.HOS.Services.SurfaceFlinger
                     case NativeWindowApi.CPU:
                     case NativeWindowApi.Media:
                     case NativeWindowApi.Camera:
+                        /*
                         if (Core.ConnectedApi == api)
                         {
                             Core.Queue.Clear();
@@ -630,6 +631,21 @@ namespace Ryujinx.HLE.HOS.Services.SurfaceFlinger
 
                             status = Status.Success;
                         }
+                        */
+
+                        Core.Queue.Clear();
+                        Core.FreeAllBuffersLocked();
+                        Core.SignalDequeueEvent();
+
+                        producerListener = Core.ProducerListener;
+
+                        Core.ProducerListener = null;
+                        Core.ConnectedApi = NativeWindowApi.NoApi;
+
+                        Core.SignalWaitBufferFreeEvent();
+                        Core.SignalFrameAvailableEvent();
+
+                        status = Status.Success;
                         break;
                 }
             }

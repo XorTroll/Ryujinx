@@ -1,4 +1,4 @@
-﻿namespace Ryujinx.HLE.HOS.Services.Sm
+﻿namespace Ryujinx.HLE.HOS.Services.Spl
 {
     [Service("spl:")]
     [Service("spl:es")]
@@ -8,6 +8,6 @@
     [Service("spl:ssl")] 
     class IGeneralInterface : IpcService
     {
-        public IGeneralInterface(ServiceCtx context) { }
+        public IGeneralInterface() { }
     }
 }

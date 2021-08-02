@@ -5,7 +5,7 @@ namespace Ryujinx.HLE.HOS.Services.BluetoothManager
     [Service("btm:u")] // 5.0.0+
     class IBtmUser : IpcService
     {
-        public IBtmUser(ServiceCtx context) { }
+        public IBtmUser() { }
 
         [CommandHipc(0)] // 5.0.0+
         // GetCore() -> object<nn::btm::IBtmUserCore>

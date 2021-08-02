@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Ryujinx.HLE.HOS.Services.Hid.Types.SharedMemory.Npad
+namespace Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Npad
 {
     [StructLayout(LayoutKind.Sequential, Size = 0x5000)]
     struct NpadState

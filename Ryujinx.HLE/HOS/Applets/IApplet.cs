@@ -1,4 +1,4 @@
-﻿using Ryujinx.HLE.HOS.Services.Am.AppletAE;
+﻿using Ryujinx.HLE.HOS.Services.Am.Applet;
 using System;
 using System.Runtime.InteropServices;
 

@@ -1,5 +1,4 @@
 using LibHac;
-using LibHac.Bcat;
 using LibHac.Fs;
 using LibHac.FsSystem;
 using Ryujinx.Audio;
@@ -7,7 +6,6 @@ using Ryujinx.Audio.Input;
 using Ryujinx.Audio.Integration;
 using Ryujinx.Audio.Output;
 using Ryujinx.Audio.Renderer.Device;
-using Ryujinx.Audio.Renderer.Server;
 using Ryujinx.HLE.FileSystem.Content;
 using Ryujinx.HLE.HOS.Font;
 using Ryujinx.HLE.HOS.Kernel;
@@ -16,19 +14,62 @@ using Ryujinx.HLE.HOS.Kernel.Process;
 using Ryujinx.HLE.HOS.Kernel.Threading;
 using Ryujinx.HLE.HOS.Services;
 using Ryujinx.HLE.HOS.Services.Account.Acc;
-using Ryujinx.HLE.HOS.Services.Am.AppletAE.AllSystemAppletProxiesService.SystemAppletProxy;
-using Ryujinx.HLE.HOS.Services.Apm;
-using Ryujinx.HLE.HOS.Services.Arp;
+using Ryujinx.HLE.HOS.Services.Am.Applet;
+using Ryujinx.HLE.HOS.Services.Glue.Arp;
 using Ryujinx.HLE.HOS.Services.Audio.AudioRenderer;
-using Ryujinx.HLE.HOS.Services.Caps;
-using Ryujinx.HLE.HOS.Services.Mii;
+using Ryujinx.HLE.HOS.Services.Sdb.Mii;
 using Ryujinx.HLE.HOS.Services.Nfc.Nfp.NfpManager;
-using Ryujinx.HLE.HOS.Services.Nv;
 using Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostCtrl;
 using Ryujinx.HLE.HOS.Services.Pcv.Bpc;
+using Ryujinx.HLE.HOS.Services.Ptm.Apm;
+
+using Ryujinx.HLE.HOS.Services.Account;
+using Ryujinx.HLE.HOS.Services.Am;
+using Ryujinx.HLE.HOS.Services.Audio;
+using Ryujinx.HLE.HOS.Services.Bcat;
+using Ryujinx.HLE.HOS.Services.Bluetooth;
+using Ryujinx.HLE.HOS.Services.BluetoothManager;
+using Ryujinx.HLE.HOS.Services.Caps;
+using Ryujinx.HLE.HOS.Services.Erpt;
+using Ryujinx.HLE.HOS.Services.Es;
+using Ryujinx.HLE.HOS.Services.Eupld;
+using Ryujinx.HLE.HOS.Services.Fatal;
+using Ryujinx.HLE.HOS.Services.Friend;
+using Ryujinx.HLE.HOS.Services.Fs;
+using Ryujinx.HLE.HOS.Services.Glue;
+using Ryujinx.HLE.HOS.Services.Grc;
+using Ryujinx.HLE.HOS.Services.Hid;
+using Ryujinx.HLE.HOS.Services.Ldn;
+using Ryujinx.HLE.HOS.Services.Lm;
+using Ryujinx.HLE.HOS.Services.Loader;
+using Ryujinx.HLE.HOS.Services.Mig;
+using Ryujinx.HLE.HOS.Services.Ncm;
+using Ryujinx.HLE.HOS.Services.Nfc;
+using Ryujinx.HLE.HOS.Services.Ngct;
+using Ryujinx.HLE.HOS.Services.Nifm;
+using Ryujinx.HLE.HOS.Services.Nim;
+using Ryujinx.HLE.HOS.Services.Npns;
+using Ryujinx.HLE.HOS.Services.Ns;
+using Ryujinx.HLE.HOS.Services.Nv;
+using Ryujinx.HLE.HOS.Services.Olsc;
+using Ryujinx.HLE.HOS.Services.Pcie;
+using Ryujinx.HLE.HOS.Services.Pctl;
+using Ryujinx.HLE.HOS.Services.Pcv;
+using Ryujinx.HLE.HOS.Services.Pm;
+using Ryujinx.HLE.HOS.Services.Psc;
+using Ryujinx.HLE.HOS.Services.Ptm;
+using Ryujinx.HLE.HOS.Services.Ro;
+using Ryujinx.HLE.HOS.Services.Sdb;
 using Ryujinx.HLE.HOS.Services.Settings;
 using Ryujinx.HLE.HOS.Services.Sm;
+using Ryujinx.HLE.HOS.Services.Sockets;
+using Ryujinx.HLE.HOS.Services.Spl;
+using Ryujinx.HLE.HOS.Services.Ssl;
 using Ryujinx.HLE.HOS.Services.SurfaceFlinger;
+using Ryujinx.HLE.HOS.Services.Usb;
+using Ryujinx.HLE.HOS.Services.Vi;
+using Ryujinx.HLE.HOS.Services.Wlan;
+
 using Ryujinx.HLE.HOS.Services.Time.Clock;
 using Ryujinx.HLE.HOS.SystemState;
 using Ryujinx.HLE.Loaders.Executables;
@@ -38,6 +79,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+
+using AudioRendererManager = Ryujinx.Audio.Renderer.Server.AudioRendererManager;
+using LibHacBcatServer = LibHac.Bcat.BcatServer;
 
 namespace Ryujinx.HLE.HOS
 {
@@ -70,16 +114,102 @@ namespace Ryujinx.HLE.HOS
 
         internal List<NfpDevice> NfpDevices { get; private set; }
 
-        internal ServerBase SmServer { get; private set; }
-        internal ServerBase BsdServer { get; private set; }
-        internal ServerBase AudRenServer { get; private set; }
-        internal ServerBase AudOutServer { get; private set; }
-        internal ServerBase HidServer { get; private set; }
-        internal ServerBase NvDrvServer { get; private set; }
-        internal ServerBase TimeServer { get; private set; }
-        internal ServerBase ViServer { get; private set; }
-        internal ServerBase ViServerM { get; private set; }
-        internal ServerBase ViServerS { get; private set; }
+        internal SmServer Sm { get; private set; }
+        internal SocketsServer Bsdsockets { get; private set; }
+        internal AccountServer Account { get; private set; }
+        internal FsServer Fs { get; private set; }
+        internal LmServer LogManager { get; private set; }
+        internal NcmServer Ncm { get; private set; }
+        internal PmServer ProcessMana { get; private set; }
+        internal UsbServer Usb { get; private set; }
+        internal SettingsServer Settings { get; private set; }
+        internal BluetoothServer Bluetooth { get; private set; }
+        internal BtmServer Btm { get; private set; }
+        internal FriendsServer Friends { get; private set; }
+        internal PtmServer Ptm { get; private set; }
+        internal HidServer Hid { get; private set; }
+        internal AudioServer Audio { get; private set; }
+        internal WlanServer Wlan { get; private set; }
+        internal LdnServer Ldn { get; private set; }
+        internal NvServer Nvservices { get; private set; }
+        internal PcvServer Pcv { get; private set; }
+        internal NvnServer Nvnflinger { get; private set; }
+        internal PcieServer Pcie { get; private set; }
+        internal NsServer Ns { get; private set; }
+        internal NfcServer Nfc { get; private set; }
+        internal PscServer Psc { get; private set; }
+        internal CapsServer Capsrv { get; private set; }
+        internal AmServer Am { get; private set; }
+        internal SslServer Ssl { get; private set; }
+        internal NimServer Nim { get; private set; }
+        internal SplServer Spl { get; private set; }
+        internal ErptServer Erpt { get; private set; }
+        internal PctlServer Pctl { get; private set; }
+        internal NpnsServer Npns { get; private set; }
+        internal EupldServer Eupld { get; private set; }
+        internal GlueServer Glue { get; private set; }
+        internal EsServer Es { get; private set; }
+        internal FatalServer Fatal { get; private set; }
+        internal GrcServer Grc { get; private set; }
+        internal RoServer Ro { get; private set; }
+        internal SdbServer Sdb { get; private set; }
+        internal MigServer Migration { get; private set; }
+        internal OlscServer Olsc { get; private set; }
+        internal LoaderServer Loader { get; private set; }
+        internal NgctServer Ngct { get; private set; }
+        internal NifmServer Nifm { get; private set; }
+        internal ViServer Vi { get; private set; }
+        internal BcatServer Bcat { get; private set; }
+
+        internal ServerManager[] GetServerList() => new ServerManager[]
+        {
+            Sm,
+            Bsdsockets,
+            Account,
+            Fs,
+            LogManager,
+            Ncm,
+            ProcessMana,
+            Usb,
+            Settings,
+            Bluetooth,
+            Btm,
+            Friends,
+            Ptm,
+            Hid,
+            Audio,
+            Wlan,
+            Ldn,
+            Nvservices,
+            Pcv,
+            Nvnflinger,
+            Pcie,
+            Ns,
+            Nfc,
+            Psc,
+            Capsrv,
+            Am,
+            Ssl,
+            Nim,
+            Spl,
+            Erpt,
+            Pctl,
+            Npns,
+            Eupld,
+            Glue,
+            Es,
+            Fatal,
+            Grc,
+            Ro,
+            Sdb,
+            Migration,
+            Olsc,
+            Loader,
+            Ngct,
+            Nifm,
+            Vi,
+            Bcat
+        };
 
         internal KSharedMemory HidSharedMem  { get; private set; }
         internal KSharedMemory FontSharedMem { get; private set; }
@@ -285,21 +415,54 @@ namespace Ryujinx.HLE.HOS
 
         public void InitializeServices()
         {
-            SmServer = new ServerBase(KernelContext, "SmServer", () => new IUserInterface(KernelContext));
+            // Initialize our pseudo-sysmodules
 
-            // Wait until SM server thread is done with initialization,
-            // only then doing connections to SM is safe.
-            SmServer.InitDone.WaitOne();
-
-            BsdServer = new ServerBase(KernelContext, "BsdServer");
-            AudRenServer = new ServerBase(KernelContext, "AudioRendererServer");
-            AudOutServer = new ServerBase(KernelContext, "AudioOutServer");
-            HidServer = new ServerBase(KernelContext, "HidServer");
-            NvDrvServer = new ServerBase(KernelContext, "NvservicesServer");
-            TimeServer = new ServerBase(KernelContext, "TimeServer");
-            ViServer = new ServerBase(KernelContext, "ViServerU");
-            ViServerM = new ServerBase(KernelContext, "ViServerM");
-            ViServerS = new ServerBase(KernelContext, "ViServerS");
+            Sm = new SmServer(this);
+            Bsdsockets = new SocketsServer(this);
+            Account = new AccountServer(this);
+            Fs = new FsServer(this);
+            LogManager = new LmServer(this);
+            Ncm = new NcmServer(this);
+            ProcessMana = new PmServer(this);
+            Usb = new UsbServer(this);
+            Settings = new SettingsServer(this);
+            Bluetooth = new BluetoothServer(this);
+            Btm = new BtmServer(this);
+            Friends = new FriendsServer(this);
+            Ptm = new PtmServer(this);
+            Hid = new HidServer(this);
+            Audio = new AudioServer(this);
+            Wlan = new WlanServer(this);
+            Ldn = new LdnServer(this);
+            Nvservices = new NvServer(this);
+            Pcv = new PcvServer(this);
+            Nvnflinger = new NvnServer(this);
+            Pcie = new PcieServer(this);
+            Ns = new NsServer(this);
+            Nfc = new NfcServer(this);
+            Psc = new PscServer(this);
+            Capsrv = new CapsServer(this);
+            Am = new AmServer(this);
+            Ssl = new SslServer(this);
+            Nim = new NimServer(this);
+            Spl = new SplServer(this);
+            Erpt = new ErptServer(this);
+            Pctl = new PctlServer(this);
+            Npns = new NpnsServer(this);
+            Eupld = new EupldServer(this);
+            Glue = new GlueServer(this);
+            Es = new EsServer(this);
+            Fatal = new FatalServer(this);
+            Grc = new GrcServer(this);
+            Ro = new RoServer(this);
+            Sdb = new SdbServer(this);
+            Migration = new MigServer(this);
+            Olsc = new OlscServer(this);
+            Loader = new LoaderServer(this);
+            Ngct = new NgctServer(this);
+            Nifm = new NifmServer(this);
+            Vi = new ViServer(this);
+            Bcat = new BcatServer(this);
         }
 
         public void LoadKip(string kipPath)
@@ -317,7 +480,7 @@ namespace Ryujinx.HLE.HOS
             horizon.CreateHorizonClient(out HorizonClient bcatClient).ThrowIfFailure();
 
             ryujinxClient.Sm.RegisterService(new LibHacIReader(this), "arp:r").ThrowIfFailure();
-            new BcatServer(bcatClient);
+            new LibHacBcatServer(bcatClient);
 
             LibHacHorizonServer = horizon;
             LibHacHorizonClient = ryujinxClient;
