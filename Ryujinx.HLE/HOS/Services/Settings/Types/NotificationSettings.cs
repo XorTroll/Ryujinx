@@ -1,6 +1,6 @@
 ﻿namespace Ryujinx.HLE.HOS.Services.Settings.Types
 {
-    class NotificationSettings
+    struct NotificationSettings
     {
         public uint Flags { get; set; }
 

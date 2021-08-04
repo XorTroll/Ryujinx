@@ -77,6 +77,7 @@ namespace Ryujinx.HLE.HOS.Services.Vi.RootService
                 offset++;
             }
 
+            // Note: qlaunch will only work if only these two are written...?
             WriteDisplay("Default", true, 2, 1280, 720);
             // WriteDisplay("External", true, 0, 1280, 720);
             WriteDisplay("Edid", true, 0, 0, 0);
@@ -321,7 +322,7 @@ namespace Ryujinx.HLE.HOS.Services.Vi.RootService
 
         [CommandHipc(5202)]
         // GetDisplayVsyncEvent(u64) -> handle<copy>
-        public ResultCode GetDisplayVSyncEvent(ServiceCtx context)
+        public ResultCode GetDisplayVsyncEvent(ServiceCtx context)
         {
             string name = GetDisplayName(context);
 

@@ -22,20 +22,17 @@ namespace Ryujinx.HLE.HOS.Services.Ns
         public ResultCode GetTotalSpaceSize(ServiceCtx context)
         {
             var storageId = (StorageId)context.RequestData.ReadByte();
-            long totalSpace = 0;
+            long totalSpace;
 
             switch (storageId)
             {
                 case StorageId.SdCard:
-                    // SD card
+                default: // TODO: implement others instead of returning SD values...
                     var fsProxy = context.Device.FileSystem.FsServer.CreateFileSystemProxyService();
 
                     // TODO: check result codes here
                     fsProxy.OpenSdCardFileSystem(out var sdFs);
                     sdFs.GetTotalSpaceSize(out totalSpace, "/".ToU8Span());
-                    break;
-                default:
-                    // TODO: implement this...
                     break;
             }
 
@@ -50,20 +47,18 @@ namespace Ryujinx.HLE.HOS.Services.Ns
         public ResultCode GetFreeSpaceSize(ServiceCtx context)
         {
             var storageId = (StorageId)context.RequestData.ReadByte();
-            long freeSpace = 0;
+            long freeSpace;
 
             switch(storageId)
             {
                 case StorageId.SdCard:
+                default: // TODO: implement others instead of returning SD values...
                     // SD card
                     var fsProxy = context.Device.FileSystem.FsServer.CreateFileSystemProxyService();
 
                     // TODO: check result codes here
                     fsProxy.OpenSdCardFileSystem(out var sdFs);
                     sdFs.GetFreeSpaceSize(out freeSpace, "/".ToU8Span());
-                    break;
-                default:
-                    // TODO: implement this...
                     break;
             }
 

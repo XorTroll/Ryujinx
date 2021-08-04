@@ -10,7 +10,7 @@ namespace Ryujinx.HLE.HOS.Services.Ldn
         // GetStateForMonitor() -> u32
         public ResultCode GetStateForMonitor(ServiceCtx context)
         {
-            context.ResponseData.Write(0);
+            context.ResponseData.Write((uint)0);
 
             Logger.Stub?.PrintStub(LogClass.ServiceLdn);
 

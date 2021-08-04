@@ -20,7 +20,11 @@ namespace Ryujinx.HLE.HOS.Services.BluetoothManager.BtmSystem
         // GetRadioOnOff() -> bool
         public ResultCode GetRadioOnOff(ServiceCtx context)
         {
+            // TODO
+
             context.ResponseData.Write(false);
+
+            Logger.Stub?.PrintStub(LogClass.ServiceBtm);
 
             return ResultCode.Success;
         }
@@ -29,7 +33,10 @@ namespace Ryujinx.HLE.HOS.Services.BluetoothManager.BtmSystem
         // AcquireRadioEvent() -> bool, handle<copy>
         public ResultCode AcquireRadioEvent(ServiceCtx context)
         {
+            // TODO: what's this value?
             context.ResponseData.Write(true);
+
+            Logger.Stub?.PrintStub(LogClass.ServiceBtm);
 
             if (_radioEventHandle == 0)
             {

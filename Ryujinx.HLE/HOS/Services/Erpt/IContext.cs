@@ -8,7 +8,7 @@ namespace Ryujinx.HLE.HOS.Services.Erpt
         public IContext() { }
 
         [CommandHipc(0)]
-        // SubmitContext()
+        // SubmitContext(buffer, buffer)
         public ResultCode SubmitContext(ServiceCtx context)
         {
             // TODO: error report context format parsing, etc.

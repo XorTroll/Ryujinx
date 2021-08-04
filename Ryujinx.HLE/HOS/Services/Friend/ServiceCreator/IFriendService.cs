@@ -358,13 +358,11 @@ namespace Ryujinx.HLE.HOS.Services.Friend.ServiceCreator
         // GetPlayHistoryStatistics(nn::account::Uid) -> nn::friends::PlayHistoryStatistics
         public ResultCode GetPlayHistoryStatistics(ServiceCtx context)
         {
+            // TODO
+
             var userId = context.RequestData.ReadStruct<UserId>();
 
-            // TODO: do this properly
-            ulong play_history_local = 0;
-            context.ResponseData.Write(play_history_local);
-            ulong play_history_online = 0;
-            context.ResponseData.Write(play_history_online);
+            context.ResponseData.WriteStruct(PlayHistoryStatistics.Default);
 
             Logger.Stub?.PrintStub(LogClass.ServiceFriend);
 

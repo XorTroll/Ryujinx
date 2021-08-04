@@ -4,7 +4,13 @@ namespace Ryujinx.HLE.HOS.Services.Ldn.Lp2p
 {
     class IMonitorService : IpcService
     {
-        public IMonitorService(ServiceCtx context) { }
+        private GroupInfo _groupInfo;
+
+        public IMonitorService()
+        {
+            // TODO: initial values here?
+            _groupInfo = new GroupInfo();
+        }
 
         [CommandHipc(0)]
         // Initialize()
@@ -19,10 +25,8 @@ namespace Ryujinx.HLE.HOS.Services.Ldn.Lp2p
         // GetGroupInfo()
         public ResultCode GetGroupInfo(ServiceCtx context)
         {
-            // TODO: do this nicely
-            var group_info = new byte[0x200];
-            var group_info_buf = context.Request.RecvListBuff[0];
-            context.Memory.Write(group_info_buf.Position, group_info);
+            var groupInfoBuf = context.Request.RecvListBuff[0];
+            context.Memory.Write(groupInfoBuf.Position, _groupInfo);
 
             Logger.Stub?.PrintStub(LogClass.ServiceLdn);
 

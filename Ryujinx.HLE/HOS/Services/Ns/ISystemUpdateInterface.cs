@@ -23,8 +23,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns
         // GetBackgroundNetworkUpdateState() -> nn::ns::BackgroundNetworkUpdateState
         public ResultCode GetBackgroundNetworkUpdateState(ServiceCtx context)
         {
-            // TODO
-
+            // Not supporting firmware updates fow now...
             context.ResponseData.Write((byte)BackgroundNetworkUpdateState.None);
 
             Logger.Stub?.PrintStub(LogClass.ServiceNs);

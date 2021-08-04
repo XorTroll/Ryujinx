@@ -38,6 +38,8 @@ namespace Ryujinx.HLE.HOS.Services.Glue.Notif
         // GetPresentationSetting() -> ?
         public ResultCode GetPresentationSetting(ServiceCtx context)
         {
+            // TODO
+
             Logger.Stub?.PrintStub(LogClass.Service);
 
             return ResultCode.Success;

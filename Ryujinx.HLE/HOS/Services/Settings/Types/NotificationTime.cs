@@ -1,6 +1,6 @@
 ﻿namespace Ryujinx.HLE.HOS.Services.Settings.Types
 {
-    class NotificationTime
+    struct NotificationTime
     {
         public uint Hour { get; set; }
 

@@ -16,6 +16,8 @@ namespace Ryujinx.HLE.HOS.Services.Ptm.Lbl
         // SaveCurrentSetting()
         public ResultCode SaveCurrentSetting(ServiceCtx context)
         {
+            Logger.Stub?.PrintStub(LogClass.Service);
+
             return ResultCode.Success;
         }
 
@@ -23,6 +25,8 @@ namespace Ryujinx.HLE.HOS.Services.Ptm.Lbl
         // LoadCurrentSetting()
         public ResultCode LoadCurrentSetting(ServiceCtx context)
         {
+            Logger.Stub?.PrintStub(LogClass.Service);
+
             return ResultCode.Success;
         }
 

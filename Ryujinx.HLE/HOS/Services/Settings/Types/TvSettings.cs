@@ -1,6 +1,6 @@
 ﻿namespace Ryujinx.HLE.HOS.Services.Settings.Types
 {
-    class TvSettings
+    struct TvSettings
     {
         public uint Flags { get; set; }
 

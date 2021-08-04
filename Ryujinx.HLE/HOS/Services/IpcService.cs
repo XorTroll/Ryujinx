@@ -105,6 +105,8 @@ namespace Ryujinx.HLE.HOS.Services
             long sfciMagic = context.RequestData.ReadInt64();
             int commandId = (int)context.RequestData.ReadInt64();
 
+            Logger.Info?.Print(LogClass.KernelIpc, "Calling IPC " + service.GetType() + " -> " + commandId);
+
             bool serviceExists = service.HipcCommands.TryGetValue(commandId, out MethodInfo processRequest);
 
             if (context.Device.Configuration.IgnoreMissingServices || serviceExists)

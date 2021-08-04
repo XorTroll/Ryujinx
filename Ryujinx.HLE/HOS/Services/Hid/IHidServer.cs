@@ -335,6 +335,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode StartSixAxisSensor(ServiceCtx context)
         {
             int  sixAxisSensorHandle  = context.RequestData.ReadInt32();
+            context.RequestData.ReadInt32(); // Padding
             long appletResourceUserId = context.RequestData.ReadInt64();
 
             Logger.Stub?.PrintStub(LogClass.ServiceHid, new { appletResourceUserId, sixAxisSensorHandle });
@@ -347,6 +348,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode StopSixAxisSensor(ServiceCtx context)
         {
             int  sixAxisSensorHandle  = context.RequestData.ReadInt32();
+            context.RequestData.ReadInt32(); // Padding
             long appletResourceUserId = context.RequestData.ReadInt64();
 
             Logger.Stub?.PrintStub(LogClass.ServiceHid, new { appletResourceUserId, sixAxisSensorHandle });
@@ -359,6 +361,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode IsSixAxisSensorFusionEnabled(ServiceCtx context)
         {
             int  sixAxisSensorHandle  = context.RequestData.ReadInt32();
+            context.RequestData.ReadInt32(); // Padding
             long appletResourceUserId = context.RequestData.ReadInt64();
 
             context.ResponseData.Write(_sixAxisSensorFusionEnabled);
@@ -374,6 +377,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         {
             _sixAxisSensorFusionEnabled = context.RequestData.ReadBoolean();
             int  sixAxisSensorHandle    = context.RequestData.ReadInt32();
+            context.RequestData.ReadBytes(3); // Padding
             long appletResourceUserId   = context.RequestData.ReadInt64();
 
             Logger.Stub?.PrintStub(LogClass.ServiceHid, new { appletResourceUserId, sixAxisSensorHandle, _sixAxisSensorFusionEnabled });
@@ -393,6 +397,8 @@ namespace Ryujinx.HLE.HOS.Services.Hid
                 ReviseRange = context.RequestData.ReadInt32()
             };
 
+            context.RequestData.ReadInt32(); // Padding
+
             long appletResourceUserId = context.RequestData.ReadInt64();
 
             Logger.Stub?.PrintStub(LogClass.ServiceHid, new { appletResourceUserId, sixAxisSensorHandle, _sensorFusionParams.RevisePower, _sensorFusionParams.ReviseRange });
@@ -405,6 +411,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode GetSixAxisSensorFusionParameters(ServiceCtx context)
         {
             int  sixAxisSensorHandle  = context.RequestData.ReadInt32();
+            context.RequestData.ReadInt32(); // Padding
             long appletResourceUserId = context.RequestData.ReadInt64();
 
             context.ResponseData.Write(_sensorFusionParams.RevisePower);
@@ -419,7 +426,8 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         // ResetSixAxisSensorFusionParameters(nn::hid::SixAxisSensorHandle, nn::applet::AppletResourceUserId)
         public ResultCode ResetSixAxisSensorFusionParameters(ServiceCtx context)
         {
-            int  sixAxisSensorHandle  = context.RequestData.ReadInt32();
+            int sixAxisSensorHandle = context.RequestData.ReadInt32();
+            context.RequestData.ReadInt32(); // Padding
             long appletResourceUserId = context.RequestData.ReadInt64();
 
             _sensorFusionParams.RevisePower = 0;
@@ -442,6 +450,8 @@ namespace Ryujinx.HLE.HOS.Services.Hid
                 Y = context.RequestData.ReadInt32()
             };
 
+            context.RequestData.ReadInt32(); // Padding
+
             long appletResourceUserId = context.RequestData.ReadInt64();
 
             Logger.Stub?.PrintStub(LogClass.ServiceHid, new { appletResourceUserId, sixAxisSensorHandle, _accelerometerParams.X, _accelerometerParams.Y });
@@ -454,6 +464,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode GetAccelerometerParameters(ServiceCtx context)
         {
             int  sixAxisSensorHandle  = context.RequestData.ReadInt32();
+            context.RequestData.ReadInt32(); // Padding
             long appletResourceUserId = context.RequestData.ReadInt64();
 
             context.ResponseData.Write(_accelerometerParams.X);
@@ -469,6 +480,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode ResetAccelerometerParameters(ServiceCtx context)
         {
             int  sixAxisSensorHandle  = context.RequestData.ReadInt32();
+            context.RequestData.ReadInt32(); // Padding
             long appletResourceUserId = context.RequestData.ReadInt64();
 
             _accelerometerParams.X = 0;
@@ -484,7 +496,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode SetAccelerometerPlayMode(ServiceCtx context)
         {
             int  sixAxisSensorHandle    = context.RequestData.ReadInt32();
-                 _accelerometerPlayMode = context.RequestData.ReadUInt32();
+            _accelerometerPlayMode = context.RequestData.ReadUInt32();
             long appletResourceUserId   = context.RequestData.ReadInt64();
 
             Logger.Stub?.PrintStub(LogClass.ServiceHid, new { appletResourceUserId, sixAxisSensorHandle, _accelerometerPlayMode });
@@ -497,6 +509,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode GetAccelerometerPlayMode(ServiceCtx context)
         {
             int  sixAxisSensorHandle  = context.RequestData.ReadInt32();
+            context.RequestData.ReadInt32(); // Padding
             long appletResourceUserId = context.RequestData.ReadInt64();
 
             context.ResponseData.Write(_accelerometerPlayMode);
@@ -511,6 +524,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode ResetAccelerometerPlayMode(ServiceCtx context)
         {
             int  sixAxisSensorHandle  = context.RequestData.ReadInt32();
+            context.RequestData.ReadInt32(); // Padding
             long appletResourceUserId = context.RequestData.ReadInt64();
 
             _accelerometerPlayMode = 0;
@@ -525,7 +539,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode SetGyroscopeZeroDriftMode(ServiceCtx context)
         {
             int  sixAxisSensorHandle     = context.RequestData.ReadInt32();
-                 _gyroscopeZeroDriftMode = (HidGyroscopeZeroDriftMode)context.RequestData.ReadInt32();
+            _gyroscopeZeroDriftMode = (HidGyroscopeZeroDriftMode)context.RequestData.ReadInt32();
             long appletResourceUserId    = context.RequestData.ReadInt64();
 
             Logger.Stub?.PrintStub(LogClass.ServiceHid, new { appletResourceUserId, sixAxisSensorHandle, _gyroscopeZeroDriftMode });
@@ -538,6 +552,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode GetGyroscopeZeroDriftMode(ServiceCtx context)
         {
             int  sixAxisSensorHandle  = context.RequestData.ReadInt32();
+            context.RequestData.ReadInt32(); // Padding
             long appletResourceUserId = context.RequestData.ReadInt64();
 
             context.ResponseData.Write((int)_gyroscopeZeroDriftMode);
@@ -552,6 +567,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode ResetGyroscopeZeroDriftMode(ServiceCtx context)
         {
             int  sixAxisSensorHandle  = context.RequestData.ReadInt32();
+            context.RequestData.ReadInt32(); // Padding
             long appletResourceUserId = context.RequestData.ReadInt64();
 
             _gyroscopeZeroDriftMode = HidGyroscopeZeroDriftMode.Standard;
@@ -566,6 +582,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode IsSixAxisSensorAtRest(ServiceCtx context)
         {
             int  sixAxisSensorHandle  = context.RequestData.ReadInt32();
+            context.RequestData.ReadInt32(); // Padding
             long appletResourceUserId = context.RequestData.ReadInt64();
 
             bool isAtRest = true;
@@ -582,7 +599,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode IsFirmwareUpdateAvailableForSixAxisSensor(ServiceCtx context)
         {
             int  sixAxisSensorHandle  = context.RequestData.ReadInt32();
-            context.RequestData.BaseStream.Position += 4;
+            context.RequestData.ReadInt32(); // Padding
             long appletResourceUserId = context.RequestData.ReadInt64();
 
             context.ResponseData.Write(_isFirmwareUpdateAvailableForSixAxisSensor);
@@ -609,6 +626,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode SetSupportedNpadStyleSet(ServiceCtx context)
         {
             ControllerType type = (ControllerType)context.RequestData.ReadInt32();
+            context.RequestData.ReadInt32(); // Padding
             long appletResourceUserId = context.RequestData.ReadInt64();
 
             Logger.Stub?.PrintStub(LogClass.ServiceHid, new {
@@ -717,6 +735,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode AcquireNpadStyleSetUpdateEventHandle(ServiceCtx context)
         {
             PlayerIndex npadId               = HidUtils.GetIndexFromNpadIdType((NpadIdType)context.RequestData.ReadInt32());
+            context.RequestData.ReadInt32(); // Padding
             long        appletResourceUserId = context.RequestData.ReadInt64();
             long        npadStyleSet         = context.RequestData.ReadInt64();
 
@@ -738,6 +757,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode DisconnectNpad(ServiceCtx context)
         {
             NpadIdType npadIdType           = (NpadIdType)context.RequestData.ReadInt32();
+            context.RequestData.ReadInt32(); // Padding
             long       appletResourceUserId = context.RequestData.ReadInt64();
 
             Logger.Stub?.PrintStub(LogClass.ServiceHid, new { appletResourceUserId, npadIdType });
@@ -775,7 +795,8 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         // ActivateNpadWithRevision(nn::applet::AppletResourceUserId, int revision)
         public ResultCode ActivateNpadWithRevision(ServiceCtx context)
         {
-            int  revision             = context.RequestData.ReadInt32();
+            int revision = context.RequestData.ReadInt32();
+            context.RequestData.ReadInt32(); // Padding
             long appletResourceUserId = context.RequestData.ReadInt64();
 
             // Initialize entries to avoid issues with some games.
@@ -858,6 +879,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode SetNpadJoyAssignmentModeSingleByDefault(ServiceCtx context)
         {
             PlayerIndex hidControllerId      = (PlayerIndex)context.RequestData.ReadInt32();
+            context.RequestData.ReadInt32(); // Padding
             long        appletResourceUserId = context.RequestData.ReadInt64();
 
             _npadJoyAssignmentMode = HidNpadJoyAssignmentMode.Single;
@@ -872,6 +894,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode SetNpadJoyAssignmentModeSingle(ServiceCtx context)
         {
             PlayerIndex          hidControllerId      = (PlayerIndex)context.RequestData.ReadInt32();
+            context.RequestData.ReadInt32(); // Padding
             long                 appletResourceUserId = context.RequestData.ReadInt64();
             HidNpadJoyDeviceType hidNpadJoyDeviceType = (HidNpadJoyDeviceType)context.RequestData.ReadInt64();
 
@@ -887,6 +910,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         public ResultCode SetNpadJoyAssignmentModeDual(ServiceCtx context)
         {
             PlayerIndex hidControllerId      = HidUtils.GetIndexFromNpadIdType((NpadIdType)context.RequestData.ReadInt32());
+            context.RequestData.ReadInt32(); // Padding
             long        appletResourceUserId = context.RequestData.ReadInt64();
 
             _npadJoyAssignmentMode = HidNpadJoyAssignmentMode.Dual;

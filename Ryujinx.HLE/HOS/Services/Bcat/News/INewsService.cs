@@ -44,10 +44,12 @@ namespace Ryujinx.HLE.HOS.Services.Bcat.News
         }
 
         [CommandHipc(30200)]
-        // IsSystemUpdateRequired()
+        // IsSystemUpdateRequired() -> bool?
         public ResultCode IsSystemUpdateRequired(ServiceCtx context)
         {
             // TODO
+
+            context.ResponseData.Write(false);
 
             Logger.Stub?.PrintStub(LogClass.Service);
 

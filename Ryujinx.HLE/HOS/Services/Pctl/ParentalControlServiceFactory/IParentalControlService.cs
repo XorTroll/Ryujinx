@@ -395,7 +395,9 @@ namespace Ryujinx.HLE.HOS.Services.Pctl.ParentalControlServiceFactory
         // IsPlayTimerAlarmDisabled() -> bool
         public ResultCode IsPlayTimerAlarmDisabled(ServiceCtx context)
         {
-            context.ResponseData.Write(false);
+            // TODO
+
+            context.ResponseData.Write(true);
 
             Logger.Stub?.PrintStub(LogClass.ServicePctl);
 

@@ -159,8 +159,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetColorSetId() -> i32
         public ResultCode GetColorSetId(ServiceCtx context)
         {
-            // context.ResponseData.Write((int)context.Device.System.State.ThemeColor);
-            context.ResponseData.Write((int)ColorSet.BasicBlack);
+            context.ResponseData.Write((int)context.Device.System.State.ThemeColor);
 
             return ResultCode.Success;
         }
@@ -180,12 +179,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetNotificationSettings() -> nn::settings::system::NotificationSettings
         public ResultCode GetNotificationSettings(ServiceCtx context)
         {
-            context.ResponseData.Write(NotificationSettings.Default.Flags);
-            context.ResponseData.Write(NotificationSettings.Default.Volume);
-            context.ResponseData.Write(NotificationSettings.Default.HeadTime.Hour);
-            context.ResponseData.Write(NotificationSettings.Default.HeadTime.Minute);
-            context.ResponseData.Write(NotificationSettings.Default.TailTime.Hour);
-            context.ResponseData.Write(NotificationSettings.Default.TailTime.Minute);
+            context.ResponseData.WriteStruct(NotificationSettings.Default);
 
             Logger.Stub?.PrintStub(LogClass.ServiceSet);
 
@@ -324,16 +318,11 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetTvSettings() -> nn::settings::system::TvSettings
         public ResultCode GetTvSettings(ServiceCtx context)
         {
+            // TODO: make this customizable
+
             Logger.Stub?.PrintStub(LogClass.ServiceSet);
 
-            context.ResponseData.Write(TvSettings.Default.Flags);
-            context.ResponseData.Write(TvSettings.Default.Resolution);
-            context.ResponseData.Write(TvSettings.Default.HdmiCntType);
-            context.ResponseData.Write(TvSettings.Default.Rgb);
-            context.ResponseData.Write(TvSettings.Default.Cmu);
-            context.ResponseData.Write(TvSettings.Default.Underscan);
-            context.ResponseData.Write(TvSettings.Default.Gamma);
-            context.ResponseData.Write(TvSettings.Default.ContrastRatio);
+            context.ResponseData.WriteStruct(TvSettings.Default);
 
             return ResultCode.Success;
         }
@@ -379,7 +368,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetPrimaryAlbumStorage() -> nn::settings::system::PrimaryAlbumStorage
         public ResultCode GetPrimaryAlbumStorage(ServiceCtx context)
         {
-            // NOTE: THis should be customizable
+            // NOTE: This should be customizable
             // Default to SD card
             context.ResponseData.Write((uint)PrimaryAlbumStorage.SdCard);
 
@@ -392,15 +381,9 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetSleepSettings() -> nn::settings::system::SleepSettings
         public ResultCode GetSleepSettings(ServiceCtx context)
         {
-            // TODO: do this nicely
-            uint flag = 0;
-            uint handheld_sleep_plan = 5; // Never sleep
-            uint console_sleep_plan = 5; // Never sleep
             // NOTE: this should be customizable by the user
 
-            context.ResponseData.Write(flag);
-            context.ResponseData.Write(handheld_sleep_plan);
-            context.ResponseData.Write(console_sleep_plan);
+            context.ResponseData.WriteStruct(SleepSettings.Default);
 
             Logger.Stub?.PrintStub(LogClass.ServiceSet);
 
@@ -413,11 +396,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         {
             // NOTE: this really should be customizable, empty on first launch, etc.
 
-            context.ResponseData.Write(InitialLaunchSettings.Default.Flags);
-            context.ResponseData.Write(InitialLaunchSettings.Default.Reserved);
-            context.ResponseData.Write(InitialLaunchSettings.Default.TimeStamp.InternalOffset);
-            context.ResponseData.Write(InitialLaunchSettings.Default.TimeStamp.ClockSourceId.Low);
-            context.ResponseData.Write(InitialLaunchSettings.Default.TimeStamp.ClockSourceId.High);
+            context.ResponseData.WriteStruct(InitialLaunchSettings.Default);
 
             Logger.Stub?.PrintStub(LogClass.ServiceSet);
 
@@ -588,8 +567,8 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         public ResultCode GetAppletLaunchFlags(ServiceCtx context)
         {
             // NOTE: unknown values
-            uint applet_launch_flag = 0;
-            context.ResponseData.Write(applet_launch_flag);
+            uint appletLaunchFlag = 0;
+            context.ResponseData.Write(appletLaunchFlag);
 
             Logger.Stub?.PrintStub(LogClass.ServiceSet);
 
@@ -610,7 +589,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         public ResultCode GetChineseTraditionalInputMethod(ServiceCtx context)
         {
             // TODO
-            context.ResponseData.Write((uint)0);
+            context.ResponseData.Write((uint)ChineseTraditionalInputMethod.Unk1);
 
             Logger.Stub?.PrintStub(LogClass.ServiceSet);
 

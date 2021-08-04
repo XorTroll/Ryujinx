@@ -1,3 +1,4 @@
+using Ryujinx.Common;
 using Ryujinx.Common.Logging;
 
 namespace Ryujinx.HLE.HOS.Services.Vi.RootService.ApplicationDisplayService
@@ -42,21 +43,14 @@ namespace Ryujinx.HLE.HOS.Services.Vi.RootService.ApplicationDisplayService
         // ListDisplayModes() -> buffer
         public ResultCode ListDisplayModes(ServiceCtx context)
         {
-            var unk_val = context.RequestData.ReadUInt64();
+            var unkVal = context.RequestData.ReadUInt64();
+
+            Logger.Stub?.PrintStub(LogClass.ServiceVi, new { unkVal });
+
             context.ResponseData.Write((ulong)1);
 
-            var modes_buf = context.Request.ReceiveBuff[0];
-
-            ulong offset = 0;
-            context.Memory.Write(modes_buf.Position + offset, DisplayModeInfo.DefaultDisplayMode.Width);
-            offset += sizeof(uint);
-            context.Memory.Write(modes_buf.Position + offset, DisplayModeInfo.DefaultDisplayMode.Height);
-            offset += sizeof(uint);
-            context.Memory.Write(modes_buf.Position + offset, DisplayModeInfo.DefaultDisplayMode.Unk);
-            offset += sizeof(float);
-            context.Memory.Write(modes_buf.Position + offset, DisplayModeInfo.DefaultDisplayMode.Unk2);
-
-            Logger.Stub?.PrintStub(LogClass.ServiceVi, new { unk_val });
+            var modesBuf = context.Request.ReceiveBuff[0];
+            context.Memory.Write(modesBuf.Position, DisplayModeInfo.DefaultDisplayMode);
 
             return ResultCode.Success;
         }
@@ -65,11 +59,10 @@ namespace Ryujinx.HLE.HOS.Services.Vi.RootService.ApplicationDisplayService
         // GetDisplayMode(u64) -> nn::vi::DisplayModeInfo
         public ResultCode GetDisplayMode(ServiceCtx context)
         {
+            Logger.Stub?.PrintStub(LogClass.ServiceVi);
+
             // TODO: De-hardcode resolution.
-            context.ResponseData.Write(DisplayModeInfo.DefaultDisplayMode.Width);
-            context.ResponseData.Write(DisplayModeInfo.DefaultDisplayMode.Height);
-            context.ResponseData.Write(DisplayModeInfo.DefaultDisplayMode.Unk);
-            context.ResponseData.Write(DisplayModeInfo.DefaultDisplayMode.Unk2);
+            context.ResponseData.WriteStruct(DisplayModeInfo.DefaultDisplayMode);
 
             return ResultCode.Success;
         }

@@ -13,7 +13,7 @@ namespace Ryujinx.HLE.HOS.Services.Olsc
             Logger.Stub?.PrintStub(LogClass.ServiceOlsc);
 
             int handle = 0xBEEF1; // ???
-            MakeObject(context, new INativeHandleHolder(context, handle));
+            MakeObject(context, new INativeHandleHolder(handle));
 
             return ResultCode.Success;
         }
@@ -25,7 +25,7 @@ namespace Ryujinx.HLE.HOS.Services.Olsc
             Logger.Stub?.PrintStub(LogClass.ServiceOlsc);
 
             int handle = 0xBEEF2; // ???
-            MakeObject(context, new INativeHandleHolder(context, handle));
+            MakeObject(context, new INativeHandleHolder(handle));
 
             return ResultCode.Success;
         }

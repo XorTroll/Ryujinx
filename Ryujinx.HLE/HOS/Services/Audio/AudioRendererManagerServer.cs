@@ -88,11 +88,11 @@ namespace Ryujinx.HLE.HOS.Services.Audio
         }
 
         [CommandHipc(4)] // 4.0.0+
-        // GetAudioDeviceServiceWithRevisionInfo(s32 revision, nn::applet::AppletResourceUserId appletResourceId) -> object<nn::audio::detail::IAudioDevice>
+        // GetAudioDeviceServiceWithRevisionInfo(nn::applet::AppletResourceUserId appletResourceUserId, s32 revision) -> object<nn::audio::detail::IAudioDevice>
         public ResultCode GetAudioDeviceServiceWithRevisionInfo(ServiceCtx context)
         {
-            int revision = context.RequestData.ReadInt32();
             ulong appletResourceUserId = context.RequestData.ReadUInt64();
+            int revision = context.RequestData.ReadInt32();
 
             ResultCode result = _impl.GetAudioDeviceServiceWithRevisionInfo(context, out IAudioDevice device, revision, appletResourceUserId);
 

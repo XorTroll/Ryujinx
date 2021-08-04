@@ -22,9 +22,9 @@ namespace Ryujinx.HLE.HOS.Services.Nifm
         // CreateGeneralService(u64, pid) -> object<nn::nifm::detail::IGeneralService>
         public ResultCode CreateGeneralService(ServiceCtx context)
         {
-            MakeObject(context, new IGeneralService());
+            // TODO: distinguish between these two commands?
 
-            return ResultCode.Success;
+            return CreateGeneralServiceOld(context);
         }
     }
 }

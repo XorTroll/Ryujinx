@@ -10,7 +10,7 @@ namespace Ryujinx.HLE.HOS.Services.Vi
         }
     }
 
-    class DisplayModeInfo
+    struct DisplayModeInfo
     {
         public uint Width { get; set; }
 

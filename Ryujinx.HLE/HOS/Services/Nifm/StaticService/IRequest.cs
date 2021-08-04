@@ -9,9 +9,9 @@ namespace Ryujinx.HLE.HOS.Services.Nifm.StaticService
     class IRequest : IpcService
     {
         private KEvent _event0;
-        private KEvent _event1;
-
         private int _event0Handle;
+
+        private KEvent _event1;
         private int _event1Handle;
 
         private uint _version;

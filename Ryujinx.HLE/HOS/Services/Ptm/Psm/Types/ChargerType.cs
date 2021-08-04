@@ -2,8 +2,9 @@
 {
     enum ChargerType
     {
-        None,
-        ChargerOrDock,
-        UsbC
+        Unconnected,
+        EnoughPower,
+        LowPower,
+        NotSupported
     }
 }

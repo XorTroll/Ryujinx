@@ -437,7 +437,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv
         {
             long pid = context.RequestData.ReadInt64();
 
-            context.ResponseData.Write(0);
+            context.ResponseData.Write((uint)NvResult.Success);
 
             return ResultCode.Success;
         }
@@ -558,10 +558,12 @@ namespace Ryujinx.HLE.HOS.Services.Nv
         }
 
         [CommandHipc(13)] // 3.0.0+
-        // FinishInitialize(unknown<8>)
-        public ResultCode FinishInitialize(ServiceCtx context)
+        // SetGraphicsFirmwareMemoryMarginEnabled(u64)
+        public ResultCode SetGraphicsFirmwareMemoryMarginEnabled(ServiceCtx context)
         {
-            Logger.Stub?.PrintStub(LogClass.ServiceNv);
+            var unk = context.RequestData.ReadUInt64();
+
+            Logger.Stub?.PrintStub(LogClass.ServiceNv, new { unk });
 
             return ResultCode.Success;
         }

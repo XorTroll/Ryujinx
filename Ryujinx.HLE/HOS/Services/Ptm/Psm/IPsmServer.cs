@@ -24,7 +24,7 @@ namespace Ryujinx.HLE.HOS.Services.Ptm.Psm
         // GetChargerType() -> u32
         public static ResultCode GetChargerType(ServiceCtx context)
         {
-            ChargerType chargerType = ChargerType.ChargerOrDock;
+            ChargerType chargerType = ChargerType.EnoughPower;
 
             context.ResponseData.Write((int)chargerType);
 

@@ -303,6 +303,17 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
             return (ResultCode)_apmSystemManagerServer.GetCurrentPerformanceConfiguration(context);
         }
 
+        [CommandHipc(200)] // 7.0.0+
+        // GetOperationModeSystemInfo() -> u32
+        public ResultCode GetOperationModeSystemInfo(ServiceCtx context)
+        {
+            context.ResponseData.Write((uint)0);
+
+            Logger.Stub?.PrintStub(LogClass.ServiceAm);
+
+            return ResultCode.Success;
+        }
+
         [CommandHipc(300)] // 9.0.0+
         // GetSettingsPlatformRegion() -> u8
         public ResultCode GetSettingsPlatformRegion(ServiceCtx context)

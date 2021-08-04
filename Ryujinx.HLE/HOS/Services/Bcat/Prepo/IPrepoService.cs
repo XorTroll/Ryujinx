@@ -23,6 +23,12 @@ namespace Ryujinx.HLE.HOS.Services.Bcat.Prepo
         public IPrepoService(PrepoServicePermissionLevel permission)
         {
             _permission = permission;
+
+            byte[] randomBuffer = new byte[8];
+
+            new Random().NextBytes(randomBuffer);
+
+            _systemSessionId = BitConverter.ToUInt64(randomBuffer, 0);
         }
 
         [CommandHipc(10100)] // 1.0.0-5.1.0
@@ -83,15 +89,6 @@ namespace Ryujinx.HLE.HOS.Services.Bcat.Prepo
             if ((_permission & PrepoServicePermissionLevel.User) == 0)
             {
                 return ResultCode.PermissionDenied;
-            }
-
-            if (_systemSessionId == 0)
-            {
-                byte[] randomBuffer = new byte[8];
-
-                new Random().NextBytes(randomBuffer);
-
-                _systemSessionId = BitConverter.ToUInt64(randomBuffer, 0);
             }
 
             context.ResponseData.Write(_systemSessionId);
