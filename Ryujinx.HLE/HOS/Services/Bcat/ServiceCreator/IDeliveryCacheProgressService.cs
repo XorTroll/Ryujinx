@@ -15,9 +15,9 @@ namespace Ryujinx.HLE.HOS.Services.Bcat.ServiceCreator
         private KEvent _event;
         private int    _eventHandle;
 
-        public IDeliveryCacheProgressService(ServiceCtx context)
+        public IDeliveryCacheProgressService()
         {
-            _event = new KEvent(context.Device.System.KernelContext);
+            _event = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(0)]

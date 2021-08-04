@@ -5,8 +5,6 @@ namespace Ryujinx.HLE.HOS.Services.Audio
     [Service("audctl")]
     class IAudioController : IpcService
     {
-        public IAudioController() { }
-
         [CommandHipc(12)]
         // GetForceMutePolicy() -> u32
         public ResultCode GetForceMutePolicy(ServiceCtx context)

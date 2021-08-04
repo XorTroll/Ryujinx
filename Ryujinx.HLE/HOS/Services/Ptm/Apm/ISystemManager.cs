@@ -2,10 +2,10 @@ namespace Ryujinx.HLE.HOS.Services.Ptm.Apm
 {
     abstract class ISystemManager : IpcService
     {
-        public ISystemManager() { }
-
         protected abstract void RequestPerformanceMode(PerformanceMode performanceMode);
+
         internal abstract void SetCpuBoostMode(CpuBoostMode cpuBoostMode);
+
         protected abstract PerformanceConfiguration GetCurrentPerformanceConfiguration();
 
         [CommandHipc(0)]

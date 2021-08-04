@@ -5,7 +5,7 @@ namespace Ryujinx.HLE.HOS.Services.Nfc
 {
     class NfcServer : ServerManager
     {
-        public NfcServer(Horizon system) : base(system, "nfc", 0x0100000000000020, 44) { }
+        public NfcServer() : base("nfc", 0x0100000000000020, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

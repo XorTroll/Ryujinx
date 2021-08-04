@@ -3,6 +3,5 @@
     [Service("bsdcfg")]
     class ServerInterface : IpcService
     {
-        public ServerInterface() { }
     }
 }

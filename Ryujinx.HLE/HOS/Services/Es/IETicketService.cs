@@ -3,6 +3,5 @@
     [Service("es")]
     class IETicketService : IpcService
     {
-        public IETicketService() { }
     }
 }

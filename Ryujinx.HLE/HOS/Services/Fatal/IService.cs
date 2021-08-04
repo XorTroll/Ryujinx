@@ -5,8 +5,6 @@ namespace Ryujinx.HLE.HOS.Services.Fatal
     [Service("fatal:u")]
     class IService : IpcService
     {
-        public IService() { }
-
         [CommandHipc(1)]
         // ThrowWithPolicy(pid, u32, u32)
         public ResultCode ThrowWithPolicy(ServiceCtx context)
@@ -36,7 +34,7 @@ namespace Ryujinx.HLE.HOS.Services.Fatal
             }
 
             context.Process.TerminateCurrentProcess();
-            context.Device.UiHandler.DisplayMessageDialog("Fatal", "Process " + context.Process.Pid.ToString("X16") + " fataled with error 0x" + result.ToString("X"));
+            Horizon.Instance.Device.UiHandler.DisplayMessageDialog("Fatal", "Process " + context.Process.Pid.ToString("X16") + " fataled with error 0x" + result.ToString("X"));
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Ryujinx.HLE.HOS.Services.Am
 {
     class AmServer : ServerManager
     {
-        public AmServer(Horizon system) : base(system, "am", 0x0100000000000023, 44) { }
+        public AmServer() : base("am", 0x0100000000000023, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

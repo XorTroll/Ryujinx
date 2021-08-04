@@ -3,6 +3,5 @@
     [Service("eupld:r")]
     class IRequest : IpcService
     {
-        public IRequest() { }
     }
 }

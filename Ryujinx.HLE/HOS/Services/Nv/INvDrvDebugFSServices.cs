@@ -3,6 +3,5 @@
     [Service("nvdrvdbg")]
     class INvDrvDebugFSServices : IpcService
     {
-        public INvDrvDebugFSServices() { }
     }
 }

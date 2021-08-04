@@ -3,6 +3,5 @@
     [Service("psc:c")]
     class IPmControl : IpcService
     {
-        public IPmControl() { }
     }
 }

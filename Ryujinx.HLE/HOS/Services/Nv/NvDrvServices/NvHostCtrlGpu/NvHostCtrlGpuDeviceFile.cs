@@ -18,8 +18,8 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostCtrlGpu
 
         public NvHostCtrlGpuDeviceFile(ServiceCtx context, IVirtualMemoryManager memory, long owner) : base(context, owner)
         {
-            _errorEvent   = new KEvent(context.Device.System.KernelContext);
-            _unknownEvent = new KEvent(context.Device.System.KernelContext);
+            _errorEvent   = new KEvent(Horizon.Instance.KernelContext);
+            _unknownEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
         static NvHostCtrlGpuDeviceFile()

@@ -1,10 +1,11 @@
 ﻿using System;
 
-namespace Ryujinx.HLE.HOS.Services.Settings.Types
+namespace Ryujinx.HLE.HOS.Services.Settings
 {
     [Flags]
-    enum InitialLaunchFlag
+    public enum InitialLaunchFlag : uint
     {
+        None = 0,
         CompletionFlag = 1 << 0,
         UserAdditionFlag = 1 << 8,
         TimestampFlag = 1 << 16

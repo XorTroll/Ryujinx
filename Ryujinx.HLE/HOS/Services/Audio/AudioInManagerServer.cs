@@ -14,9 +14,9 @@ namespace Ryujinx.HLE.HOS.Services.Audio
 
         private IAudioInManager _impl;
 
-        public AudioInManagerServer(Horizon system)
+        public AudioInManagerServer()
         {
-            _impl = new AudioInManager(system.Device.System.AudioInputManager);
+            _impl = new AudioInManager(Horizon.Instance.AudioInputManager);
         }
 
         [CommandHipc(0)]

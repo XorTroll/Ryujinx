@@ -7,8 +7,6 @@ namespace Ryujinx.HLE.HOS.Services.Audio
     [Service("hwopus")]
     class IHardwareOpusDecoderManager : IpcService
     {
-        public IHardwareOpusDecoderManager() { }
-
         [CommandHipc(0)]
         // Initialize(bytes<8, 4>, u32, handle<copy>) -> object<nn::codec::detail::IHardwareOpusDecoder>
         public ResultCode Initialize(ServiceCtx context)
@@ -19,7 +17,7 @@ namespace Ryujinx.HLE.HOS.Services.Audio
             MakeObject(context, new IHardwareOpusDecoder(sampleRate, channelsCount));
 
             // Close transfer memory immediately as we don't use it.
-            context.Device.System.KernelContext.Syscall.CloseHandle(context.Request.HandleDesc.ToCopy[0]);
+            Horizon.Instance.KernelContext.Syscall.CloseHandle(context.Request.HandleDesc.ToCopy[0]);
 
             return ResultCode.Success;
         }
@@ -47,7 +45,7 @@ namespace Ryujinx.HLE.HOS.Services.Audio
             MakeObject(context, new IHardwareOpusDecoder(parameters.SampleRate, parameters.ChannelCount));
 
             // Close transfer memory immediately as we don't use it.
-            context.Device.System.KernelContext.Syscall.CloseHandle(context.Request.HandleDesc.ToCopy[0]);
+            Horizon.Instance.KernelContext.Syscall.CloseHandle(context.Request.HandleDesc.ToCopy[0]);
 
             return ResultCode.Success;
         }

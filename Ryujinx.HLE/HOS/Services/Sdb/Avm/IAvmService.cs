@@ -3,6 +3,5 @@
     [Service("avm")] // 6.0.0+
     class IAvmService : IpcService
     {
-        public IAvmService() { }
     }
 }

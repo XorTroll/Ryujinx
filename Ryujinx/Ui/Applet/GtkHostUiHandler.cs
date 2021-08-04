@@ -1,5 +1,6 @@
 using Gtk;
 using Ryujinx.HLE;
+using Ryujinx.HLE.HOS;
 using Ryujinx.HLE.HOS.Applets;
 using Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy;
 using Ryujinx.Ui.Widgets;
@@ -129,9 +130,9 @@ namespace Ryujinx.Ui.Applet
             return error || okPressed;
         }
 
-        public void ExecuteProgram(HLE.Switch device, ProgramSpecifyKind kind, ulong value)
+        public void ExecuteProgram(ProgramSpecifyKind kind, ulong value)
         {
-            device.Configuration.UserChannelPersistence.ExecuteProgram(kind, value);
+            Horizon.Instance.Device.Configuration.UserChannelPersistence.ExecuteProgram(kind, value);
             ((MainWindow)_parent).RendererWidget?.Exit();
         }
 

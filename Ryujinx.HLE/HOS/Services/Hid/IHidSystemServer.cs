@@ -14,9 +14,9 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         private KEvent _joyDetachOnBluetoothOffEvent;
         private int _joyDetachOnBluetoothOffEventHandle;
 
-        public IHidSystemServer(KernelContext context)
+        public IHidSystemServer()
         {
-            _joyDetachOnBluetoothOffEvent = new KEvent(context);
+            _joyDetachOnBluetoothOffEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(303)]
@@ -45,7 +45,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         // GetNpadSystemExtStyle() -> u64
         public ResultCode GetNpadSystemExtStyle(ServiceCtx context)
         {
-            foreach (PlayerIndex playerIndex in context.Device.Hid.Npads.GetSupportedPlayers())
+            foreach (PlayerIndex playerIndex in Horizon.Instance.Device.Hid.Npads.GetSupportedPlayers())
             {
                 if (HidUtils.GetNpadIdTypeFromIndex(playerIndex) > NpadIdType.Handheld)
                 {
@@ -53,7 +53,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
                 }
             }
 
-            context.ResponseData.Write((ulong)context.Device.Hid.Npads.SupportedStyleSets);
+            context.ResponseData.Write((ulong)Horizon.Instance.Device.Hid.Npads.SupportedStyleSets);
 
             return ResultCode.Success;
         }
@@ -151,7 +151,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
             NpadIdType  npadIdType  = (NpadIdType)context.RequestData.ReadUInt32();
             PlayerIndex playerIndex = HidUtils.GetIndexFromNpadIdType(npadIdType);
 
-            appletFooterUiType = context.Device.Hid.SharedMemory.Npads[(int)playerIndex].InternalState.AppletFooterUiType;
+            appletFooterUiType = Horizon.Instance.Device.Hid.SharedMemory.Npads[(int)playerIndex].InternalState.AppletFooterUiType;
 
             return ResultCode.Success;
         }

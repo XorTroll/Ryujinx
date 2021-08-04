@@ -9,7 +9,7 @@ namespace Ryujinx.HLE.HOS.Services.Pcv
 {
     class PcvServer : ServerManager
     {
-        public PcvServer(Horizon system) : base(system, "pcv", 0x010000000000001A, 44) { }
+        public PcvServer() : base("pcv", 0x010000000000001A, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

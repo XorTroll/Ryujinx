@@ -3,6 +3,5 @@
     [Service("set:cal")]
     class IFactorySettingsServer : IpcService
     {
-        public IFactorySettingsServer() { }
     }
 }

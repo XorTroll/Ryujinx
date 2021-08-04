@@ -22,12 +22,12 @@ namespace Ryujinx.HLE.HOS.Services.Ns
         private KEvent _gameCardMountFailureEvent;
         private int _gameCardMountFailureEventHandle;
 
-        public IApplicationManagerInterface(KernelContext context)
+        public IApplicationManagerInterface()
         {
-            _applicationRecordUpdateEvent = new KEvent(context);
-            _gameCardUpdateDetectionEvent = new KEvent(context);
-            _sdCardMountStatusChangedEvent = new KEvent(context);
-            _gameCardMountFailureEvent = new KEvent(context);
+            _applicationRecordUpdateEvent = new KEvent(Horizon.Instance.KernelContext);
+            _gameCardUpdateDetectionEvent = new KEvent(Horizon.Instance.KernelContext);
+            _sdCardMountStatusChangedEvent = new KEvent(Horizon.Instance.KernelContext);
+            _gameCardMountFailureEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(0)]
@@ -120,7 +120,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns
 
             ulong position = context.Request.ReceiveBuff[0].Position;
 
-            byte[] nacpData = context.Device.Application.ControlData.ByteSpan.ToArray();
+            byte[] nacpData = Horizon.Instance.Device.Application.ControlData.ByteSpan.ToArray();
 
             context.Memory.Write(position, nacpData);
 

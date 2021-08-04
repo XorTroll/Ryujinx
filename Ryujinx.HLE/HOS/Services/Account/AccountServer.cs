@@ -7,7 +7,7 @@ namespace Ryujinx.HLE.HOS.Services.Account
 {
     class AccountServer : ServerManager
     {
-        public AccountServer(Horizon system) : base(system, "account", 0x010000000000001E, 44) { }
+        public AccountServer() : base("account", 0x010000000000001E, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

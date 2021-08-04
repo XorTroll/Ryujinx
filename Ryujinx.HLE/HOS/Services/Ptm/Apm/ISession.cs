@@ -2,10 +2,10 @@ namespace Ryujinx.HLE.HOS.Services.Ptm.Apm
 {
     abstract class ISession : IpcService
     {
-        public ISession() { }
-
         protected abstract ResultCode SetPerformanceConfiguration(PerformanceMode performanceMode, PerformanceConfiguration performanceConfiguration);
+
         protected abstract ResultCode GetPerformanceConfiguration(PerformanceMode performanceMode, out PerformanceConfiguration performanceConfiguration);
+
         protected abstract void SetCpuOverclockEnabled(bool enabled);
 
         [CommandHipc(0)]

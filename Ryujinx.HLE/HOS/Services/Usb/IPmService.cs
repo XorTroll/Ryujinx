@@ -3,6 +3,5 @@
     [Service("usb:pm")]
     class IPmService : IpcService
     {
-        public IPmService() { }
     }
 }

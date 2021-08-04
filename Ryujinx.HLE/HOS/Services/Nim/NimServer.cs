@@ -6,7 +6,7 @@ namespace Ryujinx.HLE.HOS.Services.Nim
 {
     class NimServer : ServerManager
     {
-        public NimServer(Horizon system) : base(system, "nim", 0x0100000000000025, 44) { }
+        public NimServer() : base("nim", 0x0100000000000025, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

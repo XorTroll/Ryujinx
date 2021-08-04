@@ -3,6 +3,5 @@
     [Service("ntc")]
     class IStaticService : IpcService
     {
-        public IStaticService() { }
     }
 }

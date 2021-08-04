@@ -3,6 +3,5 @@
     [Service("clkrst:a")] // 8.0.0+
     class IArbitrationManager : IpcService
     {
-        public IArbitrationManager() { }
     }
 }

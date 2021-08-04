@@ -12,10 +12,10 @@ namespace Ryujinx.HLE.HOS.Services.Am.AppletAE.AllSystemAppletProxiesService.Sys
         private KEvent _channelEvent;
         private int    _channelEventHandle;
 
-        public IHomeMenuFunctions(Horizon system)
+        public IHomeMenuFunctions()
         {
             // TODO: Signal this Event somewhere in future.
-            _channelEvent = new KEvent(system.KernelContext);
+            _channelEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(10)]
@@ -72,7 +72,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.AppletAE.AllSystemAppletProxiesService.Sys
 
             Logger.Stub?.PrintStub(LogClass.ServiceAm, new { unk });
 
-            MakeObject(context, new ILockAccessor(context, unk));
+            MakeObject(context, new ILockAccessor(unk));
 
             return ResultCode.Success;
         }

@@ -3,6 +3,5 @@
     [Service("pdm:ntfy")]
     class INotifyService : IpcService
     {
-        public INotifyService() { }
     }
 }

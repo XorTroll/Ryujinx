@@ -9,19 +9,12 @@ namespace Ryujinx.HLE.HOS.Services.Glue.Arp
 {
     class LibHacIReader : LibHac.Arp.Impl.IReader
     {
-        private Horizon System { get; }
-
-        public LibHacIReader(Horizon system)
-        {
-            System = system;
-        }
-
         public Result GetApplicationLaunchProperty(out LibHac.Arp.ApplicationLaunchProperty launchProperty, ulong processId)
         {
             launchProperty = new LibHac.Arp.ApplicationLaunchProperty
             {
                 BaseStorageId = StorageId.BuiltInUser,
-                ApplicationId = new ApplicationId(System.Device.Application.TitleId)
+                ApplicationId = new ApplicationId(Horizon.Instance.Device.Application.TitleId)
             };
 
             return Result.Success;

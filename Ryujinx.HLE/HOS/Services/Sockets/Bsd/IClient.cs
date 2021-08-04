@@ -248,7 +248,7 @@ namespace Ryujinx.HLE.HOS.Services.Sockets.Bsd
             Logger.Stub?.PrintStub(LogClass.ServiceBsd);
 
             // Close transfer memory immediately as we don't use it.
-            context.Device.System.KernelContext.Syscall.CloseHandle(context.Request.HandleDesc.ToCopy[0]);
+            Horizon.Instance.KernelContext.Syscall.CloseHandle(context.Request.HandleDesc.ToCopy[0]);
 
             return ResultCode.Success;
         }

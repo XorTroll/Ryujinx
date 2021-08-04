@@ -4,8 +4,6 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
 {
     class IProcessWindingController : IpcService
     {
-        public IProcessWindingController() { }
-
         [CommandHipc(0)]
         // GetLaunchReason() -> nn::am::service::AppletProcessLaunchReason
         public ResultCode GetLaunchReason(ServiceCtx context)

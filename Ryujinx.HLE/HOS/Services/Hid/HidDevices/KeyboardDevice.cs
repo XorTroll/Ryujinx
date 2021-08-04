@@ -6,11 +6,11 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 {
     public class KeyboardDevice : BaseDevice
     {
-        public KeyboardDevice(Switch device, bool active) : base(device, active) { }
+        public KeyboardDevice(bool active) : base(active) { }
 
         public unsafe void Update(KeyboardInput keyState)
         {
-            ref RingLifo<KeyboardState> lifo = ref _device.Hid.SharedMemory.Keyboard;
+            ref RingLifo<KeyboardState> lifo = ref Horizon.Instance.Device.Hid.SharedMemory.Keyboard;
 
             if (!Active)
             {

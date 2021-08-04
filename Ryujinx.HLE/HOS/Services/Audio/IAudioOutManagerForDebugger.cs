@@ -3,6 +3,5 @@
     [Service("audout:d")]
     class IAudioOutManagerForDebugger : IpcService
     {
-        public IAudioOutManagerForDebugger() { }
     }
 }

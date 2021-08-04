@@ -3,6 +3,5 @@
     [Service("audin:d")]
     class IAudioInManagerForDebugger : IpcService
     {
-        public IAudioInManagerForDebugger() { }
     }
 }

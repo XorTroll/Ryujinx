@@ -10,9 +10,9 @@ namespace Ryujinx.HLE.HOS.Services.Ns.Aoc
     {
         private readonly KEvent _purchasedEvent;
 
-        public IPurchaseEventManager(Horizon system)
+        public IPurchaseEventManager()
         {
-            _purchasedEvent = new KEvent(system.KernelContext);
+            _purchasedEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(0)]

@@ -27,10 +27,9 @@ namespace Ryujinx.HLE
         /// <summary>
         /// Tell the UI that we need to transisition to another program.
         /// </summary>
-        /// <param name="device">The device instance.</param>
         /// <param name="kind">The program kind.</param>
         /// <param name="value">The value associated to the <paramref name="kind"/>.</param>
-        void ExecuteProgram(Switch device, ProgramSpecifyKind kind, ulong value);
+        void ExecuteProgram(ProgramSpecifyKind kind, ulong value);
 
         /// Displays a Message Dialog box specific to Error Applet and blocks until it is closed.
         /// </summary>

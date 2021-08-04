@@ -37,13 +37,13 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy
         private int _notificationStorageChannelEventHandle;
         private int _healthWarningDisappearedSystemEventHandle;
 
-        public IApplicationFunctions(Horizon system)
+        public IApplicationFunctions()
         {
             // TODO: Find where they are signaled.
-            _gpuErrorDetectedSystemEvent         = new KEvent(system.KernelContext);
-            _friendInvitationStorageChannelEvent = new KEvent(system.KernelContext);
-            _notificationStorageChannelEvent     = new KEvent(system.KernelContext);
-            _healthWarningDisappearedSystemEvent = new KEvent(system.KernelContext);
+            _gpuErrorDetectedSystemEvent         = new KEvent(Horizon.Instance.KernelContext);
+            _friendInvitationStorageChannelEvent = new KEvent(Horizon.Instance.KernelContext);
+            _notificationStorageChannelEvent     = new KEvent(Horizon.Instance.KernelContext);
+            _healthWarningDisappearedSystemEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(1)]
@@ -57,11 +57,11 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy
             switch (kind)
             {
                 case LaunchParameterKind.UserChannel:
-                    storageData = context.Device.Configuration.UserChannelPersistence.Pop();
+                    storageData = Horizon.Instance.Device.Configuration.UserChannelPersistence.Pop();
                     break;
                 case LaunchParameterKind.PreselectedUser:
                     // Only the first 0x18 bytes of the Data seems to be actually used.
-                    storageData = StorageHelper.MakeLaunchParams(context.Device.System.AccountManager.LastOpenedUser);
+                    storageData = StorageHelper.MakeLaunchParams(Horizon.Instance.AccountManager.LastOpenedUser);
                     break;
                 case LaunchParameterKind.Unknown:
                     throw new NotImplementedException("Unknown LaunchParameterKind.");
@@ -89,7 +89,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy
 
             if (titleId == 0)
             {
-                context.Device.UiHandler.ExecuteProgram(context.Device, ProgramSpecifyKind.RestartProgram, titleId);
+                Horizon.Instance.Device.UiHandler.ExecuteProgram(ProgramSpecifyKind.RestartProgram, titleId);
             }
             else
             {
@@ -106,7 +106,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy
             Uid           userId        = context.RequestData.ReadStruct<AccountUid>().ToLibHacUid();
             ApplicationId applicationId = new ApplicationId(context.Process.TitleId);
 
-            BlitStruct<ApplicationControlProperty> controlHolder = context.Device.Application.ControlData;
+            BlitStruct<ApplicationControlProperty> controlHolder = Horizon.Instance.Device.Application.ControlData;
 
             ref ApplicationControlProperty control = ref controlHolder.Value;
 
@@ -124,7 +124,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy
                     "No control file was found for this game. Using a dummy one instead. This may cause inaccuracies in some games.");
             }
 
-            Result result = EnsureApplicationSaveData(context.Device.FileSystem.FsClient, out long requiredSize, applicationId, ref control, ref userId);
+            Result result = EnsureApplicationSaveData(Horizon.Instance.Device.FileSystem.FsClient, out long requiredSize, applicationId, ref control, ref userId);
 
             context.ResponseData.Write(requiredSize);
 
@@ -140,8 +140,8 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy
             // ConvertApplicationLanguageToLanguageCode compares language code strings and returns the index
             // TODO: When above calls are implemented, switch to using ns:am
 
-            long desiredLanguageCode = context.Device.System.State.DesiredLanguageCode;
-            int  supportedLanguages  = (int)context.Device.Application.ControlData.Value.SupportedLanguages;
+            long desiredLanguageCode = Horizon.Instance.State.DesiredLanguageCode;
+            int  supportedLanguages  = (int)Horizon.Instance.Device.Application.ControlData.Value.SupportedLanguages;
             int  firstSupported      = BitOperations.TrailingZeroCount(supportedLanguages);
 
             if (firstSupported > (int)SystemState.TitleLanguage.Chinese)
@@ -155,7 +155,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy
 
             // If desired language is not supported by application, use first supported language from TitleLanguage.
             // TODO: In the future, a GUI could enable user-specified search priority
-            if (((1 << (int)context.Device.System.State.DesiredTitleLanguage) & supportedLanguages) == 0)
+            if (((1 << (int)Horizon.Instance.State.DesiredTitleLanguage) & supportedLanguages) == 0)
             {
                 SystemLanguage newLanguage = Enum.Parse<SystemLanguage>(Enum.GetName(typeof(SystemState.TitleLanguage), firstSupported));
                 desiredLanguageCode = SystemStateMgr.GetLanguageCode((int)newLanguage);
@@ -185,7 +185,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy
         {
             // This should work as DisplayVersion U8Span always gives a 0x10 size byte array.
             // If an NACP isn't found, the buffer will be all '\0' which seems to be the correct implementation.
-            context.ResponseData.Write(context.Device.Application.ControlData.Value.DisplayVersion);
+            context.ResponseData.Write(Horizon.Instance.Device.Application.ControlData.Value.DisplayVersion);
 
             return ResultCode.Success;
         }
@@ -348,7 +348,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy
 
             if (transferMemoryHandle != 0)
             {
-                context.Device.System.KernelContext.Syscall.CloseHandle(transferMemoryHandle);
+                Horizon.Instance.KernelContext.Syscall.CloseHandle(transferMemoryHandle);
             }
 
             return resultCode;
@@ -464,7 +464,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy
 
             Logger.Stub?.PrintStub(LogClass.ServiceAm, new { kind, value });
 
-            context.Device.UiHandler.ExecuteProgram(context.Device, kind, value);
+            Horizon.Instance.Device.UiHandler.ExecuteProgram(kind, value);
 
             return ResultCode.Success;
         }
@@ -473,7 +473,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy
         // ClearUserChannel()
         public ResultCode ClearUserChannel(ServiceCtx context)
         {
-            context.Device.Configuration.UserChannelPersistence.Clear();
+            Horizon.Instance.Device.Configuration.UserChannelPersistence.Clear();
 
             return ResultCode.Success;
         }
@@ -484,7 +484,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy
         {
             var data = GetObject<AppletIStorage>(context, 0);
 
-            context.Device.Configuration.UserChannelPersistence.Push(data.Data);
+            Horizon.Instance.Device.Configuration.UserChannelPersistence.Push(data.Data);
 
             return ResultCode.Success;
         }
@@ -493,7 +493,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy
         // GetPreviousProgramIndex() -> s32 program_index
         public ResultCode GetPreviousProgramIndex(ServiceCtx context)
         {
-            int previousProgramIndex = context.Device.Configuration.UserChannelPersistence.PreviousIndex;
+            int previousProgramIndex = Horizon.Instance.Device.Configuration.UserChannelPersistence.PreviousIndex;
 
             context.ResponseData.Write(previousProgramIndex);
 

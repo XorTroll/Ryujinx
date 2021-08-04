@@ -3,6 +3,5 @@
     [Service("nvgem:c")]
     class INvGemControl : IpcService
     {
-        public INvGemControl() { }
     }
 }

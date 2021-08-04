@@ -1,10 +1,11 @@
 ﻿using System;
 
-namespace Ryujinx.HLE.HOS.Services.Settings.Types
+namespace Ryujinx.HLE.HOS.Services.Settings
 {
     [Flags]
-    enum NotificationFlag
+    public enum NotificationFlag : uint
     {
+        None = 0,
         RingtoneFlag = 1 << 0,
         DownloadCompletionFlag = 1 << 1,
         EnablesNews = 1 << 8,

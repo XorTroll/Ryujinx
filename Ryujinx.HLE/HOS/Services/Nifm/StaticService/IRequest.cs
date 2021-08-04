@@ -16,10 +16,10 @@ namespace Ryujinx.HLE.HOS.Services.Nifm.StaticService
 
         private uint _version;
 
-        public IRequest(Horizon system, uint version)
+        public IRequest(uint version)
         {
-            _event0 = new KEvent(system.KernelContext);
-            _event1 = new KEvent(system.KernelContext);
+            _event0 = new KEvent(Horizon.Instance.KernelContext);
+            _event1 = new KEvent(Horizon.Instance.KernelContext);
 
             _version = version;
         }

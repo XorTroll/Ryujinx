@@ -33,12 +33,6 @@ namespace Ryujinx.HLE.HOS.Services.Sdb.Mii
             return (ushort)crc;
         }
 
-        public static UInt128 GetDeviceId()
-        {
-            // FIXME: call set:sys GetMiiAuthorId
-            return new UInt128("5279754d69694e780000000000000000"); // RyuMiiNx
-        }
-
         public static ReadOnlySpan<byte> Ver3FacelineColorTable => new byte[] { 0, 1, 2, 3, 4, 5 };
         public static ReadOnlySpan<byte> Ver3HairColorTable     => new byte[] { 8, 1, 2, 3, 4, 5, 6, 7 };
         public static ReadOnlySpan<byte> Ver3EyeColorTable      => new byte[] { 8, 9, 10, 11, 12, 13 };

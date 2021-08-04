@@ -4,6 +4,5 @@
     [Service("srepo:u")] // 5.0.0+
     class ISrepoService : IpcService
     {
-        public ISrepoService() { }
     }
 }

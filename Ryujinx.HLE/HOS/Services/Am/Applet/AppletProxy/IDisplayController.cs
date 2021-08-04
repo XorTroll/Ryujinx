@@ -12,9 +12,9 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         private bool            _lastApplicationCaptureBufferAcquired;
         private bool            _callerAppletCaptureBufferAcquired;
 
-        public IDisplayController(ServiceCtx context)
+        public IDisplayController()
         {
-            _transferMem = context.Device.System.AppletCaptureBufferTransfer;
+            _transferMem = Horizon.Instance.AppletCaptureBufferTransfer;
         }
 
         [CommandHipc(8)] // 2.0.0+

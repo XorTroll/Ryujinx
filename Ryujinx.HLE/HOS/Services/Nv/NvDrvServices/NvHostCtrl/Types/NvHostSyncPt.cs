@@ -15,13 +15,10 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostCtrl
         private bool[] _clientManaged;
         private bool[] _assigned;
 
-        private Switch _device;
-
         private object _syncpointAllocatorLock = new object();
 
-        public NvHostSyncpt(Switch device)
+        public NvHostSyncpt()
         {
-            _device        = device;
             _counterMin    = new int[SynchronizationManager.MaxHardwareSyncpoints];
             _counterMax    = new int[SynchronizationManager.MaxHardwareSyncpoints];
             _clientManaged = new bool[SynchronizationManager.MaxHardwareSyncpoints];
@@ -132,7 +129,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostCtrl
 
         public uint UpdateMin(uint id)
         {
-            uint newValue = _device.Gpu.Synchronization.GetSyncpointValue(id);
+            uint newValue = Horizon.Instance.Device.Gpu.Synchronization.GetSyncpointValue(id);
 
             Interlocked.Exchange(ref _counterMin[id], (int)newValue);
 
@@ -141,7 +138,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostCtrl
 
         private void IncrementSyncpointGPU(uint id)
         {
-            _device.Gpu.Synchronization.IncrementSyncpoint(id);
+            Horizon.Instance.Device.Gpu.Synchronization.IncrementSyncpoint(id);
         }
 
         public void IncrementSyncpointMin(uint id)

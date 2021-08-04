@@ -5,7 +5,7 @@ namespace Ryujinx.HLE.HOS.Services.Ldn
 {
     class LdnServer : ServerManager
     {
-        public LdnServer(Horizon system) : base(system, "ldn", 0x0100000000000018, 44) { }
+        public LdnServer() : base("ldn", 0x0100000000000018, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

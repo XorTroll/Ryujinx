@@ -14,9 +14,9 @@ namespace Ryujinx.HLE.HOS.Services.Audio
 
         private IAudioRendererManager _impl;
 
-        public AudioRendererManagerServer(Horizon system)
+        public AudioRendererManagerServer()
         {
-            _impl = new AudioRendererManager(system.Device.System.AudioRendererManager, system.Device.System.AudioDeviceSessionRegistry);
+            _impl = new AudioRendererManager(Horizon.Instance.AudioRendererManager, Horizon.Instance.AudioDeviceSessionRegistry);
         }
 
         [CommandHipc(0)]
@@ -39,8 +39,8 @@ namespace Ryujinx.HLE.HOS.Services.Audio
                 MakeObject(context, new AudioRendererServer(renderer));
             }
 
-            context.Device.System.KernelContext.Syscall.CloseHandle(transferMemoryHandle);
-            context.Device.System.KernelContext.Syscall.CloseHandle((int)processHandle);
+            Horizon.Instance.KernelContext.Syscall.CloseHandle(transferMemoryHandle);
+            Horizon.Instance.KernelContext.Syscall.CloseHandle((int)processHandle);
 
             return result;
         }

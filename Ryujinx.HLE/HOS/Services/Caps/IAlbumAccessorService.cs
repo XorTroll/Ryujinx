@@ -5,8 +5,6 @@ namespace Ryujinx.HLE.HOS.Services.Caps
     [Service("caps:a")]
     class IAlbumAccessorService : IpcService
     {
-        public IAlbumAccessorService() { }
-
         [CommandHipc(18)]
         // Unk()
         public ResultCode Unk(ServiceCtx context)

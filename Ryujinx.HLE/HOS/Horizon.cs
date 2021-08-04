@@ -97,7 +97,7 @@ namespace Ryujinx.HLE.HOS
 
         internal KernelContext KernelContext { get; }
 
-        internal Switch Device { get; private set; }
+        public Switch Device { get; private set; }
 
         internal SurfaceFlinger SurfaceFlinger { get; private set; }
         internal AudioManager AudioManager { get; private set; }
@@ -312,7 +312,7 @@ namespace Ryujinx.HLE.HOS
 
             AccountManager = device.Configuration.AccountManager;
             ContentManager = device.Configuration.ContentManager;
-            CaptureManager = new CaptureManager(device);
+            CaptureManager = new CaptureManager();
 
             // TODO: use set:sys (and get external clock source id from settings)
             // TODO: use "time!standard_steady_clock_rtc_update_interval_minutes" and implement a worker thread to be accurate.
@@ -359,7 +359,7 @@ namespace Ryujinx.HLE.HOS
 
             DatabaseImpl.Instance.InitializeDatabase(device);
 
-            HostSyncpoint = new NvHostSyncpt(device);
+            HostSyncpoint = new NvHostSyncpt();
 
             SurfaceFlinger = new SurfaceFlinger(device);
 
@@ -417,52 +417,52 @@ namespace Ryujinx.HLE.HOS
         {
             // Initialize our pseudo-sysmodules
 
-            Sm = new SmServer(this);
-            Bsdsockets = new SocketsServer(this);
-            Account = new AccountServer(this);
-            Fs = new FsServer(this);
-            LogManager = new LmServer(this);
-            Ncm = new NcmServer(this);
-            ProcessMana = new PmServer(this);
-            Usb = new UsbServer(this);
-            Settings = new SettingsServer(this);
-            Bluetooth = new BluetoothServer(this);
-            Btm = new BtmServer(this);
-            Friends = new FriendsServer(this);
-            Ptm = new PtmServer(this);
-            Hid = new HidServer(this);
-            Audio = new AudioServer(this);
-            Wlan = new WlanServer(this);
-            Ldn = new LdnServer(this);
-            Nvservices = new NvServer(this);
-            Pcv = new PcvServer(this);
-            Nvnflinger = new NvnServer(this);
-            Pcie = new PcieServer(this);
-            Ns = new NsServer(this);
-            Nfc = new NfcServer(this);
-            Psc = new PscServer(this);
-            Capsrv = new CapsServer(this);
-            Am = new AmServer(this);
-            Ssl = new SslServer(this);
-            Nim = new NimServer(this);
-            Spl = new SplServer(this);
-            Erpt = new ErptServer(this);
-            Pctl = new PctlServer(this);
-            Npns = new NpnsServer(this);
-            Eupld = new EupldServer(this);
-            Glue = new GlueServer(this);
-            Es = new EsServer(this);
-            Fatal = new FatalServer(this);
-            Grc = new GrcServer(this);
-            Ro = new RoServer(this);
-            Sdb = new SdbServer(this);
-            Migration = new MigServer(this);
-            Olsc = new OlscServer(this);
-            Loader = new LoaderServer(this);
-            Ngct = new NgctServer(this);
-            Nifm = new NifmServer(this);
-            Vi = new ViServer(this);
-            Bcat = new BcatServer(this);
+            Sm = new SmServer();
+            Bsdsockets = new SocketsServer();
+            Account = new AccountServer();
+            Fs = new FsServer();
+            LogManager = new LmServer();
+            Ncm = new NcmServer();
+            ProcessMana = new PmServer();
+            Usb = new UsbServer();
+            Settings = new SettingsServer();
+            Bluetooth = new BluetoothServer();
+            Btm = new BtmServer();
+            Friends = new FriendsServer();
+            Ptm = new PtmServer();
+            Hid = new HidServer();
+            Audio = new AudioServer();
+            Wlan = new WlanServer();
+            Ldn = new LdnServer();
+            Nvservices = new NvServer();
+            Pcv = new PcvServer();
+            Nvnflinger = new NvnServer();
+            Pcie = new PcieServer();
+            Ns = new NsServer();
+            Nfc = new NfcServer();
+            Psc = new PscServer();
+            Capsrv = new CapsServer();
+            Am = new AmServer();
+            Ssl = new SslServer();
+            Nim = new NimServer();
+            Spl = new SplServer();
+            Erpt = new ErptServer();
+            Pctl = new PctlServer();
+            Npns = new NpnsServer();
+            Eupld = new EupldServer();
+            Glue = new GlueServer();
+            Es = new EsServer();
+            Fatal = new FatalServer();
+            Grc = new GrcServer();
+            Ro = new RoServer();
+            Sdb = new SdbServer();
+            Migration = new MigServer();
+            Olsc = new OlscServer();
+            Loader = new LoaderServer();
+            Ngct = new NgctServer();
+            Nifm = new NifmServer();
+            Vi = new ViServer();
+            Bcat = new BcatServer();
         }
 
         public void LoadKip(string kipPath)
@@ -479,7 +479,7 @@ namespace Ryujinx.HLE.HOS
             horizon.CreateHorizonClient(out HorizonClient ryujinxClient).ThrowIfFailure();
             horizon.CreateHorizonClient(out HorizonClient bcatClient).ThrowIfFailure();
 
-            ryujinxClient.Sm.RegisterService(new LibHacIReader(this), "arp:r").ThrowIfFailure();
+            ryujinxClient.Sm.RegisterService(new LibHacIReader(), "arp:r").ThrowIfFailure();
             new LibHacBcatServer(bcatClient);
 
             LibHacHorizonServer = horizon;
@@ -618,6 +618,18 @@ namespace Ryujinx.HLE.HOS
 
                 KernelContext.Dispose();
             }
+        }
+
+        // Singleton implementation
+
+        private static Horizon _instance;
+
+        public static Horizon Instance => _instance;
+
+        public static void Initialize(HLEConfiguration configuration)
+        {
+            var device = new Switch(configuration);
+            _instance = device.System;
         }
     }
 }

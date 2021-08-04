@@ -12,12 +12,10 @@ namespace Ryujinx.HLE.HOS.Services.Audio.AudioIn
     {
         private AudioInputSystem _system;
         private uint _processHandle;
-        private KernelContext _kernelContext;
 
-        public AudioIn(AudioInputSystem system, KernelContext kernelContext, uint processHandle)
+        public AudioIn(AudioInputSystem system, uint processHandle)
         {
             _system = system;
-            _kernelContext = kernelContext;
             _processHandle = processHandle;
         }
 
@@ -47,7 +45,7 @@ namespace Ryujinx.HLE.HOS.Services.Audio.AudioIn
             {
                 _system.Dispose();
 
-                _kernelContext.Syscall.CloseHandle((int)_processHandle);
+                Horizon.Instance.KernelContext.Syscall.CloseHandle((int)_processHandle);
             }
         }
 

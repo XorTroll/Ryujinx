@@ -4,8 +4,6 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
 {
     class IAudioController : IpcService
     {
-        public IAudioController() { }
-
         [CommandHipc(0)]
         // SetExpectedMasterVolume(f32, f32)
         public ResultCode SetExpectedMasterVolume(ServiceCtx context)

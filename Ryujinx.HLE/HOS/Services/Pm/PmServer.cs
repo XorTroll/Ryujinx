@@ -5,7 +5,7 @@ namespace Ryujinx.HLE.HOS.Services.Pm
 {
     class PmServer : ServerManager
     {
-        public PmServer(Horizon system) : base(system, "ProcessMana", 0x0100000000000003, 44) { }
+        public PmServer() : base("ProcessMana", 0x0100000000000003, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

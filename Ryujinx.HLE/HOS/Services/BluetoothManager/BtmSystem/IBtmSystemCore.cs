@@ -11,9 +11,9 @@ namespace Ryujinx.HLE.HOS.Services.BluetoothManager.BtmSystem
         private KEvent _radioEvent;
         private int _radioEventHandle;
 
-        public IBtmSystemCore(ServiceCtx context)
+        public IBtmSystemCore()
         {
-            _radioEvent = new KEvent(context.Device.System.KernelContext);
+            _radioEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(6)]

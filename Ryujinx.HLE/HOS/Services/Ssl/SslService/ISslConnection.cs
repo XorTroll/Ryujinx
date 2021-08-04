@@ -6,8 +6,6 @@ namespace Ryujinx.HLE.HOS.Services.Ssl.SslService
 {
     class ISslConnection : IpcService
     {
-        public ISslConnection() { }
-
         [CommandHipc(0)]
         // SetSocketDescriptor(u32) -> u32
         public ResultCode SetSocketDescriptor(ServiceCtx context)

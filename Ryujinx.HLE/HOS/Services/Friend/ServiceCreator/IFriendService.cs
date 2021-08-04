@@ -30,7 +30,7 @@ namespace Ryujinx.HLE.HOS.Services.Friend.ServiceCreator
         {
             if (_completionEvent == null)
             {
-                _completionEvent = new KEvent(context.Device.System.KernelContext);
+                _completionEvent = new KEvent(Horizon.Instance.KernelContext);
             }
 
             if (context.Process.HandleTable.GenerateHandle(_completionEvent.ReadableEvent, out int completionEventHandle) != KernelResult.Success)
@@ -150,7 +150,7 @@ namespace Ryujinx.HLE.HOS.Services.Friend.ServiceCreator
                 return ResultCode.InvalidArgument;
             }
 
-            context.Device.System.AccountManager.OpenUserOnlinePlay(userId);
+            Horizon.Instance.AccountManager.OpenUserOnlinePlay(userId);
             
             Logger.Stub?.PrintStub(LogClass.ServiceFriend, new { UserId = userId.ToString() });
 
@@ -168,7 +168,7 @@ namespace Ryujinx.HLE.HOS.Services.Friend.ServiceCreator
                 return ResultCode.InvalidArgument;
             }
 
-            context.Device.System.AccountManager.CloseUserOnlinePlay(userId);
+            Horizon.Instance.AccountManager.CloseUserOnlinePlay(userId);
 
             Logger.Stub?.PrintStub(LogClass.ServiceFriend, new { UserId = userId.ToString() });
 
@@ -296,7 +296,7 @@ namespace Ryujinx.HLE.HOS.Services.Friend.ServiceCreator
             }
 
             // TODO: Call nn::arp::GetApplicationControlProperty here when implemented.
-            ApplicationControlProperty controlProperty = context.Device.Application.ControlData.Value;
+            ApplicationControlProperty controlProperty = Horizon.Instance.Device.Application.ControlData.Value;
 
             /*
 

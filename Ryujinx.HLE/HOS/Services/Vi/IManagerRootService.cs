@@ -5,8 +5,6 @@ namespace Ryujinx.HLE.HOS.Services.Vi
     [Service("vi:m")]
     class IManagerRootService : IpcService
     {
-        public IManagerRootService() { }
-
         [CommandHipc(2)]
         // GetDisplayService(u32) -> object<nn::visrv::sf::IApplicationDisplayService>
         public ResultCode GetDisplayService(ServiceCtx context)

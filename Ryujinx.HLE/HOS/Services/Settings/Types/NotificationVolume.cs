@@ -1,6 +1,6 @@
-﻿namespace Ryujinx.HLE.HOS.Services.Settings.Types
+﻿namespace Ryujinx.HLE.HOS.Services.Settings
 {
-    enum NotificationVolume
+    public enum NotificationVolume : uint
     {
         Mute = 0,
         Low = 1,

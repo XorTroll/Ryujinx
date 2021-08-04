@@ -1,10 +1,10 @@
-﻿namespace Ryujinx.HLE.HOS.Services.Settings.Types
+﻿namespace Ryujinx.HLE.HOS.Services.Settings
 {
-    struct NotificationSettings
+    public struct NotificationSettings
     {
-        public uint Flags { get; set; }
+        public NotificationFlag NotificationFlags { get; set; }
 
-        public uint Volume { get; set; }
+        public NotificationVolume NotificationVolume { get; set; }
 
         public NotificationTime HeadTime { get; set; }
 
@@ -12,8 +12,8 @@
 
         public static NotificationSettings Default = new NotificationSettings
         {
-            Flags = (uint)NotificationFlag.RingtoneFlag,
-            Volume = (uint)NotificationVolume.Mute,
+            NotificationFlags = NotificationFlag.RingtoneFlag,
+            NotificationVolume = NotificationVolume.Mute,
             HeadTime = new NotificationTime
             {
                 Hour = 0,

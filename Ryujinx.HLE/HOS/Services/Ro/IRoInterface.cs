@@ -190,7 +190,7 @@ namespace Ryujinx.HLE.HOS.Services.Ro
             uint totalSize = (uint)nro.Text.Length + (uint)nro.Ro.Length + (uint)nro.Data.Length + nro.BssSize;
 
             // Apply patches
-            context.Device.FileSystem.ModLoader.ApplyNroPatches(nro);
+            Horizon.Instance.Device.FileSystem.ModLoader.ApplyNroPatches(nro);
 
             res = new NroInfo(
                 nro,
@@ -566,7 +566,7 @@ namespace Ryujinx.HLE.HOS.Services.Ro
             }
 
             _owner = context.Process.HandleTable.GetKProcess(context.Request.HandleDesc.ToCopy[0]);
-            context.Device.System.KernelContext.Syscall.CloseHandle(context.Request.HandleDesc.ToCopy[0]);
+            Horizon.Instance.KernelContext.Syscall.CloseHandle(context.Request.HandleDesc.ToCopy[0]);
 
             return ResultCode.Success;
         }

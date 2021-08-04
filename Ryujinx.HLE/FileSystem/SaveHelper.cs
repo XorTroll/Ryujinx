@@ -10,7 +10,7 @@ namespace Ryujinx.HLE.FileSystem
         public static IFileSystem OpenSystemSaveData(ServiceCtx context, ulong saveId)
         {
             SaveInfo saveInfo = new SaveInfo(0, (long)saveId, SaveDataType.SystemSaveData, SaveSpaceId.NandSystem);
-            string   savePath = context.Device.FileSystem.GetSavePath(context, saveInfo, false);
+            string   savePath = Horizon.Instance.Device.FileSystem.GetSavePath(context, saveInfo, false);
 
             if (File.Exists(savePath))
             {
@@ -22,7 +22,7 @@ namespace Ryujinx.HLE.FileSystem
 
                 using (LocalStorage systemSaveData = new LocalStorage(savePath, FileAccess.Read, FileMode.Open))
                 {
-                    IFileSystem saveFs = new LibHac.FsSystem.Save.SaveDataFileSystem(context.Device.System.KeySet, systemSaveData, IntegrityCheckLevel.None, false);
+                    IFileSystem saveFs = new LibHac.FsSystem.Save.SaveDataFileSystem(Horizon.Instance.KeySet, systemSaveData, IntegrityCheckLevel.None, false);
 
                     saveFs.CopyDirectory(outputFolder, "/", "/");
                 }

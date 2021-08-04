@@ -14,8 +14,6 @@ namespace Ryujinx.HLE.HOS.Services.Bluetooth
         private string _unknownLowEnergy;
 #pragma warning restore CS0414
 
-        public IBluetoothDriver() { }
-
         [CommandHipc(46)]
         // InitializeBluetoothLe() -> handle<copy>
         public ResultCode InitializeBluetoothLe(ServiceCtx context)
@@ -28,7 +26,7 @@ namespace Ryujinx.HLE.HOS.Services.Bluetooth
             {
                 if (BluetoothEventManager.InitializeBleDebugEventHandle == 0)
                 {
-                    BluetoothEventManager.InitializeBleDebugEvent = new KEvent(context.Device.System.KernelContext);
+                    BluetoothEventManager.InitializeBleDebugEvent = new KEvent(Horizon.Instance.KernelContext);
 
                     if (context.Process.HandleTable.GenerateHandle(BluetoothEventManager.InitializeBleDebugEvent.ReadableEvent, out BluetoothEventManager.InitializeBleDebugEventHandle) != KernelResult.Success)
                     {
@@ -38,7 +36,7 @@ namespace Ryujinx.HLE.HOS.Services.Bluetooth
 
                 if (BluetoothEventManager.UnknownBleDebugEventHandle == 0)
                 {
-                    BluetoothEventManager.UnknownBleDebugEvent = new KEvent(context.Device.System.KernelContext);
+                    BluetoothEventManager.UnknownBleDebugEvent = new KEvent(Horizon.Instance.KernelContext);
 
                     if (context.Process.HandleTable.GenerateHandle(BluetoothEventManager.UnknownBleDebugEvent.ReadableEvent, out BluetoothEventManager.UnknownBleDebugEventHandle) != KernelResult.Success)
                     {
@@ -48,7 +46,7 @@ namespace Ryujinx.HLE.HOS.Services.Bluetooth
 
                 if (BluetoothEventManager.RegisterBleDebugEventHandle == 0)
                 {
-                    BluetoothEventManager.RegisterBleDebugEvent = new KEvent(context.Device.System.KernelContext);
+                    BluetoothEventManager.RegisterBleDebugEvent = new KEvent(Horizon.Instance.KernelContext);
 
                     if (context.Process.HandleTable.GenerateHandle(BluetoothEventManager.RegisterBleDebugEvent.ReadableEvent, out BluetoothEventManager.RegisterBleDebugEventHandle) != KernelResult.Success)
                     {
@@ -64,7 +62,7 @@ namespace Ryujinx.HLE.HOS.Services.Bluetooth
 
                 if (BluetoothEventManager.InitializeBleEventHandle == 0)
                 {
-                    BluetoothEventManager.InitializeBleEvent = new KEvent(context.Device.System.KernelContext);
+                    BluetoothEventManager.InitializeBleEvent = new KEvent(Horizon.Instance.KernelContext);
 
                     if (context.Process.HandleTable.GenerateHandle(BluetoothEventManager.InitializeBleEvent.ReadableEvent, out BluetoothEventManager.InitializeBleEventHandle) != KernelResult.Success)
                     {
@@ -74,7 +72,7 @@ namespace Ryujinx.HLE.HOS.Services.Bluetooth
 
                 if (BluetoothEventManager.UnknownBleEventHandle == 0)
                 {
-                    BluetoothEventManager.UnknownBleEvent = new KEvent(context.Device.System.KernelContext);
+                    BluetoothEventManager.UnknownBleEvent = new KEvent(Horizon.Instance.KernelContext);
 
                     if (context.Process.HandleTable.GenerateHandle(BluetoothEventManager.UnknownBleEvent.ReadableEvent, out BluetoothEventManager.UnknownBleEventHandle) != KernelResult.Success)
                     {
@@ -84,7 +82,7 @@ namespace Ryujinx.HLE.HOS.Services.Bluetooth
 
                 if (BluetoothEventManager.RegisterBleEventHandle == 0)
                 {
-                    BluetoothEventManager.RegisterBleEvent = new KEvent(context.Device.System.KernelContext);
+                    BluetoothEventManager.RegisterBleEvent = new KEvent(Horizon.Instance.KernelContext);
 
                     if (context.Process.HandleTable.GenerateHandle(BluetoothEventManager.RegisterBleEvent.ReadableEvent, out BluetoothEventManager.RegisterBleEventHandle) != KernelResult.Success)
                     {

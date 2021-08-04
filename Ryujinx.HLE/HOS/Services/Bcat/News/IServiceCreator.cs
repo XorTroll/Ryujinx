@@ -7,8 +7,6 @@
     [Service("news:v")]
     class IServiceCreator : IpcService
     {
-        public IServiceCreator() { }
-
         // TODO: permissions depending on service type
 
         [CommandHipc(0)]
@@ -24,7 +22,7 @@
         // CreateNewlyArrivedEventHolder() -> object<nn::news::detail::ipc::ICreateNewlyArrivedEventHolder>
         public ResultCode CreateNewlyArrivedEventHolder(ServiceCtx context)
         {
-            MakeObject(context, new INewlyArrivedEventHolder(context.Device.System.KernelContext));
+            MakeObject(context, new INewlyArrivedEventHolder());
 
             return ResultCode.Success;
         }
@@ -51,7 +49,7 @@
         // CreateOverwriteEventHolder() -> object<nn::news::detail::ipc::IOverwriteEventHolder>
         public ResultCode CreateOverwriteEventHolder(ServiceCtx context)
         {
-            MakeObject(context, new IOverwriteEventHolder(context.Device.System.KernelContext));
+            MakeObject(context, new IOverwriteEventHolder());
 
             return ResultCode.Success;
         }

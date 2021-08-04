@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace Ryujinx.HLE.HOS.Services.Settings.Types
+namespace Ryujinx.HLE.HOS.Services.Settings
 {
     [Flags]
-    enum TvFlag
+    public enum TvFlag
     {
         Allows4k = 1 << 0,
         Allows3d = 1 << 1,

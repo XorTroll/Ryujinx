@@ -11,7 +11,7 @@ namespace Ryujinx.HLE.HOS.Services.Glue
 {
     class GlueServer : ServerManager
     {
-        public GlueServer(Horizon system) : base(system, "glue", 0x0100000000000031, 44) { }
+        public GlueServer() : base("glue", 0x0100000000000031, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {
@@ -23,7 +23,7 @@ namespace Ryujinx.HLE.HOS.Services.Glue
             { "ectx:aw", () => new IWriterForApplication() },
             { "ectx:w", () => new IWriterForSystem() },
             { "notif:a", () => new INotificationServicesForApplication() },
-            { "notif:s", () => new INotificationServicesForSystem(_system.KernelContext) },
+            { "notif:s", () => new INotificationServicesForSystem() },
             { "time:a", () => new IStaticServiceForGlue(TimePermissions.Admin) },
             { "time:r", () => new IStaticServiceForGlue(TimePermissions.Repair) },
             { "time:u", () => new IStaticServiceForGlue(TimePermissions.User) }

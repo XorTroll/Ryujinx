@@ -5,7 +5,7 @@ namespace Ryujinx.HLE.HOS.Services.Friend
 {
     class FriendsServer : ServerManager
     {
-        public FriendsServer(Horizon system) : base(system, "friends", 0x010000000000000E, 44) { }
+        public FriendsServer() : base("friends", 0x010000000000000E, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

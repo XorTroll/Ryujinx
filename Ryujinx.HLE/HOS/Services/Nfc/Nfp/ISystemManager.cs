@@ -5,8 +5,6 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
     [Service("nfp:sys")]
     class ISystemManager : IpcService
     {
-        public ISystemManager() { }
-
         [CommandHipc(0)]
         // CreateSystemInterface() -> object<nn::nfp::detail::ISystem>
         public ResultCode CreateSystemInterface(ServiceCtx context)

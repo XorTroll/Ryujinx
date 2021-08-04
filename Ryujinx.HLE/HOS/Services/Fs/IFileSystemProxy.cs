@@ -20,9 +20,9 @@ namespace Ryujinx.HLE.HOS.Services.Fs
     {
         private LibHac.FsSrv.IFileSystemProxy _baseFileSystemProxy;
 
-        public IFileSystemProxy(Horizon system)
+        public IFileSystemProxy()
         {
-            _baseFileSystemProxy = system.Device.FileSystem.FsServer.CreateFileSystemProxyService();
+            _baseFileSystemProxy = Horizon.Instance.Device.FileSystem.FsServer.CreateFileSystemProxyService();
         }
 
         [CommandHipc(1)]
@@ -40,7 +40,7 @@ namespace Ryujinx.HLE.HOS.Services.Fs
             FileSystemType fileSystemType = (FileSystemType)context.RequestData.ReadInt32();
             ulong titleId = context.RequestData.ReadUInt64();
             string switchPath = ReadUtf8String(context);
-            string fullPath = context.Device.FileSystem.SwitchPathToSystemPath(switchPath);
+            string fullPath = Horizon.Instance.Device.FileSystem.SwitchPathToSystemPath(switchPath);
 
             if (!File.Exists(fullPath))
             {
@@ -138,7 +138,7 @@ namespace Ryujinx.HLE.HOS.Services.Fs
             // Workaround that by setting the application ID and owner ID if they're not already set
             if (attribute.ProgramId == ProgramId.InvalidId)
             {
-                attribute.ProgramId = new ProgramId(context.Device.Application.TitleId);
+                attribute.ProgramId = new ProgramId(Horizon.Instance.Device.Application.TitleId);
             }
 
             Logger.Info?.Print(LogClass.ServiceFs, $"Creating save with title ID {attribute.ProgramId.Value:x16}");
@@ -210,7 +210,7 @@ namespace Ryujinx.HLE.HOS.Services.Fs
             // Workaround that by setting the application ID and owner ID if they're not already set
             if (attribute.ProgramId == ProgramId.InvalidId)
             {
-                attribute.ProgramId = new ProgramId(context.Device.Application.TitleId);
+                attribute.ProgramId = new ProgramId(Horizon.Instance.Device.Application.TitleId);
             }
 
             Result result = _baseFileSystemProxy.CreateSaveDataFileSystemWithHashSalt(ref attribute, ref creationInfo, ref metaCreateInfo, ref hashSalt);
@@ -229,7 +229,7 @@ namespace Ryujinx.HLE.HOS.Services.Fs
             // Workaround that by setting the application ID if it's not already set
             if (attribute.ProgramId == ProgramId.InvalidId)
             {
-                attribute.ProgramId = new ProgramId(context.Device.Application.TitleId);
+                attribute.ProgramId = new ProgramId(Horizon.Instance.Device.Application.TitleId);
             }
 
             Result result = _baseFileSystemProxy.OpenSaveDataFileSystem(out LibHac.Fs.Fsa.IFileSystem fileSystem, spaceId, ref attribute);
@@ -270,7 +270,7 @@ namespace Ryujinx.HLE.HOS.Services.Fs
             // Workaround that by setting the application ID if it's not already set
             if (attribute.ProgramId == ProgramId.InvalidId)
             {
-                attribute.ProgramId = new ProgramId(context.Device.Application.TitleId);
+                attribute.ProgramId = new ProgramId(Horizon.Instance.Device.Application.TitleId);
             }
 
             Result result = _baseFileSystemProxy.OpenReadOnlySaveDataFileSystem(out LibHac.Fs.Fsa.IFileSystem fileSystem, spaceId, ref attribute);
@@ -381,7 +381,7 @@ namespace Ryujinx.HLE.HOS.Services.Fs
         // OpenDataStorageByCurrentProcess() -> object<nn::fssrv::sf::IStorage> dataStorage
         public ResultCode OpenDataStorageByCurrentProcess(ServiceCtx context)
         {
-            MakeObject(context, new FileSystemProxy.IStorage(context.Device.FileSystem.RomFs.AsStorage()));
+            MakeObject(context, new FileSystemProxy.IStorage(Horizon.Instance.Device.FileSystem.RomFs.AsStorage()));
 
             return 0;
         }
@@ -396,30 +396,30 @@ namespace Ryujinx.HLE.HOS.Services.Fs
 
             // We do a mitm here to find if the request is for an AOC.
             // This is because AOC can be distributed over multiple containers in the emulator.
-            if (context.Device.System.ContentManager.GetAocDataStorage((ulong)titleId, out LibHac.Fs.IStorage aocStorage, context.Device.Configuration.FsIntegrityCheckLevel))
+            if (Horizon.Instance.ContentManager.GetAocDataStorage((ulong)titleId, out LibHac.Fs.IStorage aocStorage, Horizon.Instance.Device.Configuration.FsIntegrityCheckLevel))
             {
                 Logger.Info?.Print(LogClass.Loader, $"Opened AddOnContent Data TitleID={titleId:X16}");
 
-                MakeObject(context, new FileSystemProxy.IStorage(context.Device.FileSystem.ModLoader.ApplyRomFsMods((ulong)titleId, aocStorage)));
+                MakeObject(context, new FileSystemProxy.IStorage(Horizon.Instance.Device.FileSystem.ModLoader.ApplyRomFsMods((ulong)titleId, aocStorage)));
 
                 return ResultCode.Success;
             }
 
             NcaContentType contentType = NcaContentType.Data;
 
-            StorageId installedStorage = context.Device.System.ContentManager.GetInstalledStorage(titleId, contentType, storageId);
+            StorageId installedStorage = Horizon.Instance.ContentManager.GetInstalledStorage(titleId, contentType, storageId);
 
             if (installedStorage == StorageId.None)
             {
                 contentType = NcaContentType.PublicData;
 
-                installedStorage = context.Device.System.ContentManager.GetInstalledStorage(titleId, contentType, storageId);
+                installedStorage = Horizon.Instance.ContentManager.GetInstalledStorage(titleId, contentType, storageId);
             }
 
             if (installedStorage != StorageId.None)
             {
-                string contentPath = context.Device.System.ContentManager.GetInstalledContentPath(titleId, storageId, contentType);
-                string installPath = context.Device.FileSystem.SwitchPathToSystemPath(contentPath);
+                string contentPath = Horizon.Instance.ContentManager.GetInstalledContentPath(titleId, storageId, contentType);
+                string installPath = Horizon.Instance.Device.FileSystem.SwitchPathToSystemPath(contentPath);
 
                 if (!string.IsNullOrWhiteSpace(installPath))
                 {
@@ -430,8 +430,8 @@ namespace Ryujinx.HLE.HOS.Services.Fs
                         try
                         {
                             LibHac.Fs.IStorage ncaStorage = new LocalStorage(ncaPath, FileAccess.Read, FileMode.Open);
-                            Nca nca = new Nca(context.Device.System.KeySet, ncaStorage);
-                            LibHac.Fs.IStorage romfsStorage = nca.OpenStorage(NcaSectionType.Data, context.Device.System.FsIntegrityCheckLevel);
+                            Nca nca = new Nca(Horizon.Instance.KeySet, ncaStorage);
+                            LibHac.Fs.IStorage romfsStorage = nca.OpenStorage(NcaSectionType.Data, Horizon.Instance.FsIntegrityCheckLevel);
 
                             MakeObject(context, new FileSystemProxy.IStorage(romfsStorage));
                         }
@@ -460,7 +460,7 @@ namespace Ryujinx.HLE.HOS.Services.Fs
         // OpenPatchDataStorageByCurrentProcess() -> object<nn::fssrv::sf::IStorage>
         public ResultCode OpenPatchDataStorageByCurrentProcess(ServiceCtx context)
         {
-            MakeObject(context, new FileSystemProxy.IStorage(context.Device.FileSystem.RomFs.AsStorage()));
+            MakeObject(context, new FileSystemProxy.IStorage(Horizon.Instance.Device.FileSystem.RomFs.AsStorage()));
 
             return ResultCode.Success;
         }
@@ -514,7 +514,7 @@ namespace Ryujinx.HLE.HOS.Services.Fs
         {
             int mode = context.RequestData.ReadInt32();
 
-            context.Device.System.GlobalAccessLogMode = mode;
+            Horizon.Instance.GlobalAccessLogMode = mode;
 
             return ResultCode.Success;
         }
@@ -523,7 +523,7 @@ namespace Ryujinx.HLE.HOS.Services.Fs
         // GetGlobalAccessLogMode() -> u32 logMode
         public ResultCode GetGlobalAccessLogMode(ServiceCtx context)
         {
-            int mode = context.Device.System.GlobalAccessLogMode;
+            int mode = Horizon.Instance.GlobalAccessLogMode;
 
             context.ResponseData.Write(mode);
 

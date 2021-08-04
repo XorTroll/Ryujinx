@@ -7,7 +7,7 @@ using Ryujinx.Common.Configuration;
 using Ryujinx.Common.Logging;
 using Ryujinx.Configuration;
 using Ryujinx.Graphics.GAL;
-using Ryujinx.HLE.HOS.Services.Hid;
+using Ryujinx.HLE.HOS;
 using Ryujinx.Input;
 using Ryujinx.Input.GTK3;
 using Ryujinx.Input.HLE;
@@ -37,7 +37,6 @@ namespace Ryujinx.Ui
         public ManualResetEvent WaitEvent { get; set; }
         public NpadManager NpadManager { get; }
         public TouchScreenManager TouchScreenManager { get; }
-        public Switch Device { get; private set; }
         public IRenderer Renderer { get; private set; }
 
         public bool ScreenshotRequested { get; set; }
@@ -293,10 +292,9 @@ namespace Ryujinx.Ui
             }
         }
 
-        public void Initialize(Switch device)
+        public void Initialize()
         {
-            Device = device;
-            Renderer = Device.Gpu.Renderer;
+            Renderer = Horizon.Instance.Device.Gpu.Renderer;
             Renderer?.Window.SetSize(_windowWidth, _windowHeight);
 
             if (Renderer != null)
@@ -304,8 +302,8 @@ namespace Ryujinx.Ui
                 Renderer.ScreenCaptured += Renderer_ScreenCaptured;
             }
 
-            NpadManager.Initialize(device, ConfigurationState.Instance.Hid.InputConfig, ConfigurationState.Instance.Hid.EnableKeyboard, ConfigurationState.Instance.Hid.EnableMouse);
-            TouchScreenManager.Initialize(device);
+            NpadManager.Initialize(Horizon.Instance.Device, ConfigurationState.Instance.Hid.InputConfig, ConfigurationState.Instance.Hid.EnableKeyboard, ConfigurationState.Instance.Hid.EnableMouse);
+            TouchScreenManager.Initialize(Horizon.Instance.Device);
         }
 
         private unsafe void Renderer_ScreenCaptured(object sender, ScreenCaptureImageInfo e)
@@ -374,11 +372,11 @@ namespace Ryujinx.Ui
 
             InitializeRenderer();
 
-            Device.Gpu.Renderer.Initialize(_glLogLevel);
+            Horizon.Instance.Device.Gpu.Renderer.Initialize(_glLogLevel);
 
             _gpuVendorName = GetGpuVendorName();
 
-            Device.Gpu.InitializeShaderCache();
+            Horizon.Instance.Device.Gpu.InitializeShaderCache();
             Translator.IsReadyForTranslation.Set();
 
             while (_isActive)
@@ -392,16 +390,16 @@ namespace Ryujinx.Ui
 
                 _chrono.Restart();
 
-                if (Device.WaitFifo())
+                if (Horizon.Instance.Device.WaitFifo())
                 {
-                    Device.Statistics.RecordFifoStart();
-                    Device.ProcessFrame();
-                    Device.Statistics.RecordFifoEnd();
+                    Horizon.Instance.Device.Statistics.RecordFifoStart();
+                    Horizon.Instance.Device.ProcessFrame();
+                    Horizon.Instance.Device.Statistics.RecordFifoEnd();
                 }
 
-                while (Device.ConsumeFrameAvailable())
+                while (Horizon.Instance.Device.ConsumeFrameAvailable())
                 {
-                    Device.PresentFrame(SwapBuffers);
+                    Horizon.Instance.Device.PresentFrame(SwapBuffers);
                 }
 
                 if (_ticks >= _ticksPerFrame)
@@ -414,11 +412,11 @@ namespace Ryujinx.Ui
                     }
 
                     StatusUpdatedEvent?.Invoke(this, new StatusUpdatedEventArgs(
-                        Device.EnableDeviceVsync,
+                        Horizon.Instance.Device.EnableDeviceVsync,
                         dockedMode,
                         ConfigurationState.Instance.Graphics.AspectRatio.Value.ToText(),
-                        $"Game: {Device.Statistics.GetGameFrameRate():00.00} FPS",
-                        $"FIFO: {Device.Statistics.GetFifoPercent():0.00} %",
+                        $"Game: {Horizon.Instance.Device.Statistics.GetGameFrameRate():00.00} FPS",
+                        $"FIFO: {Horizon.Instance.Device.Statistics.GetFifoPercent():0.00} %",
                         $"GPU: {_gpuVendorName}"));
 
                     _ticks = Math.Min(_ticks - _ticksPerFrame, _ticksPerFrame);
@@ -438,16 +436,16 @@ namespace Ryujinx.Ui
             {
                 parent.Present();
 
-                string titleNameSection = string.IsNullOrWhiteSpace(Device.Application.TitleName) ? string.Empty
-                    : $" - {Device.Application.TitleName}";
+                string titleNameSection = string.IsNullOrWhiteSpace(Horizon.Instance.Device.Application.TitleName) ? string.Empty
+                    : $" - {Horizon.Instance.Device.Application.TitleName}";
 
-                string titleVersionSection = string.IsNullOrWhiteSpace(Device.Application.DisplayVersion) ? string.Empty
-                    : $" v{Device.Application.DisplayVersion}";
+                string titleVersionSection = string.IsNullOrWhiteSpace(Horizon.Instance.Device.Application.DisplayVersion) ? string.Empty
+                    : $" v{Horizon.Instance.Device.Application.DisplayVersion}";
 
-                string titleIdSection = string.IsNullOrWhiteSpace(Device.Application.TitleIdText) ? string.Empty
-                    : $" ({Device.Application.TitleIdText.ToUpper()})";
+                string titleIdSection = string.IsNullOrWhiteSpace(Horizon.Instance.Device.Application.TitleIdText) ? string.Empty
+                    : $" ({Horizon.Instance.Device.Application.TitleIdText.ToUpper()})";
 
-                string titleArchSection = Device.Application.TitleIs64Bit ? " (64-bit)" : " (32-bit)";
+                string titleArchSection = Horizon.Instance.Device.Application.TitleIs64Bit ? " (64-bit)" : " (32-bit)";
 
                 parent.Title = $"Ryujinx {Program.Version}{titleNameSection}{titleVersionSection}{titleIdSection}{titleArchSection}";
             });
@@ -560,7 +558,7 @@ namespace Ryujinx.Ui
                 if (currentHotkeyState.HasFlag(KeyboardHotkeyState.ToggleVSync) &&
                     !_prevHotkeyState.HasFlag(KeyboardHotkeyState.ToggleVSync))
                 {
-                    Device.EnableDeviceVsync = !Device.EnableDeviceVsync;
+                    Horizon.Instance.Device.EnableDeviceVsync = !Horizon.Instance.Device.EnableDeviceVsync;
                 }
 
                 if ((currentHotkeyState.HasFlag(KeyboardHotkeyState.Screenshot) &&
@@ -588,7 +586,7 @@ namespace Ryujinx.Ui
                 TouchScreenManager.Update(false);
             }
 
-            Device.Hid.DebugPad.Update();
+            Horizon.Instance.Device.Hid.DebugPad.Update();
 
             return true;
         }

@@ -19,7 +19,7 @@ namespace Ryujinx.HLE.HOS.Services.Fs.FileSystemProxy
                 LocalStorage        storage = new LocalStorage(pfsPath, FileAccess.Read, FileMode.Open);
                 PartitionFileSystem nsp     = new PartitionFileSystem(storage);
 
-                ImportTitleKeysFromNsp(nsp, context.Device.System.KeySet);
+                ImportTitleKeysFromNsp(nsp, Horizon.Instance.KeySet);
 
                 openedFileSystem = new IFileSystem(nsp);
             }
@@ -37,14 +37,14 @@ namespace Ryujinx.HLE.HOS.Services.Fs.FileSystemProxy
 
             try
             {
-                Nca nca = new Nca(context.Device.System.KeySet, ncaStorage);
+                Nca nca = new Nca(Horizon.Instance.KeySet, ncaStorage);
 
                 if (!nca.SectionExists(NcaSectionType.Data))
                 {
                     return ResultCode.PartitionNotFound;
                 }
 
-                LibHac.Fs.Fsa.IFileSystem fileSystem = nca.OpenFileSystem(NcaSectionType.Data, context.Device.System.FsIntegrityCheckLevel);
+                LibHac.Fs.Fsa.IFileSystem fileSystem = nca.OpenFileSystem(NcaSectionType.Data, Horizon.Instance.FsIntegrityCheckLevel);
 
                 openedFileSystem = new IFileSystem(fileSystem);
             }
@@ -78,7 +78,7 @@ namespace Ryujinx.HLE.HOS.Services.Fs.FileSystemProxy
                 {
                     PartitionFileSystem nsp = new PartitionFileSystem(pfsFile.AsStorage());
 
-                    ImportTitleKeysFromNsp(nsp, context.Device.System.KeySet);
+                    ImportTitleKeysFromNsp(nsp, Horizon.Instance.KeySet);
 
                     string filename = fullPath.Replace(archivePath.FullName, string.Empty).TrimStart('\\');
 

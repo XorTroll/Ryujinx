@@ -45,7 +45,6 @@ namespace Ryujinx.Headless.SDL2
         private static AccountManager _accountManager;
         private static UserChannelPersistence _userChannelPersistence;
         private static InputManager _inputManager;
-        private static Switch _emulationContext;
         private static WindowBase _window;
         private static WindowsMultimediaTimerResolution _windowsMultimediaTimerResolution;
         private static List<InputConfig> _inputConfiguration;
@@ -394,8 +393,8 @@ namespace Ryujinx.Headless.SDL2
             Ptc.PtcStateChanged -= ProgressHandler;
             Ptc.PtcStateChanged += ProgressHandler;
 
-            _emulationContext.Gpu.ShaderCacheStateChanged -= ProgressHandler;
-            _emulationContext.Gpu.ShaderCacheStateChanged += ProgressHandler;
+            Horizon.Instance.Device.Gpu.ShaderCacheStateChanged -= ProgressHandler;
+            Horizon.Instance.Device.Gpu.ShaderCacheStateChanged += ProgressHandler;
         }
 
         private static void ProgressHandler<T>(T state, int current, int total) where T : Enum
@@ -417,7 +416,7 @@ namespace Ryujinx.Headless.SDL2
             Logger.Info?.Print(LogClass.Application, label);
         }
 
-        private static Switch InitializeEmulationContext(WindowBase window, Options options)
+        private static void InitializeEmulationContext(WindowBase window, Options options)
         {
             HLEConfiguration configuration = new HLEConfiguration(_virtualFileSystem,
                                                                   _contentManager,
@@ -440,7 +439,7 @@ namespace Ryujinx.Headless.SDL2
                                                                   (bool)options.IgnoreMissingServices,
                                                                   options.AspectRatio);
 
-            return new Switch(configuration);
+            Horizon.Initialize(configuration);
         }
 
         private static void ExecutionEntrypoint()
@@ -452,14 +451,14 @@ namespace Ryujinx.Headless.SDL2
 
             DisplaySleep.Prevent();
 
-            _window.Initialize(_emulationContext, _inputConfiguration, _enableKeyboard, _enableMouse);
+            _window.Initialize(_inputConfiguration, _enableKeyboard, _enableMouse);
 
             _window.Execute();
 
             Ptc.Close();
             PtcProfiler.Stop();
 
-            _emulationContext.Dispose();
+            Horizon.Instance.Device.Dispose();
             _window.Dispose();
 
             _windowsMultimediaTimerResolution?.Dispose();
@@ -473,7 +472,7 @@ namespace Ryujinx.Headless.SDL2
             Logger.RestartTime();
 
             _window = new OpenGLWindow(_inputManager, options.LoggingGraphicsDebugLevel, options.AspectRatio, (bool)options.EnableMouse);
-            _emulationContext = InitializeEmulationContext(_window, options);
+            InitializeEmulationContext(_window, options);
 
             SetupProgressHandler();
 
@@ -493,12 +492,12 @@ namespace Ryujinx.Headless.SDL2
                 if (romFsFiles.Length > 0)
                 {
                     Logger.Info?.Print(LogClass.Application, "Loading as cart with RomFS.");
-                    _emulationContext.LoadCart(path, romFsFiles[0]);
+                    Horizon.Instance.Device.LoadCart(path, romFsFiles[0]);
                 }
                 else
                 {
                     Logger.Info?.Print(LogClass.Application, "Loading as cart WITHOUT RomFS.");
-                    _emulationContext.LoadCart(path);
+                    Horizon.Instance.Device.LoadCart(path);
                 }
             }
             else if (File.Exists(path))
@@ -507,22 +506,22 @@ namespace Ryujinx.Headless.SDL2
                 {
                     case ".xci":
                         Logger.Info?.Print(LogClass.Application, "Loading as XCI.");
-                        _emulationContext.LoadXci(path);
+                        Horizon.Instance.Device.LoadXci(path);
                         break;
                     case ".nca":
                         Logger.Info?.Print(LogClass.Application, "Loading as NCA.");
-                        _emulationContext.LoadNca(path);
+                        Horizon.Instance.Device.LoadNca(path);
                         break;
                     case ".nsp":
                     case ".pfs0":
                         Logger.Info?.Print(LogClass.Application, "Loading as NSP.");
-                        _emulationContext.LoadNsp(path);
+                        Horizon.Instance.Device.LoadNsp(path);
                         break;
                     default:
                         Logger.Info?.Print(LogClass.Application, "Loading as Homebrew.");
                         try
                         {
-                            _emulationContext.LoadProgram(path);
+                            Horizon.Instance.Device.LoadProgram(path);
                         }
                         catch (ArgumentOutOfRangeException)
                         {
@@ -537,7 +536,7 @@ namespace Ryujinx.Headless.SDL2
             {
                 Logger.Warning?.Print(LogClass.Application, "Please specify a valid XCI/NCA/NSP/PFS0/NRO file.");
 
-                _emulationContext.Dispose();
+                Horizon.Instance.Device.Dispose();
 
                 return false;
             }

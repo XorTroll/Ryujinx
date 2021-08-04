@@ -3,6 +3,5 @@
     [Service("pm:info")]
     class IInformationInterface : IpcService
     {
-        public IInformationInterface() { }
     }
 }

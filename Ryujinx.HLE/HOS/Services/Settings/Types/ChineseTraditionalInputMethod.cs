@@ -1,6 +1,6 @@
-﻿namespace Ryujinx.HLE.HOS.Services.Settings.Types
+﻿namespace Ryujinx.HLE.HOS.Services.Settings
 {
-    enum ChineseTraditionalInputMethod
+    public enum ChineseTraditionalInputMethod : uint
     {
         Unk1 = 1,
         Unk2 = 2

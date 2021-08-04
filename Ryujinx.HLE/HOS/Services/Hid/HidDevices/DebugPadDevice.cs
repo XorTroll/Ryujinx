@@ -5,11 +5,11 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 {
     public class DebugPadDevice : BaseDevice
     {
-        public DebugPadDevice(Switch device, bool active) : base(device, active) { }
+        public DebugPadDevice(bool active) : base(active) { }
 
         public void Update()
         {
-            ref RingLifo<DebugPadState> lifo = ref _device.Hid.SharedMemory.DebugPad;
+            ref RingLifo<DebugPadState> lifo = ref Horizon.Instance.Device.Hid.SharedMemory.DebugPad;
 
             ref DebugPadState previousEntry = ref lifo.GetCurrentEntryRef();
 

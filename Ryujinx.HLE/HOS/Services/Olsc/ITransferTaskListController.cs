@@ -4,8 +4,6 @@ namespace Ryujinx.HLE.HOS.Services.Olsc
 {
     class ITransferTaskListController : IpcService
     {
-        public ITransferTaskListController(ServiceCtx context) { }
-
         [CommandHipc(5)]
         // GetUnkHandleHolder() -> object<nn::olsc::srv::INativeHandleHolder>
         public ResultCode GetUnkHandleHolder(ServiceCtx context)

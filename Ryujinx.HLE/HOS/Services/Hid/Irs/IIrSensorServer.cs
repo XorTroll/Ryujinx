@@ -41,7 +41,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid.Irs
         {
             if (_irsensorSharedMemoryHandle == 0)
             {
-                if (context.Process.HandleTable.GenerateHandle(context.Device.System.IirsSharedMem, out _irsensorSharedMemoryHandle) != KernelResult.Success)
+                if (context.Process.HandleTable.GenerateHandle(Horizon.Instance.IirsSharedMem, out _irsensorSharedMemoryHandle) != KernelResult.Success)
                 {
                     throw new InvalidOperationException("Out of handles!");
                 }

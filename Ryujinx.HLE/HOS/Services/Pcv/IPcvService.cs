@@ -3,6 +3,5 @@
     [Service("pcv")]
     class IPcvService : IpcService
     {
-        public IPcvService() { }
     }
 }

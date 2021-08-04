@@ -60,7 +60,7 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
                 State      = NfpDeviceState.Initialized
             };
 
-            context.Device.System.NfpDevices.Add(devicePlayer1);
+            Horizon.Instance.NfpDevices.Add(devicePlayer1);
 
             // TODO: It mounts 0x8000000000000020 save data and stores a random generate value inside. Usage of the data needs to be determined.
 
@@ -81,7 +81,7 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
                 }
 
                 // NOTE: All events are destroyed here.
-                context.Device.System.NfpDevices.Clear();
+                Horizon.Instance.NfpDevices.Clear();
 
                 _state = State.NonInitialized;
             }
@@ -101,7 +101,7 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
             ulong outputPosition = context.Request.RecvListBuff[0].Position;
             ulong outputSize      = context.Request.RecvListBuff[0].Size;
 
-            if (context.Device.System.NfpDevices.Count == 0)
+            if (Horizon.Instance.NfpDevices.Count == 0)
             {
                 return ResultCode.DeviceNotFound;
             }
@@ -110,12 +110,12 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
 
             if (CheckNfcIsEnabled() == ResultCode.Success)
             {
-                for (int i = 0; i < context.Device.System.NfpDevices.Count; i++)
+                for (int i = 0; i < Horizon.Instance.NfpDevices.Count; i++)
                 {
-                    context.Memory.Write(outputPosition + ((uint)i * sizeof(long)), (uint)context.Device.System.NfpDevices[i].Handle);
+                    context.Memory.Write(outputPosition + ((uint)i * sizeof(long)), (uint)Horizon.Instance.NfpDevices[i].Handle);
                 }
 
-                context.ResponseData.Write(context.Device.System.NfpDevices.Count);
+                context.ResponseData.Write(Horizon.Instance.NfpDevices.Count);
             }
             else
             {
@@ -138,11 +138,11 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
 
             uint deviceHandle = (uint)context.RequestData.ReadUInt64();
 
-            for (int i = 0; i < context.Device.System.NfpDevices.Count; i++)
+            for (int i = 0; i < Horizon.Instance.NfpDevices.Count; i++)
             {
-                if (context.Device.System.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
+                if (Horizon.Instance.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
                 {
-                    context.Device.System.NfpDevices[i].State = NfpDeviceState.SearchingForTag;
+                    Horizon.Instance.NfpDevices[i].State = NfpDeviceState.SearchingForTag;
 
                     break;
                 }
@@ -159,13 +159,13 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
                         break;
                     }
 
-                    for (int i = 0; i < context.Device.System.NfpDevices.Count; i++)
+                    for (int i = 0; i < Horizon.Instance.NfpDevices.Count; i++)
                     {
-                        if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagFound)
+                        if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagFound)
                         {
-                            context.Device.System.NfpDevices[i].SignalActivate();
+                            Horizon.Instance.NfpDevices[i].SignalActivate();
                             Thread.Sleep(125); // NOTE: Simulate amiibo scanning delay.
-                            context.Device.System.NfpDevices[i].SignalDeactivate();
+                            Horizon.Instance.NfpDevices[i].SignalDeactivate();
 
                             break;
                         }
@@ -194,11 +194,11 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
 
             uint deviceHandle = (uint)context.RequestData.ReadUInt64();
 
-            for (int i = 0; i < context.Device.System.NfpDevices.Count; i++)
+            for (int i = 0; i < Horizon.Instance.NfpDevices.Count; i++)
             {
-                if (context.Device.System.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
+                if (Horizon.Instance.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
                 {
-                    context.Device.System.NfpDevices[i].State = NfpDeviceState.Initialized;
+                    Horizon.Instance.NfpDevices[i].State = NfpDeviceState.Initialized;
 
                     break;
                 }
@@ -234,21 +234,21 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
 
             // TODO: Found how the MountTarget is handled.
 
-            for (int i = 0; i < context.Device.System.NfpDevices.Count; i++)
+            for (int i = 0; i < Horizon.Instance.NfpDevices.Count; i++)
             {
-                if (context.Device.System.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
+                if (Horizon.Instance.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
                 {
-                    if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagRemoved)
+                    if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagRemoved)
                     {
                         resultCode = ResultCode.TagNotFound;
                     }
                     else
                     {
-                        if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagFound)
+                        if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagFound)
                         {
                             // NOTE: This mount the amiibo data, which isn't needed in our case.
 
-                            context.Device.System.NfpDevices[i].State = NfpDeviceState.TagMounted;
+                            Horizon.Instance.NfpDevices[i].State = NfpDeviceState.TagMounted;
 
                             resultCode = ResultCode.Success;
                         }
@@ -278,16 +278,16 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
 
             uint deviceHandle = (uint)context.RequestData.ReadUInt64();
 
-            if (context.Device.System.NfpDevices.Count == 0)
+            if (Horizon.Instance.NfpDevices.Count == 0)
             {
                 return ResultCode.DeviceNotFound;
             }
 
-            for (int i = 0; i < context.Device.System.NfpDevices.Count; i++)
+            for (int i = 0; i < Horizon.Instance.NfpDevices.Count; i++)
             {
-                if (context.Device.System.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
+                if (Horizon.Instance.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
                 {
-                    if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagRemoved)
+                    if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagRemoved)
                     {
                         resultCode = ResultCode.TagNotFound;
                     }
@@ -295,7 +295,7 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
                     {
                         // NOTE: This mount the amiibo data, which isn't needed in our case.
 
-                        context.Device.System.NfpDevices[i].State = NfpDeviceState.TagFound;
+                        Horizon.Instance.NfpDevices[i].State = NfpDeviceState.TagFound;
 
                         resultCode = ResultCode.Success;
                     }
@@ -320,7 +320,7 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
 
             uint deviceHandle = (uint)context.RequestData.ReadUInt64();
 
-            if (context.Device.System.NfpDevices.Count == 0)
+            if (Horizon.Instance.NfpDevices.Count == 0)
             {
                 return ResultCode.DeviceNotFound;
             }
@@ -329,19 +329,19 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
 
             bool isOpened = false;
 
-            for (int i = 0; i < context.Device.System.NfpDevices.Count; i++)
+            for (int i = 0; i < Horizon.Instance.NfpDevices.Count; i++)
             {
-                if (context.Device.System.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
+                if (Horizon.Instance.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
                 {
-                    if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagRemoved)
+                    if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagRemoved)
                     {
                         resultCode = ResultCode.TagNotFound;
                     }
                     else
                     {
-                        if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagMounted)
+                        if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagMounted)
                         {
-                            isOpened = VirtualAmiibo.OpenApplicationArea(context.Device.System.NfpDevices[i].AmiiboId, applicationAreaId);
+                            isOpened = VirtualAmiibo.OpenApplicationArea(Horizon.Instance.NfpDevices[i].AmiiboId, applicationAreaId);
 
                             resultCode = ResultCode.Success;
                         }
@@ -376,7 +376,7 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
 
             uint deviceHandle = (uint)context.RequestData.ReadUInt64();
 
-            if (context.Device.System.NfpDevices.Count == 0)
+            if (Horizon.Instance.NfpDevices.Count == 0)
             {
                 return ResultCode.DeviceNotFound;
             }
@@ -388,19 +388,19 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
 
             uint size = 0;
 
-            for (int i = 0; i < context.Device.System.NfpDevices.Count; i++)
+            for (int i = 0; i < Horizon.Instance.NfpDevices.Count; i++)
             {
-                if (context.Device.System.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
+                if (Horizon.Instance.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
                 {
-                    if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagRemoved)
+                    if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagRemoved)
                     {
                         resultCode = ResultCode.TagNotFound;
                     }
                     else
                     {
-                        if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagMounted)
+                        if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagMounted)
                         {
-                            byte[] applicationArea = VirtualAmiibo.GetApplicationArea(context.Device.System.NfpDevices[i].AmiiboId);
+                            byte[] applicationArea = VirtualAmiibo.GetApplicationArea(Horizon.Instance.NfpDevices[i].AmiiboId);
 
                             context.Memory.Write(outputPosition, applicationArea);
 
@@ -444,7 +444,7 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
 
             uint deviceHandle = (uint)context.RequestData.ReadUInt64();
 
-            if (context.Device.System.NfpDevices.Count == 0)
+            if (Horizon.Instance.NfpDevices.Count == 0)
             {
                 return ResultCode.DeviceNotFound;
             }
@@ -456,19 +456,19 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
 
             context.Memory.Read(inputPosition, applicationArea);
 
-            for (int i = 0; i < context.Device.System.NfpDevices.Count; i++)
+            for (int i = 0; i < Horizon.Instance.NfpDevices.Count; i++)
             {
-                if (context.Device.System.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
+                if (Horizon.Instance.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
                 {
-                    if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagRemoved)
+                    if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagRemoved)
                     {
                         resultCode = ResultCode.TagNotFound;
                     }
                     else
                     {
-                        if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagMounted)
+                        if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagMounted)
                         {
-                            VirtualAmiibo.SetApplicationArea(context.Device.System.NfpDevices[i].AmiiboId, applicationArea);
+                            VirtualAmiibo.SetApplicationArea(Horizon.Instance.NfpDevices[i].AmiiboId, applicationArea);
 
                             resultCode = ResultCode.Success;
                         }
@@ -491,7 +491,7 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
         {
             uint deviceHandle = (uint)context.RequestData.ReadUInt64();
 
-            if (context.Device.System.NfpDevices.Count == 0)
+            if (Horizon.Instance.NfpDevices.Count == 0)
             {
                 return ResultCode.DeviceNotFound;
             }
@@ -521,7 +521,7 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
 
             uint deviceHandle = (uint)context.RequestData.ReadUInt64();
 
-            if (context.Device.System.NfpDevices.Count == 0)
+            if (Horizon.Instance.NfpDevices.Count == 0)
             {
                 return ResultCode.DeviceNotFound;
             }
@@ -537,19 +537,19 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
 
             bool isCreated = false;
 
-            for (int i = 0; i < context.Device.System.NfpDevices.Count; i++)
+            for (int i = 0; i < Horizon.Instance.NfpDevices.Count; i++)
             {
-                if (context.Device.System.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
+                if (Horizon.Instance.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
                 {
-                    if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagRemoved)
+                    if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagRemoved)
                     {
                         resultCode = ResultCode.TagNotFound;
                     }
                     else
                     {
-                        if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagMounted)
+                        if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagMounted)
                         {
-                            isCreated = VirtualAmiibo.CreateApplicationArea(context.Device.System.NfpDevices[i].AmiiboId, applicationAreaId, applicationArea);
+                            isCreated = VirtualAmiibo.CreateApplicationArea(Horizon.Instance.NfpDevices[i].AmiiboId, applicationAreaId, applicationArea);
 
                             resultCode = ResultCode.Success;
                         }
@@ -595,24 +595,24 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
 
             uint deviceHandle = (uint)context.RequestData.ReadUInt64();
 
-            if (context.Device.System.NfpDevices.Count == 0)
+            if (Horizon.Instance.NfpDevices.Count == 0)
             {
                 return ResultCode.DeviceNotFound;
             }
 
-            for (int i = 0; i < context.Device.System.NfpDevices.Count; i++)
+            for (int i = 0; i < Horizon.Instance.NfpDevices.Count; i++)
             {
-                if (context.Device.System.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
+                if (Horizon.Instance.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
                 {
-                    if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagRemoved)
+                    if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagRemoved)
                     {
                         resultCode = ResultCode.TagNotFound;
                     }
                     else
                     {
-                        if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagMounted || context.Device.System.NfpDevices[i].State == NfpDeviceState.TagFound)
+                        if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagMounted || Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagFound)
                         {
-                            byte[] Uuid = VirtualAmiibo.GenerateUuid(context.Device.System.NfpDevices[i].AmiiboId, context.Device.System.NfpDevices[i].UseRandomUuid);
+                            byte[] Uuid = VirtualAmiibo.GenerateUuid(Horizon.Instance.NfpDevices[i].AmiiboId, Horizon.Instance.NfpDevices[i].UseRandomUuid);
 
                             if (Uuid.Length > AmiiboConstants.UuidMaxLength)
                             {
@@ -671,24 +671,24 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
 
             uint deviceHandle = (uint)context.RequestData.ReadUInt64();
 
-            if (context.Device.System.NfpDevices.Count == 0)
+            if (Horizon.Instance.NfpDevices.Count == 0)
             {
                 return ResultCode.DeviceNotFound;
             }
 
-            for (int i = 0; i < context.Device.System.NfpDevices.Count; i++)
+            for (int i = 0; i < Horizon.Instance.NfpDevices.Count; i++)
             {
-                if (context.Device.System.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
+                if (Horizon.Instance.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
                 {
-                    if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagRemoved)
+                    if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagRemoved)
                     {
                         resultCode = ResultCode.TagNotFound;
                     }
                     else
                     {
-                        if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagMounted)
+                        if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagMounted)
                         {
-                            RegisterInfo registerInfo = VirtualAmiibo.GetRegisterInfo(context.Device.System.NfpDevices[i].AmiiboId);
+                            RegisterInfo registerInfo = VirtualAmiibo.GetRegisterInfo(Horizon.Instance.NfpDevices[i].AmiiboId);
 
                             context.Memory.Write(outputPosition, registerInfo);
 
@@ -731,24 +731,24 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
 
             uint deviceHandle = (uint)context.RequestData.ReadUInt64();
 
-            if (context.Device.System.NfpDevices.Count == 0)
+            if (Horizon.Instance.NfpDevices.Count == 0)
             {
                 return ResultCode.DeviceNotFound;
             }
 
-            for (int i = 0; i < context.Device.System.NfpDevices.Count; i++)
+            for (int i = 0; i < Horizon.Instance.NfpDevices.Count; i++)
             {
-                if (context.Device.System.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
+                if (Horizon.Instance.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
                 {
-                    if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagRemoved)
+                    if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagRemoved)
                     {
                         resultCode = ResultCode.TagNotFound;
                     }
                     else
                     {
-                        if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagMounted)
+                        if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagMounted)
                         {
-                            CommonInfo commonInfo = VirtualAmiibo.GetCommonInfo(context.Device.System.NfpDevices[i].AmiiboId);
+                            CommonInfo commonInfo = VirtualAmiibo.GetCommonInfo(Horizon.Instance.NfpDevices[i].AmiiboId);
 
                             context.Memory.Write(outputPosition, commonInfo);
 
@@ -791,33 +791,33 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
 
             uint deviceHandle = (uint)context.RequestData.ReadUInt64();
 
-            if (context.Device.System.NfpDevices.Count == 0)
+            if (Horizon.Instance.NfpDevices.Count == 0)
             {
                 return ResultCode.DeviceNotFound;
             }
 
-            for (int i = 0; i < context.Device.System.NfpDevices.Count; i++)
+            for (int i = 0; i < Horizon.Instance.NfpDevices.Count; i++)
             {
-                if (context.Device.System.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
+                if (Horizon.Instance.NfpDevices[i].Handle == (PlayerIndex)deviceHandle)
                 {
-                    if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagRemoved)
+                    if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagRemoved)
                     {
                         resultCode = ResultCode.TagNotFound;
                     }
                     else
                     {
-                        if (context.Device.System.NfpDevices[i].State == NfpDeviceState.TagMounted)
+                        if (Horizon.Instance.NfpDevices[i].State == NfpDeviceState.TagMounted)
                         {
                             ModelInfo modelInfo = new ModelInfo
                             {
                                 Reserved = new Array57<byte>()
                             };
 
-                            modelInfo.CharacterId      = BinaryPrimitives.ReverseEndianness(ushort.Parse(context.Device.System.NfpDevices[i].AmiiboId.Substring(0, 4), NumberStyles.HexNumber));
-                            modelInfo.CharacterVariant = byte.Parse(context.Device.System.NfpDevices[i].AmiiboId.Substring(4, 2), NumberStyles.HexNumber);
-                            modelInfo.Series           = byte.Parse(context.Device.System.NfpDevices[i].AmiiboId.Substring(12, 2), NumberStyles.HexNumber);
-                            modelInfo.ModelNumber      = ushort.Parse(context.Device.System.NfpDevices[i].AmiiboId.Substring(8, 4), NumberStyles.HexNumber);
-                            modelInfo.Type             = byte.Parse(context.Device.System.NfpDevices[i].AmiiboId.Substring(6, 2), NumberStyles.HexNumber);
+                            modelInfo.CharacterId      = BinaryPrimitives.ReverseEndianness(ushort.Parse(Horizon.Instance.NfpDevices[i].AmiiboId.Substring(0, 4), NumberStyles.HexNumber));
+                            modelInfo.CharacterVariant = byte.Parse(Horizon.Instance.NfpDevices[i].AmiiboId.Substring(4, 2), NumberStyles.HexNumber);
+                            modelInfo.Series           = byte.Parse(Horizon.Instance.NfpDevices[i].AmiiboId.Substring(12, 2), NumberStyles.HexNumber);
+                            modelInfo.ModelNumber      = ushort.Parse(Horizon.Instance.NfpDevices[i].AmiiboId.Substring(8, 4), NumberStyles.HexNumber);
+                            modelInfo.Type             = byte.Parse(Horizon.Instance.NfpDevices[i].AmiiboId.Substring(6, 2), NumberStyles.HexNumber);
 
                             context.Memory.Write(outputPosition, modelInfo);
 
@@ -842,13 +842,13 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
         {
             uint deviceHandle = context.RequestData.ReadUInt32();
 
-            for (int i = 0; i < context.Device.System.NfpDevices.Count; i++)
+            for (int i = 0; i < Horizon.Instance.NfpDevices.Count; i++)
             {
-                if ((uint)context.Device.System.NfpDevices[i].Handle == deviceHandle)
+                if ((uint)Horizon.Instance.NfpDevices[i].Handle == deviceHandle)
                 {
-                    context.Device.System.NfpDevices[i].ActivateEvent = new KEvent(context.Device.System.KernelContext);
+                    Horizon.Instance.NfpDevices[i].ActivateEvent = new KEvent(Horizon.Instance.KernelContext);
 
-                    if (context.Process.HandleTable.GenerateHandle(context.Device.System.NfpDevices[i].ActivateEvent.ReadableEvent, out int activateEventHandle) != KernelResult.Success)
+                    if (context.Process.HandleTable.GenerateHandle(Horizon.Instance.NfpDevices[i].ActivateEvent.ReadableEvent, out int activateEventHandle) != KernelResult.Success)
                     {
                         throw new InvalidOperationException("Out of handles!");
                     }
@@ -868,13 +868,13 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
         {
             uint deviceHandle = context.RequestData.ReadUInt32();
 
-            for (int i = 0; i < context.Device.System.NfpDevices.Count; i++)
+            for (int i = 0; i < Horizon.Instance.NfpDevices.Count; i++)
             {
-                if ((uint)context.Device.System.NfpDevices[i].Handle == deviceHandle)
+                if ((uint)Horizon.Instance.NfpDevices[i].Handle == deviceHandle)
                 {
-                    context.Device.System.NfpDevices[i].DeactivateEvent = new KEvent(context.Device.System.KernelContext);
+                    Horizon.Instance.NfpDevices[i].DeactivateEvent = new KEvent(Horizon.Instance.KernelContext);
 
-                    if (context.Process.HandleTable.GenerateHandle(context.Device.System.NfpDevices[i].DeactivateEvent.ReadableEvent, out int deactivateEventHandle) != KernelResult.Success)
+                    if (context.Process.HandleTable.GenerateHandle(Horizon.Instance.NfpDevices[i].DeactivateEvent.ReadableEvent, out int deactivateEventHandle) != KernelResult.Success)
                     {
                         throw new InvalidOperationException("Out of handles!");
                     }
@@ -903,16 +903,16 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
         {
             uint deviceHandle = context.RequestData.ReadUInt32();
 
-            for (int i = 0; i < context.Device.System.NfpDevices.Count; i++)
+            for (int i = 0; i < Horizon.Instance.NfpDevices.Count; i++)
             {
-                if ((uint)context.Device.System.NfpDevices[i].Handle == deviceHandle)
+                if ((uint)Horizon.Instance.NfpDevices[i].Handle == deviceHandle)
                 {
-                    if (context.Device.System.NfpDevices[i].State > NfpDeviceState.Finalized)
+                    if (Horizon.Instance.NfpDevices[i].State > NfpDeviceState.Finalized)
                     {
                         throw new ArgumentOutOfRangeException();
                     }
                     
-                    context.ResponseData.Write((uint)context.Device.System.NfpDevices[i].State);
+                    context.ResponseData.Write((uint)Horizon.Instance.NfpDevices[i].State);
 
                     return ResultCode.Success;
                 }
@@ -929,11 +929,11 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
         {
             uint deviceHandle = context.RequestData.ReadUInt32();
 
-            for (int i = 0; i < context.Device.System.NfpDevices.Count; i++)
+            for (int i = 0; i < Horizon.Instance.NfpDevices.Count; i++)
             {
-                if ((uint)context.Device.System.NfpDevices[i].Handle == deviceHandle)
+                if ((uint)Horizon.Instance.NfpDevices[i].Handle == deviceHandle)
                 {
-                    context.ResponseData.Write((uint)HidUtils.GetNpadIdTypeFromIndex(context.Device.System.NfpDevices[i].Handle));
+                    context.ResponseData.Write((uint)HidUtils.GetNpadIdTypeFromIndex(Horizon.Instance.NfpDevices[i].Handle));
 
                     return ResultCode.Success;
                 }
@@ -955,7 +955,7 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.Nfp
         // AttachAvailabilityChangeEvent() -> handle<copy>
         public ResultCode AttachAvailabilityChangeEvent(ServiceCtx context)
         {
-            _availabilityChangeEvent = new KEvent(context.Device.System.KernelContext);
+            _availabilityChangeEvent = new KEvent(Horizon.Instance.KernelContext);
 
             if (context.Process.HandleTable.GenerateHandle(_availabilityChangeEvent.ReadableEvent, out int availabilityChangeEventHandle) != KernelResult.Success)
             {

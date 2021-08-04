@@ -1,9 +1,8 @@
+using Ryujinx.Common;
 using Ryujinx.Common.Logging;
 using Ryujinx.HLE.HOS.Ipc;
 using Ryujinx.HLE.HOS.Kernel.Common;
 using Ryujinx.HLE.HOS.Kernel.Threading;
-using Ryujinx.HLE.HOS.Services.Settings.Types;
-using Ryujinx.HLE.HOS.SystemState;
 using Ryujinx.HLE.HOS.Services.Ptm.Apm;
 using Ryujinx.HLE.HOS.Services.Ptm.Lbl;
 using System;
@@ -27,19 +26,19 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         private KEvent _acquiredSleepLockEvent;
         private int _acquiredSleepLockEventHandle;
 
-        public ICommonStateGetter(ServiceCtx context)
+        public ICommonStateGetter()
         {
-            _apmManagerServer       = new ManagerServer(context.Device.System);
-            _apmSystemManagerServer = new SystemManagerServer(context.Device.System);
+            _apmManagerServer       = new ManagerServer();
+            _apmSystemManagerServer = new SystemManagerServer();
             _lblControllerServer    = new LblControllerServer();
-            _acquiredSleepLockEvent = new KEvent(context.Device.System.KernelContext);
+            _acquiredSleepLockEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(0)]
         // GetEventHandle() -> handle<copy>
         public ResultCode GetEventHandle(ServiceCtx context)
         {
-            KEvent messageEvent = context.Device.System.AppletState.MessageEvent;
+            KEvent messageEvent = Horizon.Instance.AppletState.MessageEvent;
 
             if (_messageEventHandle == 0)
             {
@@ -58,17 +57,17 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         // ReceiveMessage() -> nn::am::AppletMessage
         public ResultCode ReceiveMessage(ServiceCtx context)
         {
-            if (!context.Device.System.AppletState.Messages.TryDequeue(out AppletMessage message))
+            if (!Horizon.Instance.AppletState.Messages.TryDequeue(out AppletMessage message))
             {
                 return ResultCode.NoMessages;
             }
 
-            KEvent messageEvent = context.Device.System.AppletState.MessageEvent;
+            KEvent messageEvent = Horizon.Instance.AppletState.MessageEvent;
 
             // NOTE: Service checks if current states are different than the stored ones.
             //       Since we don't support any states for now, it's fine to check if there is still messages available.
 
-            if (context.Device.System.AppletState.Messages.IsEmpty)
+            if (Horizon.Instance.AppletState.Messages.IsEmpty)
             {
                 messageEvent.ReadableEvent.Clear();
             }
@@ -86,7 +85,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         // GetOperationMode() -> u8
         public ResultCode GetOperationMode(ServiceCtx context)
         {
-            OperationMode mode = context.Device.System.State.DockedMode
+            OperationMode mode = Horizon.Instance.State.DockedMode
                 ? OperationMode.Docked
                 : OperationMode.Handheld;
 
@@ -117,7 +116,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         // GetCurrentFocusState() -> u8
         public ResultCode GetCurrentFocusState(ServiceCtx context)
         {
-            context.ResponseData.Write((byte)context.Device.System.AppletState.FocusState);
+            context.ResponseData.WriteStruct(Horizon.Instance.AppletState.FocusState);
 
             return ResultCode.Success;
         }
@@ -171,7 +170,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
 
             Logger.Stub?.PrintStub(LogClass.ServiceAm, new { unk });
 
-            MakeObject(context, new ILockAccessor(context, unk));
+            MakeObject(context, new ILockAccessor(unk));
 
             return ResultCode.Success;
         }
@@ -265,7 +264,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         {
             if (_displayResolutionChangedEventHandle == 0)
             {
-                if (context.Process.HandleTable.GenerateHandle(context.Device.System.DisplayResolutionChangeEvent.ReadableEvent, out _displayResolutionChangedEventHandle) != KernelResult.Success)
+                if (context.Process.HandleTable.GenerateHandle(Horizon.Instance.DisplayResolutionChangeEvent.ReadableEvent, out _displayResolutionChangedEventHandle) != KernelResult.Success)
                 {
                     throw new InvalidOperationException("Out of handles!");
                 }
@@ -318,10 +317,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         // GetSettingsPlatformRegion() -> u8
         public ResultCode GetSettingsPlatformRegion(ServiceCtx context)
         {
-            PlatformRegion platformRegion = context.Device.System.State.DesiredRegionCode == (uint)RegionCode.China ? PlatformRegion.China : PlatformRegion.Global;
-
-            // FIXME: Call set:sys GetPlatformRegion
-            context.ResponseData.Write((byte)platformRegion);
+            context.ResponseData.WriteStruct(Horizon.Instance.State.PlatformRegion);
 
             return ResultCode.Success;
         }

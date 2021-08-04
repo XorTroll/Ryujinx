@@ -25,7 +25,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
         // GetCommonStateGetter() -> object<nn::am::service::ICommonStateGetter>
         public ResultCode GetCommonStateGetter(ServiceCtx context)
         {
-            MakeObject(context, new ICommonStateGetter(context));
+            MakeObject(context, new ICommonStateGetter());
 
             return ResultCode.Success;
         }
@@ -34,7 +34,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
         // GetSelfController() -> object<nn::am::service::ISelfController>
         public ResultCode GetSelfController(ServiceCtx context)
         {
-            MakeObject(context, new ISelfController(context, _pid));
+            MakeObject(context, new ISelfController(_pid));
 
             return ResultCode.Success;
         }
@@ -61,7 +61,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
         // GetDisplayController() -> object<nn::am::service::IDisplayController>
         public ResultCode GetDisplayController(ServiceCtx context)
         {
-            MakeObject(context, new IDisplayController(context));
+            MakeObject(context, new IDisplayController());
 
             return ResultCode.Success;
         }

@@ -13,9 +13,9 @@ namespace Ryujinx.HLE.HOS.Services.Npns
         public KEvent _receiveEvent;
         public int _receiveEventHandle;
 
-        public INpnsUser(KernelContext context)
+        public INpnsUser()
         {
-            _receiveEvent = new KEvent(context);
+            _receiveEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(2)]

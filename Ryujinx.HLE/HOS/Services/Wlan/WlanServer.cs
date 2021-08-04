@@ -5,7 +5,7 @@ namespace Ryujinx.HLE.HOS.Services.Wlan
 {
     class WlanServer : ServerManager
     {
-        public WlanServer(Horizon system) : base(system, "wlan", 0x0100000000000016, 44) { }
+        public WlanServer() : base("wlan", 0x0100000000000016, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

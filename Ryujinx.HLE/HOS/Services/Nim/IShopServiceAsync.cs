@@ -2,6 +2,5 @@
 {
     class IShopServiceAsync : IpcService
     {
-        public IShopServiceAsync() { }
     }
 }

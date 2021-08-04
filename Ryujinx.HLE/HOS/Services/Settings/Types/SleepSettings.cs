@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 
-namespace Ryujinx.HLE.HOS.Services.Settings.Types
+namespace Ryujinx.HLE.HOS.Services.Settings
 {
     [StructLayout(LayoutKind.Sequential)]
-    struct SleepSettings
+    public struct SleepSettings
     {
         public uint Flags { get; set; }
 

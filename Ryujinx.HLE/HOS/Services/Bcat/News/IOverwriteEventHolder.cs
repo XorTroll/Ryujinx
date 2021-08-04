@@ -12,9 +12,9 @@ namespace Ryujinx.HLE.HOS.Services.Bcat.News
         private KEvent _event;
         private int _eventHandle;
 
-        public IOverwriteEventHolder(KernelContext context)
+        public IOverwriteEventHolder()
         {
-            _event = new KEvent(context);
+            _event = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(0)]

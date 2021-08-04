@@ -2,6 +2,5 @@
 {
     class ISender : IpcService
     {
-        public ISender(ServiceCtx context) { }
     }
 }

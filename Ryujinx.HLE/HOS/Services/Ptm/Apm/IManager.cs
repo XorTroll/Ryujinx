@@ -2,10 +2,10 @@ namespace Ryujinx.HLE.HOS.Services.Ptm.Apm
 {
     abstract class IManager : IpcService
     {
-        public IManager() { }
-
         protected abstract ResultCode OpenSession(out SessionServer sessionServer);
+
         protected abstract PerformanceMode GetPerformanceMode();
+
         protected abstract bool IsCpuOverclockEnabled();
 
         [CommandHipc(0)]

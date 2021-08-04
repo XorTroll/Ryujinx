@@ -4,8 +4,6 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
 {
     class IAppletCommonFunctions : IpcService
     {
-        public IAppletCommonFunctions() { }
-
         [CommandHipc(42)]
         // SetDisplayMagnification(float, float, float, float)
         public ResultCode SetDisplayMagnification(ServiceCtx context)

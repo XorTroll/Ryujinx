@@ -8,6 +8,5 @@
     [Service("spl:ssl")] 
     class IGeneralInterface : IpcService
     {
-        public IGeneralInterface() { }
     }
 }

@@ -32,6 +32,7 @@ using Ryujinx.HLE.FileSystem;
 using Ryujinx.HLE.FileSystem.Content;
 using Ryujinx.HLE.HOS;
 using Ryujinx.HLE.HOS.Services.Account.Acc;
+using Ryujinx.HLE.HOS.Services.Settings;
 using Ryujinx.HLE.HOS.SystemState;
 using Ryujinx.Input.GTK3;
 using Ryujinx.Input.HLE;
@@ -57,8 +58,6 @@ namespace Ryujinx.Ui
         private readonly AccountManager    _accountManager;
 
         private UserChannelPersistence _userChannelPersistence;
-
-        private HLE.Switch _emulationContext;
 
         private WindowsMultimediaTimerResolution _windowsMultimediaTimerResolution;
 
@@ -261,25 +260,25 @@ namespace Ryujinx.Ui
 
         private void UpdateIgnoreMissingServicesState(object sender, ReactiveEventArgs<bool> args)
         {
-            if (_emulationContext != null)
+            if (Horizon.Instance.Device != null)
             {
-                _emulationContext.Configuration.IgnoreMissingServices = args.NewValue;
+                Horizon.Instance.Device.Configuration.IgnoreMissingServices = args.NewValue;
             }
         }
 
         private void UpdateAspectRatioState(object sender, ReactiveEventArgs<AspectRatio> args)
         {
-            if (_emulationContext != null)
+            if (Horizon.Instance.Device != null)
             {
-                _emulationContext.Configuration.AspectRatio = args.NewValue;
+                Horizon.Instance.Device.Configuration.AspectRatio = args.NewValue;
             }
         }
 
         private void UpdateDockedModeState(object sender, ReactiveEventArgs<bool> e)
         {
-            if (_emulationContext != null)
+            if (Horizon.Instance.Device != null)
             {
-                _emulationContext.System.ChangeDockedModeState(e.NewValue);
+                Horizon.Instance.Device.System.ChangeDockedModeState(e.NewValue);
             }
         }
 
@@ -460,7 +459,7 @@ namespace Ryujinx.Ui
                                                                           ConfigurationState.Instance.System.IgnoreMissingServices,
                                                                           ConfigurationState.Instance.Graphics.AspectRatio);
 
-            _emulationContext = new HLE.Switch(configuration);
+            Horizon.Initialize(configuration);
         }
 
         private void SetupProgressUiHandlers()
@@ -468,8 +467,8 @@ namespace Ryujinx.Ui
             Ptc.PtcStateChanged -= ProgressHandler;
             Ptc.PtcStateChanged += ProgressHandler;
 
-            _emulationContext.Gpu.ShaderCacheStateChanged -= ProgressHandler;
-            _emulationContext.Gpu.ShaderCacheStateChanged += ProgressHandler;
+            Horizon.Instance.Device.Gpu.ShaderCacheStateChanged -= ProgressHandler;
+            Horizon.Instance.Device.Gpu.ShaderCacheStateChanged += ProgressHandler;
         }
 
         private void ProgressHandler<T>(T state, int current, int total) where T : Enum
@@ -661,12 +660,12 @@ namespace Ryujinx.Ui
                 {
                     Logger.Info?.Print(LogClass.Application, "Loading firmware...");
 
-                    // _emulationContext.LoadNca(path);
-                    // _emulationContext.LoadSystemTitle(_contentManager, 0x010000000000100C);
-                    // _emulationContext.LoadSystemTitle(_contentManager, 0x0100000000001012);
-                    _emulationContext.LoadSystemTitle(_contentManager, 0x0100000000001000);
-                    // _emulationContext.LoadSystemTitle(_contentManager, 0x01008BB00013C000);
-                    // _emulationContext.LoadSystemBuiltinTitles(_contentManager);
+                    // Horizon.Instance.Device.LoadNca(path);
+                    // Horizon.Instance.Device.LoadSystemTitle(_contentManager, 0x010000000000100C);
+                    // Horizon.Instance.Device.LoadSystemTitle(_contentManager, 0x0100000000001012);
+                    Horizon.Instance.Device.LoadSystemTitle(_contentManager, 0x0100000000001000);
+                    // Horizon.Instance.Device.LoadSystemTitle(_contentManager, 0x01008BB00013C000);
+                    // Horizon.Instance.Device.LoadSystemBuiltinTitles(_contentManager);
                 }
                 else if (Directory.Exists(path))
                 {
@@ -680,12 +679,12 @@ namespace Ryujinx.Ui
                     if (romFsFiles.Length > 0)
                     {
                         Logger.Info?.Print(LogClass.Application, "Loading as cart with RomFS.");
-                        _emulationContext.LoadCart(path, romFsFiles[0]);
+                        Horizon.Instance.Device.LoadCart(path, romFsFiles[0]);
                     }
                     else
                     {
                         Logger.Info?.Print(LogClass.Application, "Loading as cart WITHOUT RomFS.");
-                        _emulationContext.LoadCart(path);
+                        Horizon.Instance.Device.LoadCart(path);
                     }
                 }
                 else if (File.Exists(path))
@@ -694,23 +693,23 @@ namespace Ryujinx.Ui
                     {
                         case ".xci":
                             Logger.Info?.Print(LogClass.Application, "Loading as XCI.");
-                            _emulationContext.LoadXci(path);
+                            Horizon.Instance.Device.LoadXci(path);
                             break;
                         case ".nca":
                             Logger.Info?.Print(LogClass.Application, "Loading as NCA.");
-                            _emulationContext.LoadNca(path);
+                            Horizon.Instance.Device.LoadNca(path);
                             break;
                         case ".nsp":
                         case ".pfs0":
                             Logger.Info?.Print(LogClass.Application, "Loading as NSP.");
-                            _emulationContext.LoadNsp(path);
+                            Horizon.Instance.Device.LoadNsp(path);
                             break;
                         default:
                             Logger.Info?.Print(LogClass.Application, "Loading as Homebrew.");
                             try
                             {
-                                _emulationContext.LoadSystemTitle(_contentManager, 0x0100000000001000);
-                                _emulationContext.LoadProgram(path);
+                                Horizon.Instance.Device.LoadSystemTitle(_contentManager, 0x0100000000001000);
+                                Horizon.Instance.Device.LoadProgram(path);
                             }
                             catch (ArgumentOutOfRangeException)
                             {
@@ -723,7 +722,7 @@ namespace Ryujinx.Ui
                 {
                     Logger.Warning?.Print(LogClass.Application, "Please specify a valid XCI/NCA/NSP/PFS0/NRO file.");
 
-                    _emulationContext.Dispose();
+                    Horizon.Instance.Device.Dispose();
                     RendererWidget.Dispose();
 
                     return;
@@ -756,9 +755,9 @@ namespace Ryujinx.Ui
                 _firmwareInstallFile.Sensitive      = false;
                 _firmwareInstallDirectory.Sensitive = false;
 
-                DiscordIntegrationModule.SwitchToPlayingState(_emulationContext.Application.TitleIdText, _emulationContext.Application.TitleName);
+                DiscordIntegrationModule.SwitchToPlayingState(Horizon.Instance.Device.Application.TitleIdText, Horizon.Instance.Device.Application.TitleName);
 
-                _applicationLibrary.LoadAndSaveMetaData(_emulationContext.Application.TitleIdText, appMetadata =>
+                _applicationLibrary.LoadAndSaveMetaData(Horizon.Instance.Device.Application.TitleIdText, appMetadata =>
                 {
                     appMetadata.LastPlayed = DateTime.UtcNow.ToString();
                 });
@@ -823,7 +822,7 @@ namespace Ryujinx.Ui
 
             Window.Title = $"Ryujinx {Program.Version}";
 
-            _emulationContext = null;
+            // Horizon.Instance.Device = null; (...)
             _gameLoaded = false;
             RendererWidget = null;
 
@@ -851,7 +850,7 @@ namespace Ryujinx.Ui
 
             DisplaySleep.Prevent();
 
-            RendererWidget.Initialize(_emulationContext);
+            RendererWidget.Initialize(Horizon.Instance.Device);
 
             RendererWidget.WaitEvent.WaitOne();
 
@@ -860,7 +859,7 @@ namespace Ryujinx.Ui
             Ptc.Close();
             PtcProfiler.Stop();
 
-            _emulationContext.Dispose();
+            Horizon.Instance.Device.Dispose();
             _deviceExitStatus.Set();
 
             // NOTE: Everything that is here will not be executed when you close the UI.
@@ -939,9 +938,9 @@ namespace Ryujinx.Ui
 
             _ending = true;
 
-            if (_emulationContext != null)
+            if (Horizon.Instance.Device != null)
             {
-                UpdateGameMetadata(_emulationContext.Application.TitleIdText);
+                UpdateGameMetadata(Horizon.Instance.Device.Application.TitleIdText);
 
                 if (RendererWidget != null)
                 {
@@ -1063,9 +1062,9 @@ namespace Ryujinx.Ui
 
         private void VSyncStatus_Clicked(object sender, ButtonReleaseEventArgs args)
         {
-            _emulationContext.EnableDeviceVsync = !_emulationContext.EnableDeviceVsync;
+            Horizon.Instance.Device.EnableDeviceVsync = !Horizon.Instance.Device.EnableDeviceVsync;
 
-            Logger.Info?.Print(LogClass.Application, $"VSync toggled to: {_emulationContext.EnableDeviceVsync}");
+            Logger.Info?.Print(LogClass.Application, $"VSync toggled to: {Horizon.Instance.Device.EnableDeviceVsync}");
         }
 
         private void DockedMode_Clicked(object sender, ButtonReleaseEventArgs args)
@@ -1144,9 +1143,9 @@ namespace Ryujinx.Ui
 
         private void FileMenu_StateChanged(object o, StateChangedArgs args)
         {
-            _appletMenu.Sensitive            = _emulationContext == null && _contentManager.GetCurrentFirmwareVersion() != null && _contentManager.GetCurrentFirmwareVersion().Major > 3;
-            _loadApplicationFile.Sensitive   = _emulationContext == null;
-            _loadApplicationFolder.Sensitive = _emulationContext == null;
+            _appletMenu.Sensitive            = Horizon.Instance.Device == null && _contentManager.GetCurrentFirmwareVersion() != null && _contentManager.GetCurrentFirmwareVersion().Major > 3;
+            _loadApplicationFile.Sensitive   = Horizon.Instance.Device == null;
+            _loadApplicationFolder.Sensitive = Horizon.Instance.Device == null;
         }
 
         private void Load_Mii_Edit_Applet(object sender, EventArgs args)
@@ -1370,7 +1369,7 @@ namespace Ryujinx.Ui
 
         private void OptionMenu_StateChanged(object o, StateChangedArgs args)
         {
-            _manageUserProfiles.Sensitive = _emulationContext == null;
+            _manageUserProfiles.Sensitive = Horizon.Instance.Device == null;
         }
 
         private void Settings_Pressed(object sender, EventArgs args)
@@ -1396,28 +1395,28 @@ namespace Ryujinx.Ui
 
         private void Simulate_WakeUp_Message_Pressed(object sender, EventArgs args)
         {
-            if (_emulationContext != null)
+            if (Horizon.Instance.Device != null)
             {
-                _emulationContext.System.SimulateWakeUpMessage();
+                Horizon.Instance.Device.System.SimulateWakeUpMessage();
             }
         }
 
         private void ActionMenu_StateChanged(object o, StateChangedArgs args)
         {
-            _scanAmiibo.Sensitive     = _emulationContext != null && _emulationContext.System.SearchingForAmiibo(out int _);
-            _takeScreenshot.Sensitive = _emulationContext != null;
+            _scanAmiibo.Sensitive     = Horizon.Instance.Device != null && Horizon.Instance.Device.System.SearchingForAmiibo(out int _);
+            _takeScreenshot.Sensitive = Horizon.Instance.Device != null;
         }
 
         private void Scan_Amiibo(object sender, EventArgs args)
         {
-            if (_emulationContext.System.SearchingForAmiibo(out int deviceId))
+            if (Horizon.Instance.Device.System.SearchingForAmiibo(out int deviceId))
             {
                 AmiiboWindow amiiboWindow = new AmiiboWindow
                 {
                     LastScannedAmiiboShowAll = _lastScannedAmiiboShowAll,
                     LastScannedAmiiboId      = _lastScannedAmiiboId,
                     DeviceId                 = deviceId,
-                    TitleId                  = _emulationContext.Application.TitleIdText.ToUpper()
+                    TitleId                  = Horizon.Instance.Device.Application.TitleIdText.ToUpper()
                 };
 
                 amiiboWindow.DeleteEvent += AmiiboWindow_DeleteEvent;
@@ -1432,7 +1431,7 @@ namespace Ryujinx.Ui
 
         private void Take_Screenshot(object sender, EventArgs args)
         {
-            if (_emulationContext != null && RendererWidget != null)
+            if (Horizon.Instance.Device != null && RendererWidget != null)
             {
                 RendererWidget.ScreenshotRequested = true;
             }
@@ -1445,7 +1444,7 @@ namespace Ryujinx.Ui
                 _lastScannedAmiiboId      = ((AmiiboWindow)sender).AmiiboId;
                 _lastScannedAmiiboShowAll = ((AmiiboWindow)sender).LastScannedAmiiboShowAll;
 
-                _emulationContext.System.ScanAmiibo(((AmiiboWindow)sender).DeviceId, ((AmiiboWindow)sender).AmiiboId, ((AmiiboWindow)sender).UseRandomUuid);
+                Horizon.Instance.Device.System.ScanAmiibo(((AmiiboWindow)sender).DeviceId, ((AmiiboWindow)sender).AmiiboId, ((AmiiboWindow)sender).UseRandomUuid);
             }
         }
 

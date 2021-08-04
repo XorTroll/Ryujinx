@@ -3,6 +3,5 @@
     [Service("arp:w")]
     class IWriter : IpcService
     {
-        public IWriter() { }
     }
 }

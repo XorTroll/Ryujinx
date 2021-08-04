@@ -3,6 +3,5 @@
     [Service("audout:a")]
     class IAudioOutManagerForApplet : IpcService
     {
-        public IAudioOutManagerForApplet() { }
     }
 }

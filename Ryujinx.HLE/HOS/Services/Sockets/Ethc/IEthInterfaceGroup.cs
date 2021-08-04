@@ -3,6 +3,5 @@
     [Service("ethc:i")]
     class IEthInterfaceGroup : IpcService
     {
-        public IEthInterfaceGroup() { }
     }
 }

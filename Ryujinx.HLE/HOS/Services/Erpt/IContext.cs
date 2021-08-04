@@ -5,8 +5,6 @@ namespace Ryujinx.HLE.HOS.Services.Erpt
     [Service("erpt:c")]
     class IContext : IpcService
     {
-        public IContext() { }
-
         [CommandHipc(0)]
         // SubmitContext(buffer, buffer)
         public ResultCode SubmitContext(ServiceCtx context)

@@ -6,8 +6,6 @@
         private bool  _vrModeEnabled;
         private float _currentBrightnessSettingForVrMode;
 
-        public LblControllerServer() { }
-
         protected override void SetCurrentBrightnessSettingForVrMode(float currentBrightnessSettingForVrMode)
         {
             if (float.IsNaN(currentBrightnessSettingForVrMode) || float.IsInfinity(currentBrightnessSettingForVrMode))

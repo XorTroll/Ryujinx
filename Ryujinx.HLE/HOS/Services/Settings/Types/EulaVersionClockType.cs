@@ -1,6 +1,6 @@
-﻿namespace Ryujinx.HLE.HOS.Services.Settings.Types
+﻿namespace Ryujinx.HLE.HOS.Services.Settings
 {
-    enum EulaVersionClockType
+    public enum EulaVersionClockType : uint
     {
         NetworkSystemClock = 0,
         SteadyClock = 1

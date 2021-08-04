@@ -3,8 +3,6 @@
     [Service("ngct:s")] // 9.0.0+
     class IServiceWithManagementApi : IpcService
     {
-        public IServiceWithManagementApi() { }
-
         [CommandHipc(0)]
         // Match(buffer<string, 9>) -> b8
         public ResultCode Match(ServiceCtx context)

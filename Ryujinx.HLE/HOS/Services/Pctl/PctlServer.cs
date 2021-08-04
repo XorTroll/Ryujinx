@@ -5,7 +5,7 @@ namespace Ryujinx.HLE.HOS.Services.Pctl
 {
     class PctlServer : ServerManager
     {
-        public PctlServer(Horizon system) : base(system, "pctl", 0x010000000000002E, 44) { }
+        public PctlServer() : base("pctl", 0x010000000000002E, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

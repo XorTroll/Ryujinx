@@ -3,6 +3,5 @@
     [Service("psc:l")] // 9.0.0+
     class IPmUnknown : IpcService
     {
-        public IPmUnknown() { }
     }
 }

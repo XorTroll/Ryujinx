@@ -8,8 +8,6 @@ namespace Ryujinx.HLE.HOS.Services.Ptm.Ts
     {
         private const uint DefaultTemperature = 42000u;
 
-        public IMeasurementServer() { }
-
         [CommandHipc(3)]
         // GetTemperatureMilliC(Location location) -> u32
         public ResultCode GetTemperatureMilliC(ServiceCtx context)

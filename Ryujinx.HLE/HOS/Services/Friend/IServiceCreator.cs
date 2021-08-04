@@ -38,7 +38,7 @@ namespace Ryujinx.HLE.HOS.Services.Friend
                 return ResultCode.InvalidArgument;
             }
 
-            MakeObject(context, new INotificationService(context, userId, _permissionLevel));
+            MakeObject(context, new INotificationService(userId, _permissionLevel));
 
             return ResultCode.Success;
         }

@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace Ryujinx.HLE.HOS.Services.Settings.Types
+namespace Ryujinx.HLE.HOS.Services.Settings
 {
     [Flags]
-    enum UserSelectorFlag
+    public enum UserSelectorFlag : uint
     {
-        SkipIfSingleUser = 1 << 0,
-        Unknown = 1 << 31
+        None = 0,
+        SkipIfSingleUser = 1 << 0
     }
 }

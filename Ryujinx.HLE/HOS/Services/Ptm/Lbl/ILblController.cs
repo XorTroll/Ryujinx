@@ -4,12 +4,14 @@ namespace Ryujinx.HLE.HOS.Services.Ptm.Lbl
 {
     abstract class ILblController : IpcService
     {
-        public ILblController() { }
-
         protected abstract void SetCurrentBrightnessSettingForVrMode(float currentBrightnessSettingForVrMode);
+
         protected abstract float GetCurrentBrightnessSettingForVrMode();
+
         internal abstract void EnableVrMode();
+
         internal abstract void DisableVrMode();
+
         protected abstract bool IsVrModeEnabled();
 
         [CommandHipc(0)]

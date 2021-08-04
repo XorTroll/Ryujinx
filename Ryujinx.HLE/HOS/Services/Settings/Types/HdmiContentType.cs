@@ -1,6 +1,6 @@
-﻿namespace Ryujinx.HLE.HOS.Services.Settings.Types
+﻿namespace Ryujinx.HLE.HOS.Services.Settings
 {
-    enum HdmiContentType
+    public enum HdmiContentType
     {
         None = 0,
         Graphics = 1,

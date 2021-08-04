@@ -3,6 +3,5 @@
     [Service("usb:pd")]
     class IPdManager : IpcService
     {
-        public IPdManager() { }
     }
 }

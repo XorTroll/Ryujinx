@@ -3,6 +3,5 @@
     [Service("nim")]
     class INetworkInstallManager : IpcService
     {
-        public INetworkInstallManager() { }
     }
 }

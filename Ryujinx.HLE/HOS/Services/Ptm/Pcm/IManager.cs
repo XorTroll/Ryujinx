@@ -3,6 +3,5 @@
     [Service("pcm")]
     class IManager : IpcService
     {
-        public IManager() { }
     }
 }

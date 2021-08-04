@@ -3,6 +3,5 @@
     [Service("lm:get")]
     class ILogGetter : IpcService
     {
-        public ILogGetter() { }
     }
 }

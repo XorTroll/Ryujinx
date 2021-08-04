@@ -44,7 +44,7 @@ namespace Ryujinx.HLE.HOS.Services.Nifm.StaticService
         {
             uint version = context.RequestData.ReadUInt32();
 
-            MakeObject(context, new IRequest(context.Device.System, version));
+            MakeObject(context, new IRequest(version));
 
             // Doesn't occur in our case.
             // return ResultCode.ObjectIsNull;

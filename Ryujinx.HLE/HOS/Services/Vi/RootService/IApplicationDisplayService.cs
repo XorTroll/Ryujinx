@@ -136,9 +136,9 @@ namespace Ryujinx.HLE.HOS.Services.Vi.RootService
             long  userId    = context.RequestData.ReadInt64();
             ulong parcelPtr = context.Request.ReceiveBuff[0].Position;
 
-            IBinder producer = context.Device.System.SurfaceFlinger.OpenLayer(context.Request.HandleDesc.PId, layerId);
+            IBinder producer = Horizon.Instance.SurfaceFlinger.OpenLayer(context.Request.HandleDesc.PId, layerId);
 
-            context.Device.System.SurfaceFlinger.SetRenderLayer(layerId);
+            Horizon.Instance.SurfaceFlinger.SetRenderLayer(layerId);
 
             Parcel parcel = new Parcel(0x28, 0x4);
 
@@ -159,7 +159,7 @@ namespace Ryujinx.HLE.HOS.Services.Vi.RootService
         {
             long layerId = context.RequestData.ReadInt64();
 
-            context.Device.System.SurfaceFlinger.CloseLayer(layerId);
+            Horizon.Instance.SurfaceFlinger.CloseLayer(layerId);
 
             return ResultCode.Success;
         }
@@ -176,9 +176,9 @@ namespace Ryujinx.HLE.HOS.Services.Vi.RootService
             // TODO: support multi display.
             Display disp = _displays.GetData<Display>((int)displayId);
 
-            IBinder producer = context.Device.System.SurfaceFlinger.CreateLayer(0, out long layerId);
+            IBinder producer = Horizon.Instance.SurfaceFlinger.CreateLayer(0, out long layerId);
 
-            context.Device.System.SurfaceFlinger.SetRenderLayer(layerId);
+            Horizon.Instance.SurfaceFlinger.SetRenderLayer(layerId);
 
             Parcel parcel = new Parcel(0x28, 0x4);
 
@@ -200,7 +200,7 @@ namespace Ryujinx.HLE.HOS.Services.Vi.RootService
         {
             long layerId = context.RequestData.ReadInt64();
 
-            context.Device.System.SurfaceFlinger.CloseLayer(layerId);
+            Horizon.Instance.SurfaceFlinger.CloseLayer(layerId);
 
             return ResultCode.Success;
         }
@@ -328,7 +328,7 @@ namespace Ryujinx.HLE.HOS.Services.Vi.RootService
 
             if (_vsyncEventHandle == 0)
             {
-                if (context.Process.HandleTable.GenerateHandle(context.Device.System.VsyncEvent.ReadableEvent, out _vsyncEventHandle) != KernelResult.Success)
+                if (context.Process.HandleTable.GenerateHandle(Horizon.Instance.VsyncEvent.ReadableEvent, out _vsyncEventHandle) != KernelResult.Success)
                 {
                     throw new InvalidOperationException("Out of handles!");
                 }

@@ -6,16 +6,16 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
 {
     class ILibraryAppletCreator : IpcService
     {
-        public ILibraryAppletCreator() { }
-
         [CommandHipc(0)]
         // CreateLibraryApplet(u32, u32) -> object<nn::am::service::ILibraryAppletAccessor>
         public ResultCode CreateLibraryApplet(ServiceCtx context)
         {
-            AppletId appletId          = (AppletId)context.RequestData.ReadInt32();
-            int      libraryAppletMode = context.RequestData.ReadInt32();
+            var appletId = (AppletId)context.RequestData.ReadInt32();
+            var libraryAppletMode = (LibraryAppletMode)context.RequestData.ReadInt32();
 
-            MakeObject(context, new ILibraryAppletAccessor(appletId, context.Device.System));
+            Logger.Stub?.PrintStub(LogClass.ServiceAm, new { appletId, libraryAppletMode });
+
+            MakeObject(context, new ILibraryAppletAccessor(appletId));
 
             return ResultCode.Success;
         }
@@ -57,7 +57,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
 
             transferMem.Creator.CpuMemory.Read(transferMem.Address, data);
 
-            context.Device.System.KernelContext.Syscall.CloseHandle(handle);
+            Horizon.Instance.KernelContext.Syscall.CloseHandle(handle);
 
             MakeObject(context, new IStorage(data, isReadOnly));
 
@@ -82,7 +82,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
 
             transferMem.Creator.CpuMemory.Read(transferMem.Address, data);
 
-            context.Device.System.KernelContext.Syscall.CloseHandle(handle);
+            Horizon.Instance.KernelContext.Syscall.CloseHandle(handle);
 
             MakeObject(context, new IStorage(data));
 

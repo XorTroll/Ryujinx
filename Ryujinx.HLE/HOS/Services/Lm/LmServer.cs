@@ -5,7 +5,7 @@ namespace Ryujinx.HLE.HOS.Services.Lm
 {
     class LmServer : ServerManager
     {
-        public LmServer(Horizon system) : base(system, "LogManager", 0x0100000000000015, 44) { }
+        public LmServer() : base("LogManager", 0x0100000000000015, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

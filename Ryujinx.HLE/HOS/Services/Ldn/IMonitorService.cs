@@ -4,8 +4,6 @@ namespace Ryujinx.HLE.HOS.Services.Ldn
 {
     class IMonitorService : IpcService
     {
-        public IMonitorService(ServiceCtx context) { }
-
         [CommandHipc(0)]
         // GetStateForMonitor() -> u32
         public ResultCode GetStateForMonitor(ServiceCtx context)

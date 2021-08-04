@@ -10,7 +10,7 @@ namespace Ryujinx.HLE.HOS.Services.Psc
 {
     class PscServer : ServerManager
     {
-        public PscServer(Horizon system) : base(system, "psc", 0x0100000000000021, 44) { }
+        public PscServer() : base("psc", 0x0100000000000021, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

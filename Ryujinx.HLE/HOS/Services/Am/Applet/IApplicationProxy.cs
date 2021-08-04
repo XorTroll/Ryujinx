@@ -10,7 +10,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
         // GetApplicationFunctions() -> object<nn::am::service::IApplicationFunctions>
         public ResultCode GetApplicationFunctions(ServiceCtx context)
         {
-            MakeObject(context, new IApplicationFunctions(context.Device.System));
+            MakeObject(context, new IApplicationFunctions());
 
             return ResultCode.Success;
         }

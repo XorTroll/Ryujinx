@@ -9,7 +9,7 @@ namespace Ryujinx.HLE.HOS.Services.Sockets
 {
     class SocketsServer : ServerManager
     {
-        public SocketsServer(Horizon system) : base(system, "bsdsockets", 0x0100000000000012, 44) { }
+        public SocketsServer() : base("bsdsockets", 0x0100000000000012, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

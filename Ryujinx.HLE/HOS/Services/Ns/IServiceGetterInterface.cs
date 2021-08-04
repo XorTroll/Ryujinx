@@ -7,13 +7,11 @@ namespace Ryujinx.HLE.HOS.Services.Ns
     [Service("ns:web")]
     class IServiceGetterInterface : IpcService
     {
-        public IServiceGetterInterface() { }
-
         [CommandHipc(7989)]
         // GetReadOnlyApplicationControlDataInterface() -> object<nn::ns::detail::IReadOnlyApplicationControlDataInterface>
         public ResultCode GetReadOnlyApplicationControlDataInterface(ServiceCtx context)
         {
-            MakeObject(context, new IReadOnlyApplicationControlDataInterface(context));
+            MakeObject(context, new IReadOnlyApplicationControlDataInterface());
 
             return ResultCode.Success;
         }
@@ -22,7 +20,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns
         // GetApplicationManagerInterface() -> object<nn::ns::detail::IApplicationManagerInterface>
         public ResultCode GetApplicationManagerInterface(ServiceCtx context)
         {
-            MakeObject(context, new IApplicationManagerInterface(context.Device.System.KernelContext));
+            MakeObject(context, new IApplicationManagerInterface());
 
             return ResultCode.Success;
         }
@@ -31,7 +29,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns
         // GetDownloadTaskInterface() -> object<nn::ns::detail::IDownloadTaskInterface>
         public ResultCode GetDownloadTaskInterface(ServiceCtx context)
         {
-            MakeObject(context, new IDownloadTaskInterface(context));
+            MakeObject(context, new IDownloadTaskInterface());
 
             return ResultCode.Success;
         }
@@ -40,7 +38,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns
         // GetContentManagementInterface() -> object<nn::ns::detail::IContentManagementInterface>
         public ResultCode GetContentManagementInterface(ServiceCtx context)
         {
-            MakeObject(context, new IContentManagementInterface(context));
+            MakeObject(context, new IContentManagementInterface());
 
             return ResultCode.Success;
         }

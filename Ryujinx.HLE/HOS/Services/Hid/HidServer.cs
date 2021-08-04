@@ -6,16 +6,17 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 {
     class HidServer : ServerManager
     {
-        public HidServer(Horizon system) : base(system, "hid", 0x0100000000000013, 44) { }
+        public HidServer() : base("hid", 0x0100000000000013, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {
-            { "hid", () => new IHidServer(_system.KernelContext) },
-            { "hid:sys", () => new IHidSystemServer(_system.KernelContext) },
+            { "hid", () => new IHidServer() },
+            { "hid:sys", () => new IHidSystemServer() },
             { "hid:dbg", () => new IHidDebugServer() },
             { "hidbus", () => new IHidbusServer() },
             { "irs", () => new IIrSensorServer() },
-            { "irs:sys", () => new IIrSensorSystemServer() }
+            { "irs:sys", () => new IIrSensorSystemServer() },
+            { "xcd:sys", () => new ISystemServer() }
         };
     }
 }

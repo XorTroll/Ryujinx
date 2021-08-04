@@ -109,7 +109,7 @@ namespace Ryujinx.HLE.HOS.Services
 
             bool serviceExists = service.HipcCommands.TryGetValue(commandId, out MethodInfo processRequest);
 
-            if (context.Device.Configuration.IgnoreMissingServices || serviceExists)
+            if (Horizon.Instance.Device.Configuration.IgnoreMissingServices || serviceExists)
             {
                 ResultCode result = ResultCode.Success;
 
@@ -163,7 +163,7 @@ namespace Ryujinx.HLE.HOS.Services
 
             bool serviceExists = TipcCommands.TryGetValue(commandId, out MethodInfo processRequest);
 
-            if (context.Device.Configuration.IgnoreMissingServices || serviceExists)
+            if (Horizon.Instance.Device.Configuration.IgnoreMissingServices || serviceExists)
             {
                 ResultCode result = ResultCode.Success;
 
@@ -210,7 +210,7 @@ namespace Ryujinx.HLE.HOS.Services
             }
             else
             {
-                context.Device.System.KernelContext.Syscall.CreateSession(false, 0, out int serverSessionHandle, out int clientSessionHandle);
+                Horizon.Instance.Device.System.KernelContext.Syscall.CreateSession(false, 0, out int serverSessionHandle, out int clientSessionHandle);
 
                 obj.Server.AddSessionObject(serverSessionHandle, obj);
 

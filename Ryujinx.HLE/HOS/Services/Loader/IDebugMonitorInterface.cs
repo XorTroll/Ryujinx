@@ -3,6 +3,5 @@
     [Service("ldr:dmnt")]
     class IDebugMonitorInterface : IpcService
     {
-        public IDebugMonitorInterface() { }
     }
 }

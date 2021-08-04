@@ -2,6 +2,5 @@
 {
     class INewsDataService : IpcService
     {
-        public INewsDataService() { }
     }
 }

@@ -33,7 +33,7 @@ namespace Ryujinx.HLE.HOS.Services.Glue.Arp
 
             return new ApplicationLaunchProperty
             {
-                TitleId             = context.Device.Application.TitleId,
+                TitleId             = Horizon.Instance.Device.Application.TitleId,
                 Version             = 0x00,
                 BaseGameStorageId   = (byte)StorageId.NandSystem,
                 UpdateGameStorageId = (byte)StorageId.None

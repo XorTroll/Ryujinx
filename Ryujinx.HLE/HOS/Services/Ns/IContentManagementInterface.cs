@@ -6,8 +6,6 @@ namespace Ryujinx.HLE.HOS.Services.Ns
 {
     class IContentManagementInterface : IpcService
     {
-        public IContentManagementInterface(ServiceCtx context) { }
-
         [CommandHipc(43)]
         // CheckSdCardMountStatus()
         public ResultCode CheckSdCardMountStatus(ServiceCtx context)
@@ -28,7 +26,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns
             {
                 case StorageId.SdCard:
                 default: // TODO: implement others instead of returning SD values...
-                    var fsProxy = context.Device.FileSystem.FsServer.CreateFileSystemProxyService();
+                    var fsProxy = Horizon.Instance.Device.FileSystem.FsServer.CreateFileSystemProxyService();
 
                     // TODO: check result codes here
                     fsProxy.OpenSdCardFileSystem(out var sdFs);
@@ -54,7 +52,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns
                 case StorageId.SdCard:
                 default: // TODO: implement others instead of returning SD values...
                     // SD card
-                    var fsProxy = context.Device.FileSystem.FsServer.CreateFileSystemProxyService();
+                    var fsProxy = Horizon.Instance.Device.FileSystem.FsServer.CreateFileSystemProxyService();
 
                     // TODO: check result codes here
                     fsProxy.OpenSdCardFileSystem(out var sdFs);

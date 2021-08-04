@@ -7,12 +7,10 @@ using LibHac.FsSystem.NcaUtils;
 using Ryujinx.Common;
 using Ryujinx.Common.Logging;
 using Ryujinx.HLE.FileSystem;
-using Ryujinx.HLE.HOS.SystemState;
-using Ryujinx.HLE.Utilities;
-using Ryujinx.HLE.HOS.Services.Sdb.Mii;
-using Ryujinx.HLE.HOS.Services.Settings.Types;
+using Ryujinx.Cpu;
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Ryujinx.HLE.HOS.Services.Settings
@@ -20,7 +18,71 @@ namespace Ryujinx.HLE.HOS.Services.Settings
     [Service("set:sys")]
     class ISystemSettingsServer : IpcService
     {
-        public ISystemSettingsServer() { }
+        private FirmwareVersion _firmwareVersion;
+        private bool _firmwareVersionLoaded;
+
+        private bool EnsureFirmwareVersionLoaded()
+        {
+            if(!_firmwareVersionLoaded)
+            {
+                const ulong SystemVersionTitleId = 0x0100000000000809;
+
+                var contentPath = Horizon.Instance.ContentManager.GetInstalledContentPath(SystemVersionTitleId, StorageId.NandSystem, NcaContentType.Data);
+
+                if (string.IsNullOrWhiteSpace(contentPath))
+                {
+                    return false;
+                }
+
+                string firmwareTitlePath = Horizon.Instance.Device.FileSystem.SwitchPathToSystemPath(contentPath);
+
+                using (IStorage firmwareStorage = new LocalStorage(firmwareTitlePath, FileAccess.Read))
+                {
+                    Nca firmwareContent = new Nca(Horizon.Instance.KeySet, firmwareStorage);
+
+                    if (!firmwareContent.CanOpenSection(NcaSectionType.Data))
+                    {
+                        return false;
+                    }
+
+                    IFileSystem firmwareRomFs = firmwareContent.OpenFileSystem(NcaSectionType.Data, Horizon.Instance.FsIntegrityCheckLevel);
+
+                    Result result = firmwareRomFs.OpenFile(out IFile firmwareFile, "/file".ToU8Span(), OpenMode.Read);
+                    if (result.IsFailure())
+                    {
+                        return false;
+                    }
+
+                    result = firmwareFile.GetSize(out long fileSize);
+                    if (result.IsFailure())
+                    {
+                        return false;
+                    }
+                    if(fileSize < 0x100)
+                    {
+                        return false;
+                    }
+
+                    var fwData = new byte[fileSize];
+
+                    result = firmwareFile.Read(out _, 0, fwData);
+                    if (result.IsFailure())
+                    {
+                        return false;
+                    }
+
+                    _firmwareVersion = MemoryMarshal.Read<FirmwareVersion>(fwData);
+                    _firmwareVersionLoaded = true;
+                }
+            }
+
+            return _firmwareVersionLoaded;
+        }
+
+        public ISystemSettingsServer()
+        {
+            _firmwareVersionLoaded = false;
+        }
 
         [CommandHipc(0)]
         // SetLanguageCode(nn::settings::LanguageCode)
@@ -39,66 +101,28 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetFirmwareVersion() -> buffer<nn::settings::system::FirmwareVersion, 0x1a, 0x100>
         public ResultCode GetFirmwareVersion(ServiceCtx context)
         {
-            return GetFirmwareVersion2(context);
+            return GetFirmwareVersionImpl(context);
         }
 
         [CommandHipc(4)]
         // GetFirmwareVersion2() -> buffer<nn::settings::system::FirmwareVersion, 0x1a, 0x100>
         public ResultCode GetFirmwareVersion2(ServiceCtx context)
         {
-            ulong replyPos  = context.Request.RecvListBuff[0].Position;
+            // TODO: difference from the command above?
 
-            context.Response.PtrBuff[0] = context.Response.PtrBuff[0].WithSize(0x100L);
+            return GetFirmwareVersionImpl(context);
+        }
 
-            byte[] firmwareData = GetFirmwareData(context.Device);
+        private ResultCode GetFirmwareVersionImpl(ServiceCtx context)
+        {
+            var fwVersionBuf = context.Request.RecvListBuff[0];
 
-            if (firmwareData != null)
+            if (!EnsureFirmwareVersionLoaded())
             {
-                context.Memory.Write(replyPos, firmwareData);
-
-                return ResultCode.Success;
+                return ResultCode.NullFirmwareVersionBuffer;
             }
 
-            const byte majorFwVersion = 0x03;
-            const byte minorFwVersion = 0x00;
-            const byte microFwVersion = 0x00;
-            const byte unknown        = 0x00; //Build?
-
-            const int revisionNumber = 0x0A;
-
-            const string platform   = "NX";
-            const string unknownHex = "7fbde2b0bba4d14107bf836e4643043d9f6c8e47";
-            const string version    = "3.0.0";
-            const string build      = "NintendoSDK Firmware for NX 3.0.0-10.0";
-
-            // http://switchbrew.org/index.php?title=System_Version_Title
-            using (MemoryStream ms = new MemoryStream(0x100))
-            {
-                BinaryWriter writer = new BinaryWriter(ms);
-
-                writer.Write(majorFwVersion);
-                writer.Write(minorFwVersion);
-                writer.Write(microFwVersion);
-                writer.Write(unknown);
-
-                writer.Write(revisionNumber);
-
-                writer.Write(Encoding.ASCII.GetBytes(platform));
-
-                ms.Seek(0x28, SeekOrigin.Begin);
-
-                writer.Write(Encoding.ASCII.GetBytes(unknownHex));
-
-                ms.Seek(0x68, SeekOrigin.Begin);
-
-                writer.Write(Encoding.ASCII.GetBytes(version));
-
-                ms.Seek(0x80, SeekOrigin.Begin);
-
-                writer.Write(Encoding.ASCII.GetBytes(build));
-
-                context.Memory.Write(replyPos, ms.ToArray());
-            }
+            context.Memory.Write(fwVersionBuf.Position, _firmwareVersion);
 
             return ResultCode.Success;
         }
@@ -107,11 +131,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetLockScreenFlag() -> bool
         public ResultCode GetLockScreenFlag(ServiceCtx context)
         {
-            // Note: this should be customizable
-
-            context.ResponseData.Write(false);
-
-            Logger.Stub?.PrintStub(LogClass.ServiceSet);
+            context.ResponseData.Write(Horizon.Instance.State.LockScreenFlag);
 
             return ResultCode.Success;
         }
@@ -120,57 +140,62 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetAccountSettings() -> nn::settings::system::AccountSettings
         public ResultCode GetAccountSettings(ServiceCtx context)
         {
-            // Note: this should be customizable
-            context.ResponseData.Write(AccountSettings.Default.SelectorFlag);
-
-            Logger.Stub?.PrintStub(LogClass.ServiceSet);
+            context.ResponseData.WriteStruct(Horizon.Instance.State.AccountSettings);
 
             return ResultCode.Success;
         }
 
         [CommandHipc(21)]
-        // GetEulaVersions() -> u32, buffer
+        // GetEulaVersions() -> (u32, buffer<nn::settings::system::EulaVersion, 6>)
         public ResultCode GetEulaVersions(ServiceCtx context)
         {
-            // TODO
+            var eulaVersionsBuf = context.Request.ReceiveBuff[0];
 
-            var eulaVerBuf = context.Request.ReceiveBuff[0];
+            ulong offset = 0;
+            foreach (var eulaVersion in Horizon.Instance.State.EulaVersions)
+            {
+                context.Memory.Write(eulaVersionsBuf.Position + offset * (ulong)Marshal.SizeOf<EulaVersion>(), eulaVersion);
+                offset++;
+            }
 
-            context.Memory.Write(eulaVerBuf.Position, EulaVersion.Default);
-            context.ResponseData.Write((uint)1);
-
-            Logger.Stub?.PrintStub(LogClass.ServiceSet);
+            context.ResponseData.Write((uint)offset);
 
             return ResultCode.Success;
         }
 
         [CommandHipc(22)]
-        // SetEulaVersions(buffer)
+        // SetEulaVersions(buffer<nn::settings::system::EulaVersion, 5>)
         public ResultCode SetEulaVersions(ServiceCtx context)
         {
-            // TODO: set
+            var eulaVersionsBuf = context.Request.SendBuff[0];
+            var eulaVersionCount = eulaVersionsBuf.Size / (ulong)Marshal.SizeOf<EulaVersion>();
 
-            Logger.Stub?.PrintStub(LogClass.ServiceSet);
+            Horizon.Instance.State.EulaVersions.Clear();
+            for (ulong i = 0; i < eulaVersionCount; i++)
+            {
+                var eulaVersion = context.Memory.Read<EulaVersion>(eulaVersionsBuf.Position + i * (ulong)Marshal.SizeOf<EulaVersion>());
+                Horizon.Instance.State.EulaVersions.Add(eulaVersion);
+            }
 
             return ResultCode.Success;
         }
 
         [CommandHipc(23)]
-        // GetColorSetId() -> i32
+        // GetColorSetId() -> u32
         public ResultCode GetColorSetId(ServiceCtx context)
         {
-            context.ResponseData.Write((int)context.Device.System.State.ThemeColor);
+            context.ResponseData.WriteStruct(Horizon.Instance.State.ColorSetId);
 
             return ResultCode.Success;
         }
 
         [CommandHipc(24)]
-        // SetColorSetId() -> i32
+        // SetColorSetId(u32)
         public ResultCode SetColorSetId(ServiceCtx context)
         {
-            int colorSetId = context.RequestData.ReadInt32();
+            var colorSetId = context.RequestData.ReadStruct<ColorSetId>();
 
-            context.Device.System.State.ThemeColor = (ColorSet)colorSetId;
+            Horizon.Instance.State.ColorSetId = colorSetId;
 
             return ResultCode.Success;
         }
@@ -179,22 +204,25 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetNotificationSettings() -> nn::settings::system::NotificationSettings
         public ResultCode GetNotificationSettings(ServiceCtx context)
         {
-            context.ResponseData.WriteStruct(NotificationSettings.Default);
-
-            Logger.Stub?.PrintStub(LogClass.ServiceSet);
+            context.ResponseData.WriteStruct(Horizon.Instance.State.NotificationSettings);
 
             return ResultCode.Success;
         }
 
         [CommandHipc(31)]
-        // GetAccountNotificationSettings() -> nn::settings::system::AccountNotificationSettings
+        // GetAccountNotificationSettings() -> (u32, buffer<nn::settings::system::AccountNotificationSettings, 6>)
         public ResultCode GetAccountNotificationSettings(ServiceCtx context)
         {
-            context.ResponseData.Write((uint)1);
+            var accountNotifSettingsBuf = context.Request.RecvListBuff[0];
 
-            var account_notif_settings_buf = context.Request.ReceiveBuff[0];
-            var account_notif_settings = AccountNotificationSettings.MakeDefault(context.Device.System.AccountManager.LastOpenedUser.UserId);
-            context.Memory.Write(account_notif_settings_buf.Position, account_notif_settings);
+            ulong offset = 0;
+            foreach (var accountNotifSettings in Horizon.Instance.State.AccountNotificationSettings)
+            {
+                context.Memory.Write(accountNotifSettingsBuf.Position + offset * (ulong)Marshal.SizeOf<AccountNotificationSettings>(), accountNotifSettings);
+                offset++;
+            }
+
+            context.ResponseData.Write((uint)offset);
 
             return ResultCode.Success;
         }
@@ -318,11 +346,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetTvSettings() -> nn::settings::system::TvSettings
         public ResultCode GetTvSettings(ServiceCtx context)
         {
-            // TODO: make this customizable
-
-            Logger.Stub?.PrintStub(LogClass.ServiceSet);
-
-            context.ResponseData.WriteStruct(TvSettings.Default);
+            context.ResponseData.WriteStruct(Horizon.Instance.State.TvSettings);
 
             return ResultCode.Success;
         }
@@ -331,23 +355,18 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetQuestFlag() -> bool
         public ResultCode GetQuestFlag(ServiceCtx context)
         {
-            // We're not Quest (a KIOSK unit)
-            context.ResponseData.Write(false);
-
-            Logger.Stub?.PrintStub(LogClass.ServiceSet);
+            context.ResponseData.Write(Horizon.Instance.State.QuestFlag);
 
             return ResultCode.Success;
         }
 
         [CommandHipc(57)]
-        // SetRegionCode(nn::settings::tRegionCode)
+        // SetRegionCode(nn::settings::RegionCode)
         public ResultCode SetRegionCode(ServiceCtx context)
         {
-            // TODO: set
+            var regionCode = context.RequestData.ReadStruct<RegionCode>();
 
-            var regionCode = context.RequestData.ReadUInt32();
-
-            Logger.Stub?.PrintStub(LogClass.ServiceSet, new { regionCode });
+            Horizon.Instance.State.DesiredRegionCode = regionCode;
 
             return ResultCode.Success;
         }
@@ -357,9 +376,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         public ResultCode IsUserSystemClockAutomaticCorrectionEnabled(ServiceCtx context)
         {
             // NOTE: When set to true, is automatically synced with the internet.
-            context.ResponseData.Write(true);
-
-            Logger.Stub?.PrintStub(LogClass.ServiceSet);
+            context.ResponseData.Write(Horizon.Instance.State.UserSystemClockAutomaticCorrectionEnabled);
 
             return ResultCode.Success;
         }
@@ -368,11 +385,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetPrimaryAlbumStorage() -> nn::settings::system::PrimaryAlbumStorage
         public ResultCode GetPrimaryAlbumStorage(ServiceCtx context)
         {
-            // NOTE: This should be customizable
-            // Default to SD card
-            context.ResponseData.Write((uint)PrimaryAlbumStorage.SdCard);
-
-            Logger.Stub?.PrintStub(LogClass.ServiceSet);
+            context.ResponseData.WriteStruct(Horizon.Instance.State.PrimaryAlbumStorage);
 
             return ResultCode.Success;
         }
@@ -383,9 +396,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         {
             // NOTE: this should be customizable by the user
 
-            context.ResponseData.WriteStruct(SleepSettings.Default);
-
-            Logger.Stub?.PrintStub(LogClass.ServiceSet);
+            context.ResponseData.WriteStruct(Horizon.Instance.State.SleepSettings);
 
             return ResultCode.Success;
         }
@@ -394,11 +405,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetInitialLaunchSettings() -> nn::settings::system::InitialLaunchSettings
         public ResultCode GetInitialLaunchSettings(ServiceCtx context)
         {
-            // NOTE: this really should be customizable, empty on first launch, etc.
-
-            context.ResponseData.WriteStruct(InitialLaunchSettings.Default);
-
-            Logger.Stub?.PrintStub(LogClass.ServiceSet);
+            context.ResponseData.WriteStruct(Horizon.Instance.State.InitialLaunchSettings);
 
             return ResultCode.Success;
         }
@@ -407,11 +414,9 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // SetInitialLaunchSettings(nn::settings::system::InitialLaunchSettings)
         public ResultCode SetInitialLaunchSettings(ServiceCtx context)
         {
-            // TODO: make this customizable ^
-
             var initialLaunchSettings = context.RequestData.ReadStruct<InitialLaunchSettings>();
 
-            Logger.Stub?.PrintStub(LogClass.ServiceSet, new { initialLaunchSettings });
+            Horizon.Instance.State.InitialLaunchSettings = initialLaunchSettings;
 
             return ResultCode.Success;
         }
@@ -420,20 +425,15 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetDeviceNickName() -> buffer<nn::settings::system::DeviceNickName, 0x16>
         public ResultCode GetDeviceNickName(ServiceCtx context)
         {
-            ulong deviceNickNameBufferPosition = context.Request.ReceiveBuff[0].Position;
-            ulong deviceNickNameBufferSize     = context.Request.ReceiveBuff[0].Size;
+            var deviceNickNameBuf = context.Request.ReceiveBuff[0];
 
-            if (deviceNickNameBufferPosition == 0)
-            {
-                return ResultCode.NullDeviceNicknameBuffer;
-            }
-
-            if (deviceNickNameBufferSize != 0x80)
+            if (deviceNickNameBuf.Size != 0x80)
             {
                 Logger.Warning?.Print(LogClass.ServiceSet, "Wrong buffer size");
             }
 
-            context.Memory.Write(deviceNickNameBufferPosition, Encoding.ASCII.GetBytes(context.Device.System.State.DeviceNickName + '\0'));
+            // TODO: fill buffer with zeros before writing name?
+            context.Memory.Write(deviceNickNameBuf.Position, Encoding.ASCII.GetBytes(Horizon.Instance.State.DeviceNickName + '\0'));
 
             return ResultCode.Success;
         }
@@ -442,14 +442,9 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // SetDeviceNickName(buffer<nn::settings::system::DeviceNickName, 0x15>)
         public ResultCode SetDeviceNickName(ServiceCtx context)
         {
-            ulong deviceNickNameBufferPosition = context.Request.SendBuff[0].Position;
-            ulong deviceNickNameBufferSize     = context.Request.SendBuff[0].Size;
+            var deviceNickNameBuffer = context.Request.SendBuff[0];
 
-            byte[] deviceNickNameBuffer = new byte[deviceNickNameBufferSize];
-
-            context.Memory.Read(deviceNickNameBufferPosition, deviceNickNameBuffer);
-
-            context.Device.System.State.DeviceNickName = Encoding.ASCII.GetString(deviceNickNameBuffer);
+            Horizon.Instance.State.DeviceNickName = MemoryHelper.ReadAsciiString(context.Memory, deviceNickNameBuffer.Position, (long)deviceNickNameBuffer.Size);
 
             return ResultCode.Success;
         }
@@ -458,9 +453,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetProductModel() -> u32
         public ResultCode GetProductModel(ServiceCtx context)
         {
-            // TODO: make this customizable?
-
-            context.ResponseData.Write((uint)ProductModel.Nx);
+            context.ResponseData.WriteStruct(Horizon.Instance.State.ProductModel);
 
             return ResultCode.Success;
         }
@@ -472,9 +465,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
             // NOTE: If miiAuthorId is null ResultCode.NullMiiAuthorIdBuffer is returned.
             //       Doesn't occur in our case.
 
-            UInt128 miiAuthorId = Helper.GetDeviceId();
-
-            miiAuthorId.Write(context.ResponseData);
+            context.ResponseData.WriteStruct(Horizon.Instance.State.MiiAuthorId);
 
             return ResultCode.Success;
         }
@@ -483,9 +474,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetAutoUpdateEnableFlag() -> bool
         public ResultCode GetAutoUpdateEnableFlag(ServiceCtx context)
         {
-            // Note: this should be customizable
-
-            context.ResponseData.Write(false);
+            context.ResponseData.Write(Horizon.Instance.State.AutoUpdateEnableFlag);
 
             return ResultCode.Success;
         }
@@ -494,70 +483,16 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetBatteryPercentageFlag() -> bool
         public ResultCode GetBatteryPercentageFlag(ServiceCtx context)
         {
-            // NOTE: This should be customizable by the user (whether to show battery with or without the percentage value)
-
-            context.ResponseData.Write(true);
-
-            Logger.Stub?.PrintStub(LogClass.ServiceSet);
+            context.ResponseData.Write(Horizon.Instance.State.BatteryPercentageFlag);
 
             return ResultCode.Success;
-        }
-
-        public byte[] GetFirmwareData(Switch device)
-        {
-            const ulong SystemVersionTitleId = 0x0100000000000809;
-
-            string contentPath = device.System.ContentManager.GetInstalledContentPath(SystemVersionTitleId, StorageId.NandSystem, NcaContentType.Data);
-
-            if (string.IsNullOrWhiteSpace(contentPath))
-            {
-                return null;
-            }
-
-            string firmwareTitlePath = device.FileSystem.SwitchPathToSystemPath(contentPath);
-
-            using(IStorage firmwareStorage = new LocalStorage(firmwareTitlePath, FileAccess.Read))
-            {
-                Nca firmwareContent = new Nca(device.System.KeySet, firmwareStorage);
-
-                if (!firmwareContent.CanOpenSection(NcaSectionType.Data))
-                {
-                    return null;
-                }
-
-                IFileSystem firmwareRomFs = firmwareContent.OpenFileSystem(NcaSectionType.Data, device.System.FsIntegrityCheckLevel);
-
-                Result result = firmwareRomFs.OpenFile(out IFile firmwareFile, "/file".ToU8Span(), OpenMode.Read);
-                if (result.IsFailure())
-                {
-                    return null;
-                }
-
-                result = firmwareFile.GetSize(out long fileSize);
-                if (result.IsFailure())
-                {
-                    return null;
-                }
-
-                byte[] data = new byte[fileSize];
-
-                result = firmwareFile.Read(out _, 0, data);
-                if (result.IsFailure())
-                {
-                    return null;
-                }
-
-                return data;
-            }
         }
 
         [CommandHipc(124)]
         // GetErrorReportSharePermission() -> nn::settings::system::ErrorReportSharePermission
         public ResultCode GetErrorReportSharePermission(ServiceCtx context)
         {
-            context.ResponseData.Write((uint)ErrorReportSharePermission.Denied);
-
-            Logger.Stub?.PrintStub(LogClass.ServiceSet);
+            context.ResponseData.WriteStruct(Horizon.Instance.State.ErrorReportSharePermission);
 
             return ResultCode.Success;
         }
@@ -566,11 +501,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetAppletLaunchFlags() -> nn::settings::system::AppletLaunchFlag
         public ResultCode GetAppletLaunchFlags(ServiceCtx context)
         {
-            // NOTE: unknown values
-            uint appletLaunchFlag = 0;
-            context.ResponseData.Write(appletLaunchFlag);
-
-            Logger.Stub?.PrintStub(LogClass.ServiceSet);
+            context.ResponseData.WriteStruct(Horizon.Instance.State.AppletLaunchFlags);
 
             return ResultCode.Success;
         }
@@ -579,7 +510,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetKeyboardLayout() -> nn::settings::KeyboardLayout
         public ResultCode GetKeyboardLayout(ServiceCtx context)
         {
-            context.ResponseData.Write((uint)context.Device.System.State.DesiredKeyboardLayout);
+            context.ResponseData.WriteStruct(Horizon.Instance.State.DesiredKeyboardLayout);
 
             return ResultCode.Success;
         }
@@ -588,10 +519,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetChineseTraditionalInputMethod() -> nn::settings::ChineseTraditionalInputMethod
         public ResultCode GetChineseTraditionalInputMethod(ServiceCtx context)
         {
-            // TODO
-            context.ResponseData.Write((uint)ChineseTraditionalInputMethod.Unk1);
-
-            Logger.Stub?.PrintStub(LogClass.ServiceSet);
+            context.ResponseData.WriteStruct(Horizon.Instance.State.ChineseTraditionalInputMethod);
 
             return ResultCode.Success;
         }

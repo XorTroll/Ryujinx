@@ -3,6 +3,5 @@
     [Service("caps:sc")]
     class IScreenShotControlService : IpcService
     {
-        public IScreenShotControlService() { }
     }
 }

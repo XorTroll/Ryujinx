@@ -3,6 +3,5 @@
     [Service("bgtc:t")]
     class ITaskService : IpcService
     {
-        public ITaskService() { }
     }
 }

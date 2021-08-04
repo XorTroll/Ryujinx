@@ -5,7 +5,7 @@ namespace Ryujinx.HLE.HOS.Services.Spl
 {
     class SplServer : ServerManager
     {
-        public SplServer(Horizon system) : base(system, "spl", 0x0100000000000028, 44) { }
+        public SplServer() : base("spl", 0x0100000000000028, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

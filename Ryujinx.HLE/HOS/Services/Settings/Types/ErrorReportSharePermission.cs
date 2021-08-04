@@ -1,6 +1,6 @@
-﻿namespace Ryujinx.HLE.HOS.Services.Settings.Types
+﻿namespace Ryujinx.HLE.HOS.Services.Settings
 {
-    enum ErrorReportSharePermission
+    public enum ErrorReportSharePermission : uint
     {
         NotConfirmed = 0,
         Granted = 1,

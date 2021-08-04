@@ -9,7 +9,7 @@ namespace Ryujinx.HLE.HOS.Services.Sdb
 {
     class SdbServer : ServerManager
     {
-        public SdbServer(Horizon system) : base(system, "sdb", 0x0100000000000039, 44) { }
+        public SdbServer() : base("sdb", 0x0100000000000039, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

@@ -1,6 +1,6 @@
-﻿namespace Ryujinx.HLE.HOS.Services.Settings.Types
+﻿namespace Ryujinx.HLE.HOS.Services.Settings
 {
-    enum ConsoleSleepPlan
+    public enum ConsoleSleepPlan
     {
         S_1Hour = 0,
         S_2Hour = 1,

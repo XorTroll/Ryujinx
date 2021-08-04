@@ -5,7 +5,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv
 {
     class NvServer : ServerManager
     {
-        public NvServer(Horizon system) : base(system, "nvservices", 0x0100000000000019, 44) { }
+        public NvServer() : base("nvservices", 0x0100000000000019, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

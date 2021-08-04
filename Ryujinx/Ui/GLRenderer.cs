@@ -7,7 +7,7 @@ using Ryujinx.Common;
 using Ryujinx.Common.Configuration;
 using Ryujinx.Configuration;
 using Ryujinx.Graphics.OpenGL;
-using Ryujinx.HLE.HOS.Services.Hid;
+using Ryujinx.HLE.HOS;
 using Ryujinx.Input;
 using Ryujinx.Input.HLE;
 using Ryujinx.Ui.Widgets;
@@ -135,7 +135,7 @@ namespace Ryujinx.Ui
             }
             catch (Exception) { }
 
-            Device.DisposeGpu();
+            Horizon.Instance.Device.DisposeGpu();
             NpadManager.Dispose();
 
             // Unbind context and destroy everything

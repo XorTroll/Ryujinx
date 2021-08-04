@@ -3,6 +3,5 @@
     [Service("ldr:shel")]
     class IShellInterface : IpcService
     {
-        public IShellInterface() { }
     }
 }

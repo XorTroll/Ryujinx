@@ -3,6 +3,5 @@
     [Service("bpc")]
     class IBoardPowerControlManager : IpcService
     {
-        public IBoardPowerControlManager() { }
     }
 }

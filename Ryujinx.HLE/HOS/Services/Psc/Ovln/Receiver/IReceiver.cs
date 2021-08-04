@@ -11,9 +11,9 @@ namespace Ryujinx.HLE.HOS.Services.Psc.Ovln.Receiver
         public KEvent _event;
         public int _eventHandle;
 
-        public IReceiver(ServiceCtx context)
+        public IReceiver()
         {
-            _event = new KEvent(context.Device.System.KernelContext);
+            _event = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(0)]

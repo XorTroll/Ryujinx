@@ -3,6 +3,5 @@
     [Service("ldn:s")]
     class ISystemServiceCreator : IpcService
     {
-        public ISystemServiceCreator() { }
     }
 }

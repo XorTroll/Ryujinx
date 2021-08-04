@@ -3,6 +3,5 @@
     [Service("eupld:c")]
     class IControl : IpcService
     {
-        public IControl() { }
     }
 }

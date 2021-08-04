@@ -3,6 +3,5 @@
     [Service("wlan:sg")]
     class ISocketGetFrame : IpcService
     {
-        public ISocketGetFrame() { }
     }
 }

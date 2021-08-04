@@ -18,8 +18,6 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 {
     public class Hid
     {
-        private readonly Switch _device;
-
         private readonly SharedMemoryStorage _storage;
 
         internal ref Shmem SharedMemory => ref _storage.GetRef<Shmem>(0);
@@ -50,9 +48,8 @@ namespace Ryujinx.HLE.HOS.Services.Hid
             CheckTypeSizeOrThrow<Shmem>(Horizon.HidSize);
         }
 
-        internal Hid(in Switch device, SharedMemoryStorage storage)
+        internal Hid(SharedMemoryStorage storage)
         {
-            _device  = device;
             _storage = storage;
 
             SharedMemory = Shmem.Create();
@@ -60,11 +57,11 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 
         public void InitDevices()
         {
-            DebugPad    = new DebugPadDevice(_device, true);
-            Touchscreen = new TouchDevice(_device, true);
-            Mouse       = new MouseDevice(_device, false);
-            Keyboard    = new KeyboardDevice(_device, false);
-            Npads       = new NpadDevices(_device, true);
+            DebugPad    = new DebugPadDevice(true);
+            Touchscreen = new TouchDevice(true);
+            Mouse       = new MouseDevice(false);
+            Keyboard    = new KeyboardDevice(false);
+            Npads       = new NpadDevices(true);
         }
 
         public void RefreshInputConfig(List<InputConfig> inputConfig)
@@ -77,7 +74,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
                 npadConfig[i].Type = (ControllerType)inputConfig[i].ControllerType;
             }
 
-            _device.Hid.Npads.Configure(npadConfig);
+            Horizon.Instance.Device.Hid.Npads.Configure(npadConfig);
         }
 
         public ControllerKeys UpdateStickButtons(JoystickPosition leftStick, JoystickPosition rightStick)

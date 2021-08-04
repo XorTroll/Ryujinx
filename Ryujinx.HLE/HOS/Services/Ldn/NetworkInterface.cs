@@ -12,11 +12,11 @@ namespace Ryujinx.HLE.HOS.Services.Ldn
 
         private NetworkState _state;
 
-        public NetworkInterface(Horizon system)
+        public NetworkInterface()
         {
             // TODO(Ac_K): Determine where the internal state is set.
             NifmState        = ResultCode.Success;
-            StateChangeEvent = new KEvent(system.KernelContext);
+            StateChangeEvent = new KEvent(Horizon.Instance.KernelContext);
 
             _state = NetworkState.None;
         }

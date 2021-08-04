@@ -1,6 +1,6 @@
-﻿namespace Ryujinx.HLE.HOS.Services.Settings.Types
+﻿namespace Ryujinx.HLE.HOS.Services.Settings
 {
-    enum RgbRange
+    public enum RgbRange
     {
         Auto = 0,
         Full = 1,

@@ -5,8 +5,6 @@ namespace Ryujinx.HLE.HOS.Services.Ngct
     [Service("ngct:u")] // 9.0.0+
     class IService : IpcService
     {
-        public IService() { }
-
         [CommandHipc(0)]
         // Match(buffer<string, 9>) -> b8
         public ResultCode Match(ServiceCtx context)

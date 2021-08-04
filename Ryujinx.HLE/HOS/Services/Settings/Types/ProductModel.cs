@@ -1,6 +1,6 @@
-﻿namespace Ryujinx.HLE.HOS.Services.Settings.Types
+﻿namespace Ryujinx.HLE.HOS.Services.Settings
 {
-    enum ProductModel
+    public enum ProductModel
     {
         Invalid = 0,
         Nx = 1,

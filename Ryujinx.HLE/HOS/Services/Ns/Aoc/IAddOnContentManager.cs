@@ -16,9 +16,9 @@ namespace Ryujinx.HLE.HOS.Services.Ns.Aoc
 
         private ulong _addOnContentBaseId;
 
-        public IAddOnContentManager(KernelContext context)
+        public IAddOnContentManager()
         {
-            _addOnContentListChangedEvent = new KEvent(context);
+            _addOnContentListChangedEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(0)] // 1.0.0-6.2.0
@@ -47,7 +47,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns.Aoc
 
             // NOTE: Service call arp:r GetApplicationLaunchProperty to get TitleId using the PId.
 
-            return CountAddOnContentImpl(context, context.Device.Application.TitleId);
+            return CountAddOnContentImpl(context, Horizon.Instance.Device.Application.TitleId);
         }
 
         [CommandHipc(3)]
@@ -58,7 +58,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns.Aoc
 
             // NOTE: Service call arp:r GetApplicationLaunchProperty to get TitleId using the PId.
 
-            return ListAddContentImpl(context, context.Device.Application.TitleId);
+            return ListAddContentImpl(context, Horizon.Instance.Device.Application.TitleId);
         }
 
         [CommandHipc(4)] // 1.0.0-6.2.0
@@ -78,7 +78,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns.Aoc
 
             // NOTE: Service call arp:r GetApplicationLaunchProperty to get TitleId using the PId.
 
-            return GetAddOnContentBaseIdImpl(context, context.Device.Application.TitleId);
+            return GetAddOnContentBaseIdImpl(context, Horizon.Instance.Device.Application.TitleId);
         }
 
         [CommandHipc(6)] // 1.0.0-6.2.0
@@ -98,7 +98,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns.Aoc
 
             // NOTE: Service call arp:r GetApplicationLaunchProperty to get TitleId using the PId.
 
-            return PrepareAddOnContentImpl(context, context.Device.Application.TitleId);
+            return PrepareAddOnContentImpl(context, Horizon.Instance.Device.Application.TitleId);
         }
 
         [CommandHipc(8)] // 4.0.0+
@@ -127,7 +127,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns.Aoc
             // NOTE: Service call arp:r GetApplicationLaunchProperty to get TitleId using the PId.
 
             // TODO: Found where stored value is used.
-            ResultCode resultCode = GetAddOnContentBaseIdFromTitleId(context, context.Device.Application.TitleId);
+            ResultCode resultCode = GetAddOnContentBaseIdFromTitleId(context, Horizon.Instance.Device.Application.TitleId);
             
             if (resultCode != ResultCode.Success)
             {
@@ -141,7 +141,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns.Aoc
         // CreateEcPurchasedEventManager() -> object<nn::ec::IPurchaseEventManager>
         public ResultCode CreateEcPurchasedEventManager(ServiceCtx context)
         {
-            MakeObject(context, new IPurchaseEventManager(context.Device.System));
+            MakeObject(context, new IPurchaseEventManager());
 
             return ResultCode.Success;
         }
@@ -152,7 +152,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns.Aoc
         {
             // NOTE: Service call arp:r to get the TitleId, do some extra checks and pass it to returned interface.
 
-            MakeObject(context, new IPurchaseEventManager(context.Device.System));
+            MakeObject(context, new IPurchaseEventManager());
 
             return ResultCode.Success;
         }
@@ -179,7 +179,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns.Aoc
             }
 
             // TODO: This should use _addOnContentBaseId;
-            uint aocCount = (uint)context.Device.System.ContentManager.GetAocCount();
+            uint aocCount = (uint)Horizon.Instance.ContentManager.GetAocCount();
 
             context.ResponseData.Write(aocCount);
 
@@ -197,7 +197,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns.Aoc
             ulong bufferSize     = context.Request.ReceiveBuff[0].Size;
 
             // TODO: This should use _addOnContentBaseId;
-            uint aocTotalCount = (uint)context.Device.System.ContentManager.GetAocCount();
+            uint aocTotalCount = (uint)Horizon.Instance.ContentManager.GetAocCount();
 
             if (indexNumber > bufferSize / sizeof(uint))
             {
@@ -211,7 +211,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns.Aoc
                 return ResultCode.Success;
             }
 
-            IList<ulong> aocTitleIds = context.Device.System.ContentManager.GetAocTitleIds();
+            IList<ulong> aocTitleIds = Horizon.Instance.ContentManager.GetAocTitleIds();
 
             GetAddOnContentBaseIdFromTitleId(context, titleId);
 
@@ -246,7 +246,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns.Aoc
             // NOTE: Service calls arp:r GetApplicationControlProperty to get AddOnContentBaseId using TitleId,
             //       If the call fails, it returns ResultCode.InvalidPid.
 
-            _addOnContentBaseId = context.Device.Application.ControlData.Value.AddOnContentBaseId;
+            _addOnContentBaseId = Horizon.Instance.Device.Application.ControlData.Value.AddOnContentBaseId;
 
             if (_addOnContentBaseId == 0)
             {
@@ -260,7 +260,7 @@ namespace Ryujinx.HLE.HOS.Services.Ns.Aoc
         {
             uint index = context.RequestData.ReadUInt32();
 
-            ResultCode resultCode = GetAddOnContentBaseIdFromTitleId(context, context.Device.Application.TitleId);
+            ResultCode resultCode = GetAddOnContentBaseIdFromTitleId(context, Horizon.Instance.Device.Application.TitleId);
 
             if (resultCode != ResultCode.Success)
             {

@@ -5,7 +5,7 @@ namespace Ryujinx.HLE.HOS.Services.Ptm
 {
     class PtmServer : ServerManager
     {
-        public PtmServer(Horizon system) : base(system, "ptm", 0x0100000000000010, 44) { }
+        public PtmServer() : base("ptm", 0x0100000000000010, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {
@@ -19,9 +19,9 @@ namespace Ryujinx.HLE.HOS.Services.Ptm
             { "tc", () => new Tc.IManager() },
             { "ts", () => new Ts.IMeasurementServer() },
             { "lbl", () => new Lbl.LblControllerServer() },
-            { "apm", () => new Apm.ManagerServer(_system) },
-            { "apm:am", () => new Apm.ManagerServer(_system) },
-            { "apm:sys", () => new Apm.SystemManagerServer(_system) }
+            { "apm", () => new Apm.ManagerServer() },
+            { "apm:am", () => new Apm.ManagerServer() },
+            { "apm:sys", () => new Apm.SystemManagerServer() }
         };
     }
 }

@@ -1,3 +1,4 @@
+using Ryujinx.Common;
 using Ryujinx.Common.Logging;
 using Ryujinx.HLE.HOS.SystemState;
 using System;
@@ -8,13 +9,11 @@ namespace Ryujinx.HLE.HOS.Services.Settings
     [Service("set")]
     class ISettingsServer : IpcService
     {
-        public ISettingsServer() { }
-
         [CommandHipc(0)]
         // GetLanguageCode() -> nn::settings::LanguageCode
         public ResultCode GetLanguageCode(ServiceCtx context)
         {
-            context.ResponseData.Write(context.Device.System.State.DesiredLanguageCode);
+            context.ResponseData.Write(Horizon.Instance.State.DesiredLanguageCode);
 
             return ResultCode.Success;
         }
@@ -61,14 +60,14 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         {
             // NOTE: Service mount 0x8000000000000050 savedata and read the region code here.
 
-            RegionCode regionCode = (RegionCode)context.Device.System.State.DesiredRegionCode;
+            var regionCode = Horizon.Instance.State.DesiredRegionCode;
 
             if (regionCode < RegionCode.Min || regionCode > RegionCode.Max)
             {
                 regionCode = RegionCode.USA;
             }
 
-            context.ResponseData.Write((uint)regionCode);
+            context.ResponseData.WriteStruct(regionCode);
 
             return ResultCode.Success;
         }
@@ -104,9 +103,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetQuestFlag() -> bool
         public ResultCode GetQuestFlag(ServiceCtx context)
         {
-            context.ResponseData.Write(false);
-
-            Logger.Stub?.PrintStub(LogClass.ServiceSet);
+            context.ResponseData.Write(Horizon.Instance.State.QuestFlag);
 
             return ResultCode.Success;
         }
@@ -122,6 +119,8 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetDeviceNickName() -> buffer<nn::settings::system::DeviceNickName, 0x16>
         public ResultCode GetDeviceNickName(ServiceCtx context)
         {
+            // TODO: use the same code from set:sys?
+
             ulong deviceNickNameBufferPosition = context.Request.ReceiveBuff[0].Position;
             ulong deviceNickNameBufferSize     = context.Request.ReceiveBuff[0].Size;
 
@@ -135,7 +134,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
                 Logger.Warning?.Print(LogClass.ServiceSet, "Wrong buffer size");
             }
 
-            context.Memory.Write(deviceNickNameBufferPosition, Encoding.ASCII.GetBytes(context.Device.System.State.DeviceNickName + '\0'));
+            context.Memory.Write(deviceNickNameBufferPosition, Encoding.ASCII.GetBytes(Horizon.Instance.State.DeviceNickName + '\0'));
 
             return ResultCode.Success;
         }
@@ -149,11 +148,11 @@ namespace Ryujinx.HLE.HOS.Services.Settings
 
             byte[] keyCodeMap;
 
-            switch ((KeyboardLayout)context.Device.System.State.DesiredKeyboardLayout)
+            switch ((KeyboardLayout)Horizon.Instance.State.DesiredKeyboardLayout)
             {
                 case KeyboardLayout.EnglishUs:
 
-                    long langCode = context.Device.System.State.DesiredLanguageCode;
+                    long langCode = Horizon.Instance.State.DesiredLanguageCode;
 
                     if (langCode == 0x736e61482d687a) // Zh-Hans
                     {
@@ -215,7 +214,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
 
             context.Memory.Write(context.Request.ReceiveBuff[0].Position, keyCodeMap);
 
-            if (version == 1 && context.Device.System.State.DesiredKeyboardLayout == (long)KeyboardLayout.Default)
+            if (version == 1 && Horizon.Instance.State.DesiredKeyboardLayout == (long)KeyboardLayout.Default)
             {
                 context.Memory.Write(context.Request.ReceiveBuff[0].Position, (byte)0x01);
             }

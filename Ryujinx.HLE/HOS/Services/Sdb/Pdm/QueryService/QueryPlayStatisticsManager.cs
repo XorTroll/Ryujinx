@@ -25,13 +25,13 @@ namespace Ryujinx.HLE.HOS.Services.Sdb.Pdm.QueryService
 
             if (byUserId)
             {
-                if (!context.Device.System.AccountManager.TryGetUser(userId, out _))
+                if (!Horizon.Instance.AccountManager.TryGetUser(userId, out _))
                 {
                     return ResultCode.UserNotFound;
                 }
             }
 
-            PlayLogQueryCapability queryCapability = (PlayLogQueryCapability)context.Device.Application.ControlData.Value.PlayLogQueryCapability;
+            PlayLogQueryCapability queryCapability = (PlayLogQueryCapability)Horizon.Instance.Device.Application.ControlData.Value.PlayLogQueryCapability;
 
             List<ulong> titleIds = new List<ulong>();
 
@@ -45,7 +45,7 @@ namespace Ryujinx.HLE.HOS.Services.Sdb.Pdm.QueryService
                 // Check if input title ids are in the whitelist.
                 foreach (ulong titleId in titleIds)
                 {
-                    if (!context.Device.Application.ControlData.Value.PlayLogQueryableApplicationId.Contains(titleId))
+                    if (!Horizon.Instance.Device.Application.ControlData.Value.PlayLogQueryableApplicationId.Contains(titleId))
                     {
                         return (ResultCode)Am.ResultCode.ObjectInvalid;
                     }

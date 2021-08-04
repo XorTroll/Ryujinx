@@ -23,8 +23,6 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostChannel
         private uint _submitTimeout;
         private uint _timeslice;
 
-        private readonly Switch _device;
-
         private readonly IVirtualMemoryManager _memory;
         private readonly Host1xContext _host1xContext;
 
@@ -46,20 +44,19 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostChannel
 
         public NvHostChannelDeviceFile(ServiceCtx context, IVirtualMemoryManager memory, long owner) : base(context, owner)
         {
-            _device        = context.Device;
             _memory        = memory;
             _timeout       = 3000;
             _submitTimeout = 0;
             _timeslice     = 0;
-            _host1xContext = GetHost1XContext(context.Device.Gpu, owner);
-            Channel        = _device.Gpu.CreateChannel();
+            _host1xContext = GetHost1XContext(Horizon.Instance.Device.Gpu, owner);
+            Channel        = Horizon.Instance.Device.Gpu.CreateChannel();
 
             ChannelInitialization.InitializeState(Channel);
 
             ChannelSyncpoints = new uint[MaxModuleSyncpoint];
 
-            _channelSyncpoint.Id = _device.System.HostSyncpoint.AllocateSyncpoint(false);
-            _channelSyncpoint.UpdateValue(_device.System.HostSyncpoint);
+            _channelSyncpoint.Id = Horizon.Instance.HostSyncpoint.AllocateSyncpoint(false);
+            _channelSyncpoint.UpdateValue(Horizon.Instance.HostSyncpoint);
         }
 
         public override NvInternalResult Ioctl(NvIoctl command, Span<byte> arguments)
@@ -149,7 +146,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostChannel
             Span<SyncptIncr>    waitChecks     = GetSpanAndSkip<SyncptIncr>(ref arguments, submitHeader.SyncptIncrsCount); // ?
             Span<Fence>         fences         = GetSpanAndSkip<Fence>(ref arguments, submitHeader.FencesCount);
 
-            lock (_device)
+            lock (Horizon.Instance.Device)
             {
                 for (int i = 0; i < syncptIncrs.Length; i++)
                 {
@@ -158,7 +155,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostChannel
                     uint id = syncptIncr.Id;
 
                     fences[i].Id = id;
-                    fences[i].Thresh = Context.Device.System.HostSyncpoint.IncrementSyncpointMax(id, syncptIncr.Incrs);
+                    fences[i].Thresh = Horizon.Instance.HostSyncpoint.IncrementSyncpointMax(id, syncptIncr.Incrs);
                 }
 
                 foreach (CommandBuffer commandBuffer in commandBuffers)
@@ -171,7 +168,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostChannel
                 }
             }
 
-            fences[0].Thresh = Context.Device.System.HostSyncpoint.IncrementSyncpointMax(fences[0].Id, 1);
+            fences[0].Thresh = Horizon.Instance.HostSyncpoint.IncrementSyncpointMax(fences[0].Id, 1);
 
             Span<int> tmpCmdBuff = stackalloc int[1];
 
@@ -200,7 +197,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostChannel
 
             if (ChannelResourcePolicy == ResourcePolicy.Device)
             {
-                arguments.Value = GetSyncpointDevice(_device.System.HostSyncpoint, arguments.Parameter, false);
+                arguments.Value = GetSyncpointDevice(Horizon.Instance.HostSyncpoint, arguments.Parameter, false);
             }
             else
             {
@@ -382,7 +379,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostChannel
 
         private NvInternalResult AllocGpfifoEx(ref AllocGpfifoExArguments arguments)
         {
-            _channelSyncpoint.UpdateValue(_device.System.HostSyncpoint);
+            _channelSyncpoint.UpdateValue(Horizon.Instance.HostSyncpoint);
 
             arguments.Fence = _channelSyncpoint;
 
@@ -393,7 +390,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostChannel
 
         private NvInternalResult AllocGpfifoEx2(ref AllocGpfifoExArguments arguments)
         {
-            _channelSyncpoint.UpdateValue(_device.System.HostSyncpoint);
+            _channelSyncpoint.UpdateValue(Horizon.Instance.HostSyncpoint);
 
             arguments.Fence = _channelSyncpoint;
 
@@ -432,7 +429,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostChannel
                 return NvInternalResult.InvalidInput;
             }
 
-            if (header.Flags.HasFlag(SubmitGpfifoFlags.FenceWait) && !_device.System.HostSyncpoint.IsSyncpointExpired(header.Fence.Id, header.Fence.Value))
+            if (header.Flags.HasFlag(SubmitGpfifoFlags.FenceWait) && !Horizon.Instance.HostSyncpoint.IsSyncpointExpired(header.Fence.Id, header.Fence.Value))
             {
                 Channel.PushHostCommandBuffer(CreateWaitCommandBuffer(header.Fence));
             }
@@ -450,11 +447,11 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostChannel
                     incrementCount += header.Fence.Value;
                 }
 
-                header.Fence.Value = _device.System.HostSyncpoint.IncrementSyncpointMaxExt(header.Fence.Id, (int)incrementCount);
+                header.Fence.Value = Horizon.Instance.HostSyncpoint.IncrementSyncpointMaxExt(header.Fence.Id, (int)incrementCount);
             }
             else
             {
-                header.Fence.Value = _device.System.HostSyncpoint.ReadSyncpointMaxValue(header.Fence.Id);
+                header.Fence.Value = Horizon.Instance.HostSyncpoint.ReadSyncpointMaxValue(header.Fence.Id);
             }
 
             if (header.Flags.HasFlag(SubmitGpfifoFlags.FenceIncrement))
@@ -464,7 +461,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostChannel
 
             header.Flags = SubmitGpfifoFlags.None;
 
-            _device.Gpu.GPFifo.SignalNewEntries();
+            Horizon.Instance.Device.Gpu.GPFifo.SignalNewEntries();
 
             return NvInternalResult.Success;
         }
@@ -476,7 +473,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostChannel
                 return ChannelSyncpoints[index];
             }
 
-            ChannelSyncpoints[index] = _device.System.HostSyncpoint.AllocateSyncpoint(isClientManaged);
+            ChannelSyncpoints[index] = Horizon.Instance.HostSyncpoint.AllocateSyncpoint(isClientManaged);
 
             return ChannelSyncpoints[index];
         }

@@ -13,9 +13,9 @@ namespace Ryujinx.HLE.HOS.Services.Nim.ShopServiceAccessServerInterface.ShopServ
 
         private int _eventHandle;
 
-        public IShopServiceAccessor(Horizon system)
+        public IShopServiceAccessor()
         {
-            _event = new KEvent(system.KernelContext);
+            _event = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(0)]

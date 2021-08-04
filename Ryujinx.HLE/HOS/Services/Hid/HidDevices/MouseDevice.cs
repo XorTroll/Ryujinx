@@ -5,11 +5,11 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 {
     public class MouseDevice : BaseDevice
     {
-        public MouseDevice(Switch device, bool active) : base(device, active) { }
+        public MouseDevice(bool active) : base(active) { }
 
         public void Update(int mouseX, int mouseY, uint buttons = 0, int scrollX = 0, int scrollY = 0, bool connected = false)
         {
-            ref RingLifo<MouseState> lifo = ref _device.Hid.SharedMemory.Mouse;
+            ref RingLifo<MouseState> lifo = ref Horizon.Instance.Device.Hid.SharedMemory.Mouse;
 
             ref MouseState previousEntry = ref lifo.GetCurrentEntryRef();
             

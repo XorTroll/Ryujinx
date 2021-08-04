@@ -39,10 +39,10 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         private HidAccelerometerParameters _accelerometerParams;
         private HidVibrationValue          _vibrationValue;
 
-        public IHidServer(KernelContext context)
+        public IHidServer()
         {
-            _xpadIdEvent                 = new KEvent(context);
-            _palmaOperationCompleteEvent = new KEvent(context);
+            _xpadIdEvent                 = new KEvent(Horizon.Instance.KernelContext);
+            _palmaOperationCompleteEvent = new KEvent(Horizon.Instance.KernelContext);
 
             _npadJoyAssignmentMode      = HidNpadJoyAssignmentMode.Dual;
             _npadHandheldActivationMode = HidNpadHandheldActivationMode.Dual;
@@ -64,7 +64,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         {
             long appletResourceUserId = context.RequestData.ReadInt64();
 
-            MakeObject(context, new IAppletResource(context.Device.System.HidSharedMem));
+            MakeObject(context, new IAppletResource(Horizon.Instance.HidSharedMem));
 
             return ResultCode.Success;
         }
@@ -79,7 +79,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 
             for (int entry = 0; entry < Hid.SharedMemEntryCount; entry++)
             {
-                context.Device.Hid.DebugPad.Update();
+                Horizon.Instance.Device.Hid.DebugPad.Update();
             }
 
             Logger.Stub?.PrintStub(LogClass.ServiceHid, new { appletResourceUserId });
@@ -93,13 +93,13 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         {
             long appletResourceUserId = context.RequestData.ReadInt64();
 
-            context.Device.Hid.Touchscreen.Active = true;
+            Horizon.Instance.Device.Hid.Touchscreen.Active = true;
 
             // Initialize entries to avoid issues with some games.
 
             for (int entry = 0; entry < Hid.SharedMemEntryCount; entry++)
             {
-                context.Device.Hid.Touchscreen.Update();
+                Horizon.Instance.Device.Hid.Touchscreen.Update();
             }
 
             Logger.Stub?.PrintStub(LogClass.ServiceHid, new { appletResourceUserId });
@@ -113,13 +113,13 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         {
             long appletResourceUserId = context.RequestData.ReadInt64();
 
-            context.Device.Hid.Mouse.Active = true;
+            Horizon.Instance.Device.Hid.Mouse.Active = true;
 
             // Initialize entries to avoid issues with some games.
 
             for (int entry = 0; entry < Hid.SharedMemEntryCount; entry++)
             {
-                context.Device.Hid.Mouse.Update(0, 0);
+                Horizon.Instance.Device.Hid.Mouse.Update(0, 0);
             }
 
             Logger.Stub?.PrintStub(LogClass.ServiceHid, new { appletResourceUserId });
@@ -133,7 +133,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         {
             long appletResourceUserId = context.RequestData.ReadInt64();
 
-            context.Device.Hid.Keyboard.Active = true;
+            Horizon.Instance.Device.Hid.Keyboard.Active = true;
 
             // Initialize entries to avoid issues with some games.
 
@@ -142,7 +142,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 
             for (int entry = 0; entry < Hid.SharedMemEntryCount; entry++)
             {
-                context.Device.Hid.Keyboard.Update(emptyInput);
+                Horizon.Instance.Device.Hid.Keyboard.Update(emptyInput);
             }
 
             Logger.Stub?.PrintStub(LogClass.ServiceHid, new { appletResourceUserId });
@@ -634,7 +634,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
                     type
                 });
 
-            context.Device.Hid.Npads.SupportedStyleSets = type;
+            Horizon.Instance.Device.Hid.Npads.SupportedStyleSets = type;
 
             return ResultCode.Success;
         }
@@ -645,11 +645,11 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         {
             long appletResourceUserId = context.RequestData.ReadInt64();
 
-            context.ResponseData.Write((int)context.Device.Hid.Npads.SupportedStyleSets);
+            context.ResponseData.Write((int)Horizon.Instance.Device.Hid.Npads.SupportedStyleSets);
 
             Logger.Stub?.PrintStub(LogClass.ServiceHid, new {
                     appletResourceUserId,
-                    context.Device.Hid.Npads.SupportedStyleSets
+                Horizon.Instance.Device.Hid.Npads.SupportedStyleSets
                 });
 
             return ResultCode.Success;
@@ -665,13 +665,13 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 
             ReadOnlySpan<NpadIdType> supportedPlayerIds = MemoryMarshal.Cast<byte, NpadIdType>(context.Memory.GetSpan(arrayPosition, (int)arraySize));
 
-            context.Device.Hid.Npads.ClearSupportedPlayers();
+            Horizon.Instance.Device.Hid.Npads.ClearSupportedPlayers();
 
             for (int i = 0; i < supportedPlayerIds.Length; ++i)
             {
                 if (supportedPlayerIds[i] >= 0)
                 {
-                    context.Device.Hid.Npads.SetSupportedPlayer(HidUtils.GetIndexFromNpadIdType(supportedPlayerIds[i]));
+                    Horizon.Instance.Device.Hid.Npads.SetSupportedPlayer(HidUtils.GetIndexFromNpadIdType(supportedPlayerIds[i]));
                 }
             }
 
@@ -686,7 +686,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         {
             long appletResourceUserId = context.RequestData.ReadInt64();
 
-            context.Device.Hid.Npads.Active = true;
+            Horizon.Instance.Device.Hid.Npads.Active = true;
 
             // Initialize entries to avoid issues with some games.
 
@@ -709,8 +709,8 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 
             for (int entry = 0; entry < Hid.SharedMemEntryCount; entry++)
             {
-                context.Device.Hid.Npads.Update(emptyGamepadInputs);
-                context.Device.Hid.Npads.UpdateSixAxis(emptySixAxisInputs);
+                Horizon.Instance.Device.Hid.Npads.Update(emptyGamepadInputs);
+                Horizon.Instance.Device.Hid.Npads.UpdateSixAxis(emptySixAxisInputs);
             }
 
             Logger.Stub?.PrintStub(LogClass.ServiceHid, new { appletResourceUserId });
@@ -724,7 +724,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         {
             long appletResourceUserId = context.RequestData.ReadInt64();
 
-            context.Device.Hid.Npads.Active = false;
+            Horizon.Instance.Device.Hid.Npads.Active = false;
             Logger.Stub?.PrintStub(LogClass.ServiceHid, new { appletResourceUserId });
 
             return ResultCode.Success;
@@ -739,7 +739,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
             long        appletResourceUserId = context.RequestData.ReadInt64();
             long        npadStyleSet         = context.RequestData.ReadInt64();
 
-            KEvent evnt = context.Device.Hid.Npads.GetStyleSetUpdateEvent(npadId);
+            KEvent evnt = Horizon.Instance.Device.Hid.Npads.GetStyleSetUpdateEvent(npadId);
             if (context.Process.HandleTable.GenerateHandle(evnt.ReadableEvent, out int handle) != KernelResult.Success)
             {
                 throw new InvalidOperationException("Out of handles!");
@@ -820,8 +820,8 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 
             for (int entry = 0; entry < Hid.SharedMemEntryCount; entry++)
             {
-                context.Device.Hid.Npads.Update(emptyGamepadInputs);
-                context.Device.Hid.Npads.UpdateSixAxis(emptySixAxisInputs);
+                Horizon.Instance.Device.Hid.Npads.Update(emptyGamepadInputs);
+                Horizon.Instance.Device.Hid.Npads.UpdateSixAxis(emptySixAxisInputs);
             }
 
             Logger.Stub?.PrintStub(LogClass.ServiceHid, new { appletResourceUserId, revision });
@@ -842,7 +842,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
                 throw new ArgumentOutOfRangeException(nameof(npadJoyHoldType));
             }
 
-            foreach (PlayerIndex playerIndex in context.Device.Hid.Npads.GetSupportedPlayers())
+            foreach (PlayerIndex playerIndex in Horizon.Instance.Device.Hid.Npads.GetSupportedPlayers())
             {
                 if (HidUtils.GetNpadIdTypeFromIndex(playerIndex) > NpadIdType.Handheld)
                 {
@@ -850,7 +850,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
                 }
             }
 
-            context.Device.Hid.Npads.JoyHold = npadJoyHoldType;
+            Horizon.Instance.Device.Hid.Npads.JoyHold = npadJoyHoldType;
 
             return ResultCode.Success;
         }
@@ -861,7 +861,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         {
             long appletResourceUserId = context.RequestData.ReadInt64();
 
-            foreach (PlayerIndex playerIndex in context.Device.Hid.Npads.GetSupportedPlayers())
+            foreach (PlayerIndex playerIndex in Horizon.Instance.Device.Hid.Npads.GetSupportedPlayers())
             {
                 if (HidUtils.GetNpadIdTypeFromIndex(playerIndex) > NpadIdType.Handheld)
                 {
@@ -869,7 +869,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
                 }
             }
 
-            context.ResponseData.Write((ulong)context.Device.Hid.Npads.JoyHold);
+            context.ResponseData.Write((ulong)Horizon.Instance.Device.Hid.Npads.JoyHold);
 
             return ResultCode.Success;
         }

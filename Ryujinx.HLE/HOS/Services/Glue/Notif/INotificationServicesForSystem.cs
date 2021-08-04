@@ -9,9 +9,9 @@ namespace Ryujinx.HLE.HOS.Services.Glue.Notif
     {
         private KEvent _unkEvent;
 
-        public INotificationServicesForSystem(KernelContext context)
+        public INotificationServicesForSystem()
         {
-            _unkEvent = new KEvent(context);
+            _unkEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(520)]

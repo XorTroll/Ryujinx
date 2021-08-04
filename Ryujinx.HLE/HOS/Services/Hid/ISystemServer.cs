@@ -3,6 +3,5 @@
     [Service("xcd:sys")]
     class ISystemServer : IpcService
     {
-        public ISystemServer(ServiceCtx context) { }
     }
 }

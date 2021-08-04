@@ -3,6 +3,5 @@
     [Service("pm:dmnt")]
     class IDebugMonitorInterface : IpcService
     {
-        public IDebugMonitorInterface() { }
     }
 }

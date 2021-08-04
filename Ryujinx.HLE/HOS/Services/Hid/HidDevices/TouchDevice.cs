@@ -6,11 +6,11 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 {
     public class TouchDevice : BaseDevice
     {
-        public TouchDevice(Switch device, bool active) : base(device, active) { }
+        public TouchDevice(bool active) : base(active) { }
 
         public void Update(params TouchPoint[] points)
         {
-            ref RingLifo<TouchScreenState> lifo = ref _device.Hid.SharedMemory.TouchScreen;
+            ref RingLifo<TouchScreenState> lifo = ref Horizon.Instance.Device.Hid.SharedMemory.TouchScreen;
 
             ref TouchScreenState previousEntry = ref lifo.GetCurrentEntryRef();
 

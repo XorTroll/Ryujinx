@@ -1,26 +1,22 @@
-﻿using Ryujinx.Common.Logging;
-using Ryujinx.HLE.HOS.Kernel;
-using Ryujinx.HLE.HOS.Kernel.Common;
+﻿using Ryujinx.HLE.HOS.Kernel.Common;
 using Ryujinx.HLE.HOS.Kernel.Ipc;
-using Ryujinx.HLE.HOS.Kernel.Process;
 using System;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Linq;
-using System.Reflection;
 
 namespace Ryujinx.HLE.HOS.Services.Sm
 {
     class SmServer : ServerManager
     {
-        public SmServer(Horizon system) : base(system, "sm", 0x0100000000000004, 44) { }
+        public SmServer() : base("sm", 0x0100000000000004, 44) { }
 
-        public override Dictionary<string, Func<IpcService>> ServiceTable => new();
+        public override Dictionary<string, Func<IpcService>> ServiceTable => new()
+        {
+            { "sm:m", () => new IManagerInterface() }
+        };
 
         protected override void OnStart()
         {
             RegisterNamedPort("sm:", 50, () => new IUserInterface());
-            // TODO: sm:m?
         }
 
         public ResultCode DoGetService(string name, out int serviceHandle)
@@ -32,11 +28,11 @@ namespace Ryujinx.HLE.HOS.Services.Sm
                 return ResultCode.InvalidName;
             }
 
-            foreach (var server in _system.GetServerList())
+            foreach (var server in Horizon.Instance.GetServerList())
             {
                 if (server.ServiceTable.ContainsKey(name))
                 {
-                    var serviceSession = new KSession(_system.KernelContext);
+                    var serviceSession = new KSession(Horizon.Instance.KernelContext);
                     var serviceObj = server.ServiceTable[name].Invoke();
 
                     server.AddSessionObject(serviceSession.ServerSession, serviceObj);
@@ -53,13 +49,6 @@ namespace Ryujinx.HLE.HOS.Services.Sm
                 }
             }
 
-            // TODO: static config
-            /*
-            if (context.Device.Configuration.IgnoreMissingServices)
-            {
-                Logger.Warning?.Print(LogClass.Service, $"Missing service {name} ignored");
-            }
-            */
             throw new NotImplementedException(name);
         }
     }

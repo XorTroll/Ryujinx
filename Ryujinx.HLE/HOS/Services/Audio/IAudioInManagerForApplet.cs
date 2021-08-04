@@ -3,6 +3,5 @@
     [Service("audin:a")]
     class IAudioInManagerForApplet : IpcService
     {
-        public IAudioInManagerForApplet() { }
     }
 }

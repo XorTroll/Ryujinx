@@ -38,7 +38,6 @@ namespace Ryujinx.HLE.HOS.Services
             0x01007FFF
         };
 
-        protected readonly Horizon _system;
         protected KProcess _selfProcess;
         protected KThread _selfMainThread;
         protected object _serverLoopLock = new object();
@@ -53,14 +52,13 @@ namespace Ryujinx.HLE.HOS.Services
         public ManualResetEvent InitDone { get; }
         public string Name => _selfProcess?.Name;
 
-        public ServerManager(Horizon system, string processName, ulong programId, int mainThreadPriority, int extraThreadCount = 0)
+        public ServerManager(string processName, ulong programId, int mainThreadPriority, int extraThreadCount = 0)
         {
             InitDone = new ManualResetEvent(false);
-            _system = system;
             _extraThreadCount = extraThreadCount;
 
             var creationInfo = new ProcessCreationInfo(processName, 1, programId, 0x8000000, 1, ProcessFlags, 0, 0);
-            KernelStatic.StartInitialProcess(system.KernelContext, creationInfo, DefaultCapabilities, mainThreadPriority, MainThread);
+            KernelStatic.StartInitialProcess(Horizon.Instance.KernelContext, creationInfo, DefaultCapabilities, mainThreadPriority, MainThread);
         }
 
         public abstract Dictionary<string, Func<IpcService>> ServiceTable { get; }
@@ -91,7 +89,7 @@ namespace Ryujinx.HLE.HOS.Services
 
         public void RegisterNamedPort(string portName, int maxSessions, Func<IpcService> objFactory)
         {
-            _system.KernelContext.Syscall.ManageNamedPort(portName, maxSessions, out var portHandle);
+            Horizon.Instance.KernelContext.Syscall.ManageNamedPort(portName, maxSessions, out var portHandle);
             RegisterPort(portHandle, objFactory);
         }
 
@@ -99,7 +97,7 @@ namespace Ryujinx.HLE.HOS.Services
         {
             _selfProcess = KernelStatic.GetCurrentProcess();
             _selfMainThread = KernelStatic.GetCurrentThread();
-            _system.KernelContext.Syscall.SetHeapSize(HeapSize, out _heapAddress);
+            Horizon.Instance.KernelContext.Syscall.SetHeapSize(HeapSize, out _heapAddress);
             OnStart();
             InitDone.Set();
 
@@ -134,7 +132,7 @@ namespace Ryujinx.HLE.HOS.Services
                     sessionHandles.CopyTo(handles, portHandles.Length);
 
                     // We still need a timeout here to allow the service to pick up and listen new sessions...
-                    var rc = _system.KernelContext.Syscall.ReplyAndReceive(handles, replyTargetHandle, 1000000L, out int signaledIndex);
+                    var rc = Horizon.Instance.KernelContext.Syscall.ReplyAndReceive(handles, replyTargetHandle, 1000000L, out int signaledIndex);
                     thread.HandlePostSyscall();
 
                     if (!thread.Context.Running)
@@ -159,7 +157,7 @@ namespace Ryujinx.HLE.HOS.Services
                         else
                         {
                             // We got a new connection, accept the session to allow servicing future requests.
-                            rc = _system.KernelContext.Syscall.AcceptSession(handles[signaledIndex], out int serverSessionHandle);
+                            rc = Horizon.Instance.KernelContext.Syscall.AcceptSession(handles[signaledIndex], out int serverSessionHandle);
                             if (rc == KernelResult.Success)
                             {
                                 var obj = _ports[handles[signaledIndex]].Invoke();
@@ -233,7 +231,6 @@ namespace Ryujinx.HLE.HOS.Services
                         BinaryWriter resWriter = new BinaryWriter(resMs);
 
                         ServiceCtx context = new ServiceCtx(
-                            _system.KernelContext.Device,
                             process,
                             process.CpuMemory,
                             thread,
@@ -269,7 +266,7 @@ namespace Ryujinx.HLE.HOS.Services
                         case 4:
                             int unknown = reqReader.ReadInt32();
 
-                            _system.KernelContext.Syscall.CreateSession(false, 0, out int dupServerSessionHandle, out int dupClientSessionHandle);
+                            Horizon.Instance.KernelContext.Syscall.CreateSession(false, 0, out int dupServerSessionHandle, out int dupClientSessionHandle);
 
                             AddSessionObject(dupServerSessionHandle, _sessions[serverSessionHandle]);
 
@@ -284,7 +281,7 @@ namespace Ryujinx.HLE.HOS.Services
                 }
                 else if (request.Type == IpcMessageType.HipcCloseSession || request.Type == IpcMessageType.TipcCloseSession)
                 {
-                    _system.KernelContext.Syscall.CloseHandle(serverSessionHandle);
+                    Horizon.Instance.KernelContext.Syscall.CloseHandle(serverSessionHandle);
                     _sessionHandles.Remove(serverSessionHandle);
                     IpcService service = _sessions[serverSessionHandle];
                     if (service is IDisposable disposableObj)
@@ -307,7 +304,6 @@ namespace Ryujinx.HLE.HOS.Services
                         BinaryWriter resWriter = new BinaryWriter(resMs);
 
                         ServiceCtx context = new ServiceCtx(
-                            _system.KernelContext.Device,
                             process,
                             process.CpuMemory,
                             thread,

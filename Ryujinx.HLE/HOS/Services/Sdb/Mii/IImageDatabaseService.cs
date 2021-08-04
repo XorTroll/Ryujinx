@@ -8,8 +8,6 @@ namespace Ryujinx.HLE.HOS.Services.Sdb.Mii
         private uint _imageCount;
         private bool _isDirty;
 
-        public IImageDatabaseService() { }
-
         [CommandHipc(0)]
         // Initialize(b8) -> b8
         public ResultCode Initialize(ServiceCtx context)

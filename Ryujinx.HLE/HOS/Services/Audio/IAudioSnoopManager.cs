@@ -3,6 +3,5 @@
     [Service("auddev")] // 6.0.0+
     class IAudioSnoopManager : IpcService
     {
-        public IAudioSnoopManager() { }
     }
 }

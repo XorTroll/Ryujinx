@@ -11,8 +11,6 @@ namespace Ryujinx.HLE.HOS.Services.Ssl.SslService
         private ulong _serverCertificateId;
         private ulong _clientCertificateId;
 
-        public ISslContext(ServiceCtx context) { }
-
         [CommandHipc(2)]
         // CreateConnection() -> object<nn::ssl::sf::ISslConnection>
         public ResultCode CreateConnection(ServiceCtx context)

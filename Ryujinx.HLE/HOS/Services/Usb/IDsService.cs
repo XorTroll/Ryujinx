@@ -3,6 +3,5 @@
     [Service("usb:ds")]
     class IDsService : IpcService
     {
-        public IDsService() { }
     }
 }

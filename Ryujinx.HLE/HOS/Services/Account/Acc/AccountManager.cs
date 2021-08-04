@@ -16,17 +16,14 @@ namespace Ryujinx.HLE.HOS.Services.Account.Acc
     {
         public static readonly UserId DefaultUserId = new UserId("00000000000000010000000000000000");
 
-        private readonly VirtualFileSystem      _virtualFileSystem;
         private readonly AccountSaveDataManager _accountSaveDataManager;
 
         private ConcurrentDictionary<string, UserProfile> _profiles;
 
         public UserProfile LastOpenedUser { get; private set; }
 
-        public AccountManager(VirtualFileSystem virtualFileSystem)
+        public AccountManager()
         {
-            _virtualFileSystem = virtualFileSystem;
-
             _profiles = new ConcurrentDictionary<string, UserProfile>();
 
             _accountSaveDataManager = new AccountSaveDataManager(_profiles);
@@ -169,7 +166,7 @@ namespace Ryujinx.HLE.HOS.Services.Account.Acc
             SaveDataFilter saveDataFilter = new SaveDataFilter();
             saveDataFilter.SetUserId(new LibHac.Fs.UserId((ulong)userId.High, (ulong)userId.Low));
 
-            Result result = _virtualFileSystem.FsClient.OpenSaveDataIterator(out SaveDataIterator saveDataIterator, SaveDataSpaceId.User, ref saveDataFilter);
+            Result result = Horizon.Instance.Device.FileSystem.FsClient.OpenSaveDataIterator(out SaveDataIterator saveDataIterator, SaveDataSpaceId.User, ref saveDataFilter);
             if (result.IsSuccess())
             {
                 Span<SaveDataInfo> saveDataInfo = stackalloc SaveDataInfo[10];
@@ -186,13 +183,13 @@ namespace Ryujinx.HLE.HOS.Services.Account.Acc
                     for (int i = 0; i < readCount; i++)
                     {
                         // TODO: We use Directory.Delete workaround because DeleteSaveData softlock without, due to a bug in LibHac 0.12.0.
-                        string savePath     = Path.Combine(_virtualFileSystem.GetNandPath(), $"user/save/{saveDataInfo[i].SaveDataId:x16}");
-                        string saveMetaPath = Path.Combine(_virtualFileSystem.GetNandPath(), $"user/saveMeta/{saveDataInfo[i].SaveDataId:x16}");
+                        string savePath     = Path.Combine(Horizon.Instance.Device.FileSystem.GetNandPath(), $"user/save/{saveDataInfo[i].SaveDataId:x16}");
+                        string saveMetaPath = Path.Combine(Horizon.Instance.Device.FileSystem.GetNandPath(), $"user/saveMeta/{saveDataInfo[i].SaveDataId:x16}");
 
                         Directory.Delete(savePath, true);
                         Directory.Delete(saveMetaPath, true);
 
-                        _virtualFileSystem.FsClient.DeleteSaveData(SaveDataSpaceId.User, saveDataInfo[i].SaveDataId);
+                        Horizon.Instance.Device.FileSystem.FsClient.DeleteSaveData(SaveDataSpaceId.User, saveDataInfo[i].SaveDataId);
                     }
                 }
             }

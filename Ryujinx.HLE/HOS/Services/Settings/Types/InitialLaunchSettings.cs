@@ -1,10 +1,10 @@
 ﻿using Ryujinx.HLE.HOS.Services.Time.Types;
 
-namespace Ryujinx.HLE.HOS.Services.Settings.Types
+namespace Ryujinx.HLE.HOS.Services.Settings
 {
-    struct InitialLaunchSettings
+    public struct InitialLaunchSettings
     {
-        public uint Flags { get; set; }
+        public InitialLaunchFlag InitialLaunchFlags { get; set; }
 
         public uint Reserved { get; set; }
 
@@ -12,7 +12,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings.Types
 
         public static InitialLaunchSettings Default = new InitialLaunchSettings
         {
-            Flags = (uint)(InitialLaunchFlag.CompletionFlag | InitialLaunchFlag.UserAdditionFlag | InitialLaunchFlag.TimestampFlag),
+            InitialLaunchFlags = InitialLaunchFlag.CompletionFlag | InitialLaunchFlag.UserAdditionFlag | InitialLaunchFlag.TimestampFlag,
             TimeStamp = new SteadyClockContext()
         };
     }

@@ -3,6 +3,5 @@
     [Service("bgtc:sc")]
     class IStateControlService : IpcService
     {
-        public IStateControlService() { }
     }
 }

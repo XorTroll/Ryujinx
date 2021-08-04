@@ -3,6 +3,5 @@
     [Service("fan")]
     class IManager : IpcService
     {
-        public IManager() { }
     }
 }

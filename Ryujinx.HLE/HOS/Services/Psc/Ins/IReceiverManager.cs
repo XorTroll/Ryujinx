@@ -3,6 +3,5 @@
     [Service("ins:r")]
     class IReceiverManager : IpcService
     {
-        public IReceiverManager() { }
     }
 }

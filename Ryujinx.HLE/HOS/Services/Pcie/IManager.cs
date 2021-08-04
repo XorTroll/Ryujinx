@@ -3,6 +3,5 @@
     [Service("pcie")]
     class IManager : IpcService
     {
-        public IManager() { }
     }
 }

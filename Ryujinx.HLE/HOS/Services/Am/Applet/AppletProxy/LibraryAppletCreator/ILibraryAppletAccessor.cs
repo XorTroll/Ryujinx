@@ -25,15 +25,15 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy.LibraryAppletCreator
         private int _normalOutDataEventHandle;
         private int _interactiveOutDataEventHandle;
 
-        public ILibraryAppletAccessor(AppletId appletId, Horizon system)
+        public ILibraryAppletAccessor(AppletId appletId)
         {
-            _kernelContext = system.KernelContext;
+            _kernelContext = Horizon.Instance.KernelContext;
 
-            _stateChangedEvent       = new KEvent(system.KernelContext);
-            _normalOutDataEvent      = new KEvent(system.KernelContext);
-            _interactiveOutDataEvent = new KEvent(system.KernelContext);
+            _stateChangedEvent       = new KEvent(Horizon.Instance.KernelContext);
+            _normalOutDataEvent      = new KEvent(Horizon.Instance.KernelContext);
+            _interactiveOutDataEvent = new KEvent(Horizon.Instance.KernelContext);
 
-            _applet = AppletManager.Create(appletId, system);
+            _applet = AppletManager.Create(appletId, Horizon.Instance);
 
             _normalSession      = new AppletSession();
             _interactiveSession = new AppletSession();

@@ -14,9 +14,9 @@ namespace Ryujinx.HLE.HOS.Services.Ns
         private KEvent _systemUpdateContentDeliveryNotificationEvent;
         private int _systemUpdateContentDeliveryNotificationEventHandle;
 
-        public ISystemUpdateInterface(KernelContext context)
+        public ISystemUpdateInterface()
         {
-            _systemUpdateContentDeliveryNotificationEvent = new KEvent(context);
+            _systemUpdateContentDeliveryNotificationEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(0)]

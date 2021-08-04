@@ -17,7 +17,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         {
             Logger.Stub?.PrintStub(LogClass.ServiceAm);
 
-            long appletResourceUserId = context.Device.System.AppletState.AppletResourceUserIds.Add(_pid);
+            long appletResourceUserId = Horizon.Instance.AppletState.AppletResourceUserIds.Add(_pid);
 
             context.ResponseData.Write(appletResourceUserId);
 

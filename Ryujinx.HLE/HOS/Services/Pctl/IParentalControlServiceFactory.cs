@@ -21,7 +21,9 @@ namespace Ryujinx.HLE.HOS.Services.Pctl
         {
             long pid = context.Request.HandleDesc.PId;
 
-            MakeObject(context, new IParentalControlService(context, pid, true, _permissionFlag));
+            var pctlObj = new IParentalControlService(pid, _permissionFlag);
+            pctlObj.Initialize(context);
+            MakeObject(context, pctlObj);
 
             return ResultCode.Success;
         }
@@ -32,7 +34,7 @@ namespace Ryujinx.HLE.HOS.Services.Pctl
         {
             long pid = context.Request.HandleDesc.PId;
 
-            MakeObject(context, new IParentalControlService(context, pid, false, _permissionFlag));
+            MakeObject(context, new IParentalControlService(pid, _permissionFlag));
 
             return ResultCode.Success;
         }

@@ -14,9 +14,9 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostChannel
 
         public NvHostGpuDeviceFile(ServiceCtx context, IVirtualMemoryManager memory, long owner) : base(context, memory, owner)
         {
-            _smExceptionBptIntReportEvent   = new KEvent(context.Device.System.KernelContext);
-            _smExceptionBptPauseReportEvent = new KEvent(context.Device.System.KernelContext);
-            _errorNotifierEvent             = new KEvent(context.Device.System.KernelContext);
+            _smExceptionBptIntReportEvent   = new KEvent(Horizon.Instance.KernelContext);
+            _smExceptionBptPauseReportEvent = new KEvent(Horizon.Instance.KernelContext);
+            _errorNotifierEvent             = new KEvent(Horizon.Instance.KernelContext);
         }
 
         public override NvInternalResult Ioctl2(NvIoctl command, Span<byte> arguments, Span<byte> inlineInBuffer)

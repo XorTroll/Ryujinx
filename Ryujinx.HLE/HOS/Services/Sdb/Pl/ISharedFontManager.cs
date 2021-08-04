@@ -11,8 +11,6 @@ namespace Ryujinx.HLE.HOS.Services.Sdb.Pl
     {
         private int _fontSharedMemHandle;
 
-        public ISharedFontManager() { }
-
         [CommandHipc(0)]
         // RequestLoad(u32)
         public ResultCode RequestLoad(ServiceCtx context)
@@ -43,7 +41,7 @@ namespace Ryujinx.HLE.HOS.Services.Sdb.Pl
         {
             SharedFontType fontType = (SharedFontType)context.RequestData.ReadInt32();
 
-            context.ResponseData.Write(context.Device.System.Font.GetFontSize(fontType));
+            context.ResponseData.Write(Horizon.Instance.Font.GetFontSize(fontType));
 
             return ResultCode.Success;
         }
@@ -54,7 +52,7 @@ namespace Ryujinx.HLE.HOS.Services.Sdb.Pl
         {
             SharedFontType fontType = (SharedFontType)context.RequestData.ReadInt32();
 
-            context.ResponseData.Write(context.Device.System.Font.GetSharedMemoryAddressOffset(fontType));
+            context.ResponseData.Write(Horizon.Instance.Font.GetSharedMemoryAddressOffset(fontType));
 
             return ResultCode.Success;
         }
@@ -63,11 +61,11 @@ namespace Ryujinx.HLE.HOS.Services.Sdb.Pl
         // GetSharedMemoryNativeHandle() -> handle<copy>
         public ResultCode GetSharedMemoryNativeHandle(ServiceCtx context)
         {
-            context.Device.System.Font.EnsureInitialized(context.Device.System.ContentManager);
+            Horizon.Instance.Font.EnsureInitialized(Horizon.Instance.ContentManager);
 
             if (_fontSharedMemHandle == 0)
             {
-                if (context.Process.HandleTable.GenerateHandle(context.Device.System.FontSharedMem, out _fontSharedMemHandle) != KernelResult.Success)
+                if (context.Process.HandleTable.GenerateHandle(Horizon.Instance.FontSharedMem, out _fontSharedMemHandle) != KernelResult.Success)
                 {
                     throw new InvalidOperationException("Out of handles!");
                 }
@@ -131,8 +129,8 @@ namespace Ryujinx.HLE.HOS.Services.Sdb.Pl
             }
 
             context.Memory.Write(typesPosition + offset, (int)fontType);
-            context.Memory.Write(offsetsPosition + offset, context.Device.System.Font.GetSharedMemoryAddressOffset(fontType));
-            context.Memory.Write(fontSizeBufferPosition + offset, context.Device.System.Font.GetFontSize(fontType));
+            context.Memory.Write(offsetsPosition + offset, Horizon.Instance.Font.GetSharedMemoryAddressOffset(fontType));
+            context.Memory.Write(fontSizeBufferPosition + offset, Horizon.Instance.Font.GetFontSize(fontType));
 
             return true;
         }

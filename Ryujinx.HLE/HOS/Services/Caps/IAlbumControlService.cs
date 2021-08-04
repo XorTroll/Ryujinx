@@ -9,7 +9,7 @@ namespace Ryujinx.HLE.HOS.Services.Caps
         // SetShimLibraryVersion(pid, u64, nn::applet::AppletResourceUserId)
         public ResultCode SetShimLibraryVersion(ServiceCtx context)
         {
-            return context.Device.System.CaptureManager.SetShimLibraryVersion(context);
+            return Horizon.Instance.CaptureManager.SetShimLibraryVersion(context);
         }
     }
 }

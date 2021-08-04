@@ -1,7 +1,7 @@
 namespace Ryujinx.HLE.HOS.SystemState
 {
     // nn::settings::KeyboardLayout
-    public enum KeyboardLayout
+    public enum KeyboardLayout : int
     {
         Default = 0,
         EnglishUs,

@@ -3,6 +3,5 @@
     [Service("audrec:u")]
     class IFinalOutputRecorderManager : IpcService
     {
-        public IFinalOutputRecorderManager() { }
     }
 }

@@ -3,6 +3,5 @@
     [Service("omm")]
     class IOperationModeManager : IpcService
     {
-        public IOperationModeManager() { }
     }
 }

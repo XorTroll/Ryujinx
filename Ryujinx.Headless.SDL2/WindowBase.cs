@@ -4,9 +4,9 @@ using Ryujinx.Common.Configuration.Hid;
 using Ryujinx.Common.Logging;
 using Ryujinx.Graphics.GAL;
 using Ryujinx.HLE;
+using Ryujinx.HLE.HOS;
 using Ryujinx.HLE.HOS.Applets;
-using Ryujinx.HLE.HOS.Services.Am.AppletOE.ApplicationProxyService.ApplicationProxy.Types;
-using Ryujinx.HLE.HOS.Services.Hid;
+using Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy;
 using Ryujinx.Input;
 using Ryujinx.Input.HLE;
 using Ryujinx.SDL2.Common;
@@ -15,7 +15,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using static SDL2.SDL;
-using Switch = Ryujinx.HLE.Switch;
 
 namespace Ryujinx.Headless.SDL2
 {
@@ -28,7 +27,6 @@ namespace Ryujinx.Headless.SDL2
 
         public NpadManager NpadManager { get; }
         public TouchScreenManager TouchScreenManager { get; }
-        public Switch Device { get; private set; }
         public IRenderer Renderer { get; private set; }
 
         public event EventHandler<StatusUpdatedEventArgs> StatusUpdatedEvent;
@@ -70,27 +68,26 @@ namespace Ryujinx.Headless.SDL2
             SDL2Driver.Instance.Initialize();
         }
 
-        public void Initialize(Switch device, List<InputConfig> inputConfigs, bool enableKeyboard, bool enableMouse)
+        public void Initialize(List<InputConfig> inputConfigs, bool enableKeyboard, bool enableMouse)
         {
-            Device = device;
-            Renderer = Device.Gpu.Renderer;
+            Renderer = Horizon.Instance.Device.Gpu.Renderer;
 
-            NpadManager.Initialize(device, inputConfigs, enableKeyboard, enableMouse);
-            TouchScreenManager.Initialize(device);
+            NpadManager.Initialize(Horizon.Instance.Device, inputConfigs, enableKeyboard, enableMouse);
+            TouchScreenManager.Initialize(Horizon.Instance.Device);
         }
 
         private void InitializeWindow()
         {
-            string titleNameSection = string.IsNullOrWhiteSpace(Device.Application.TitleName) ? string.Empty
-                : $" - {Device.Application.TitleName}";
+            string titleNameSection = string.IsNullOrWhiteSpace(Horizon.Instance.Device.Application.TitleName) ? string.Empty
+                : $" - {Horizon.Instance.Device.Application.TitleName}";
 
-            string titleVersionSection = string.IsNullOrWhiteSpace(Device.Application.DisplayVersion) ? string.Empty
-                : $" v{Device.Application.DisplayVersion}";
+            string titleVersionSection = string.IsNullOrWhiteSpace(Horizon.Instance.Device.Application.DisplayVersion) ? string.Empty
+                : $" v{Horizon.Instance.Device.Application.DisplayVersion}";
 
-            string titleIdSection = string.IsNullOrWhiteSpace(Device.Application.TitleIdText) ? string.Empty
-                : $" ({Device.Application.TitleIdText.ToUpper()})";
+            string titleIdSection = string.IsNullOrWhiteSpace(Horizon.Instance.Device.Application.TitleIdText) ? string.Empty
+                : $" ({Horizon.Instance.Device.Application.TitleIdText.ToUpper()})";
 
-            string titleArchSection = Device.Application.TitleIs64Bit ? " (64-bit)" : " (32-bit)";
+            string titleArchSection = Horizon.Instance.Device.Application.TitleIs64Bit ? " (64-bit)" : " (32-bit)";
 
             WindowHandle = SDL_CreateWindow($"Ryujinx {Program.Version}{titleNameSection}{titleVersionSection}{titleIdSection}{titleArchSection}", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, DefaultWidth, DefaultHeight, DefaultFlags | GetWindowFlags());
 
@@ -144,11 +141,11 @@ namespace Ryujinx.Headless.SDL2
         {
             InitializeRenderer();
 
-            Device.Gpu.Renderer.Initialize(_glLogLevel);
+            Horizon.Instance.Device.Gpu.Renderer.Initialize(_glLogLevel);
 
             _gpuVendorName = GetGpuVendorName();
 
-            Device.Gpu.InitializeShaderCache();
+            Horizon.Instance.Device.Gpu.InitializeShaderCache();
             Translator.IsReadyForTranslation.Set();
 
             while (_isActive)
@@ -162,21 +159,21 @@ namespace Ryujinx.Headless.SDL2
 
                 _chrono.Restart();
 
-                if (Device.WaitFifo())
+                if (Horizon.Instance.Device.WaitFifo())
                 {
-                    Device.Statistics.RecordFifoStart();
-                    Device.ProcessFrame();
-                    Device.Statistics.RecordFifoEnd();
+                    Horizon.Instance.Device.Statistics.RecordFifoStart();
+                    Horizon.Instance.Device.ProcessFrame();
+                    Horizon.Instance.Device.Statistics.RecordFifoEnd();
                 }
 
-                while (Device.ConsumeFrameAvailable())
+                while (Horizon.Instance.Device.ConsumeFrameAvailable())
                 {
-                    Device.PresentFrame(SwapBuffers);
+                    Horizon.Instance.Device.PresentFrame(SwapBuffers);
                 }
 
                 if (_ticks >= _ticksPerFrame)
                 {
-                    string dockedMode = Device.System.State.DockedMode ? "Docked" : "Handheld";
+                    string dockedMode = Horizon.Instance.Device.System.State.DockedMode ? "Docked" : "Handheld";
                     float scale = Graphics.Gpu.GraphicsConfig.ResScale;
                     if (scale != 1)
                     {
@@ -184,11 +181,11 @@ namespace Ryujinx.Headless.SDL2
                     }
 
                     StatusUpdatedEvent?.Invoke(this, new StatusUpdatedEventArgs(
-                        Device.EnableDeviceVsync,
+                        Horizon.Instance.Device.EnableDeviceVsync,
                         dockedMode,
-                        Device.Configuration.AspectRatio.ToText(),
-                        $"Game: {Device.Statistics.GetGameFrameRate():00.00} FPS",
-                        $"FIFO: {Device.Statistics.GetFifoPercent():0.00} %",
+                        Horizon.Instance.Device.Configuration.AspectRatio.ToText(),
+                        $"Game: {Horizon.Instance.Device.Statistics.GetGameFrameRate():00.00} FPS",
+                        $"FIFO: {Horizon.Instance.Device.Statistics.GetFifoPercent():0.00} %",
                         $"GPU: {_gpuVendorName}"));
 
                     _ticks = Math.Min(_ticks - _ticksPerFrame, _ticksPerFrame);
@@ -277,7 +274,7 @@ namespace Ryujinx.Headless.SDL2
                 TouchScreenManager.Update(false);
             }
 
-            Device.Hid.DebugPad.Update();
+            Horizon.Instance.Device.Hid.DebugPad.Update();
 
             return true;
         }
@@ -337,9 +334,9 @@ namespace Ryujinx.Headless.SDL2
             return DisplayMessageDialog("Controller Applet", message);
         }
 
-        public void ExecuteProgram(Switch device, ProgramSpecifyKind kind, ulong value)
+        public void ExecuteProgram(ProgramSpecifyKind kind, ulong value)
         {
-            device.Configuration.UserChannelPersistence.ExecuteProgram(kind, value);
+            Horizon.Instance.Device.Configuration.UserChannelPersistence.ExecuteProgram(kind, value);
 
             Exit();
         }

@@ -7,13 +7,11 @@ namespace Ryujinx.HLE.HOS.Services.Caps
     [Service("caps:u")]
     class IAlbumApplicationService : IpcService
     {
-        public IAlbumApplicationService() { }
-
         [CommandHipc(32)] // 7.0.0+
         // SetShimLibraryVersion(pid, u64, nn::applet::AppletResourceUserId)
         public ResultCode SetShimLibraryVersion(ServiceCtx context)
         {
-            return context.Device.System.CaptureManager.SetShimLibraryVersion(context);
+            return Horizon.Instance.CaptureManager.SetShimLibraryVersion(context);
         }
 
         [CommandHipc(102)]

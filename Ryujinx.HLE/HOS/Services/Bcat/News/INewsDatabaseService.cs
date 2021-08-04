@@ -4,8 +4,6 @@ namespace Ryujinx.HLE.HOS.Services.Bcat.News
 {
     class INewsDatabaseService : IpcService
     {
-        public INewsDatabaseService() { }
-
         [CommandHipc(0)]
         // GetListV1(u32, buffer, buffer) -> (u32, buffer)
         public ResultCode GetListV1(ServiceCtx context)

@@ -29,13 +29,13 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostCtrl
         /// </summary>
         private const uint FailingCountMax = 2;
 
-        public NvHostEvent(NvHostSyncpt syncpointManager, uint eventId, Horizon system)
+        public NvHostEvent(NvHostSyncpt syncpointManager, uint eventId)
         {
             Fence.Id = 0;
 
             State = NvHostEventState.Available;
 
-            Event = new KEvent(system.KernelContext);
+            Event = new KEvent(Horizon.Instance.KernelContext);
 
             _eventId = eventId;
 

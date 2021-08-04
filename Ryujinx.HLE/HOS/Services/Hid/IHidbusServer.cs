@@ -3,6 +3,5 @@
     [Service("hidbus")]
     class IHidbusServer : IpcService
     {
-        public IHidbusServer() { }
     }
 }

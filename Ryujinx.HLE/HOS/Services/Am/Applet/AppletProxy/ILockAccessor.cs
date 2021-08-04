@@ -12,10 +12,10 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         private KEvent _event;
         private int _eventHandle;
 
-        public ILockAccessor(ServiceCtx context, uint unk)
+        public ILockAccessor(uint unk)
         {
             _unk = unk;
-            _event = new KEvent(context.Device.System.KernelContext);
+            _event = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(3)]

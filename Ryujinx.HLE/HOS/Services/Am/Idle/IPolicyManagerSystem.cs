@@ -3,6 +3,5 @@
     [Service("idle:sys")]
     class IPolicyManagerSystem : IpcService
     {
-        public IPolicyManagerSystem() { }
     }
 }

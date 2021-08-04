@@ -3,6 +3,5 @@
     [Service("ins:s")]
     class ISenderManager : IpcService
     {
-        public ISenderManager() { }
     }
 }

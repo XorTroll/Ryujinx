@@ -25,7 +25,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         internal bool SixAxisActive = false; // TODO: link to hidserver when implemented
         internal ControllerType SupportedStyleSets { get; set; }
 
-        public NpadDevices(Switch device, bool active = true) : base(device, active)
+        public NpadDevices(bool active = true) : base(active)
         {
             _configuredTypes = new ControllerType[MaxControllers];
 
@@ -39,7 +39,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
             _styleSetUpdateEvents = new KEvent[MaxControllers];
             for (int i = 0; i < _styleSetUpdateEvents.Length; ++i)
             {
-                _styleSetUpdateEvents[i] = new KEvent(_device.System.KernelContext);
+                _styleSetUpdateEvents[i] = new KEvent(Horizon.Instance.Device.System.KernelContext);
             }
 
             _activeCount = 0;
@@ -82,12 +82,12 @@ namespace Ryujinx.HLE.HOS.Services.Hid
             {
                 ControllerType npad = _configuredTypes[i];
 
-                if (npad == ControllerType.Handheld && _device.System.State.DockedMode)
+                if (npad == ControllerType.Handheld && Horizon.Instance.Device.System.State.DockedMode)
                 {
                     continue;
                 }
 
-                ControllerType currentType = (ControllerType)_device.Hid.SharedMemory.Npads[i].InternalState.StyleSet;
+                ControllerType currentType = (ControllerType)Horizon.Instance.Device.Hid.SharedMemory.Npads[i].InternalState.StyleSet;
 
                 if (currentType != ControllerType.None && (npad & acceptedTypes) != 0 && _supportedPlayers[i])
                 {
@@ -165,7 +165,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
                 ControllerType config = _configuredTypes[i];
 
                 // Remove Handheld config when Docked
-                if (config == ControllerType.Handheld && _device.System.State.DockedMode)
+                if (config == ControllerType.Handheld && Horizon.Instance.Device.System.State.DockedMode)
                 {
                     config = ControllerType.None;
                 }
@@ -198,7 +198,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 
         private void SetupNpad(PlayerIndex player, ControllerType type)
         {
-            ref NpadInternalState controller = ref _device.Hid.SharedMemory.Npads[(int)player].InternalState;
+            ref NpadInternalState controller = ref Horizon.Instance.Device.Hid.SharedMemory.Npads[(int)player].InternalState;
 
             ControllerType oldType = (ControllerType)controller.StyleSet;
 
@@ -262,7 +262,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
                     controller.SystemProperties  |= NpadSystemProperties.IsAbxyButtonOriented |
                                                     NpadSystemProperties.IsPlusAvailable      |
                                                     NpadSystemProperties.IsMinusAvailable;
-                    controller.AppletFooterUiType = _device.System.State.DockedMode ? AppletFooterUiType.JoyDual : AppletFooterUiType.HandheldJoyConLeftJoyConRight;
+                    controller.AppletFooterUiType = Horizon.Instance.State.DockedMode ? AppletFooterUiType.JoyDual : AppletFooterUiType.HandheldJoyConLeftJoyConRight;
                     break;
                 case ControllerType.JoyconLeft:
                     controller.StyleSet           = NpadStyleTag.JoyLeft;
@@ -270,7 +270,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
                     controller.DeviceType         = DeviceType.JoyLeft;
                     controller.SystemProperties  |= NpadSystemProperties.IsSlSrButtonOriented |
                                                     NpadSystemProperties.IsMinusAvailable;
-                    controller.AppletFooterUiType = _device.System.State.DockedMode ? AppletFooterUiType.JoyDualLeftOnly : AppletFooterUiType.HandheldJoyConLeftOnly;
+                    controller.AppletFooterUiType = Horizon.Instance.State.DockedMode ? AppletFooterUiType.JoyDualLeftOnly : AppletFooterUiType.HandheldJoyConLeftOnly;
                     break;
                 case ControllerType.JoyconRight:
                     controller.StyleSet           = NpadStyleTag.JoyRight;
@@ -278,7 +278,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
                     controller.DeviceType         = DeviceType.JoyRight;
                     controller.SystemProperties  |= NpadSystemProperties.IsSlSrButtonOriented |
                                                     NpadSystemProperties.IsPlusAvailable;
-                    controller.AppletFooterUiType = _device.System.State.DockedMode ? AppletFooterUiType.JoyDualRightOnly : AppletFooterUiType.HandheldJoyConRightOnly;
+                    controller.AppletFooterUiType = Horizon.Instance.State.DockedMode ? AppletFooterUiType.JoyDualRightOnly : AppletFooterUiType.HandheldJoyConRightOnly;
                     break;
                 case ControllerType.Pokeball:
                     controller.StyleSet           = NpadStyleTag.Palma;
@@ -379,7 +379,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
                 return;
             }
 
-            ref NpadInternalState currentNpad = ref _device.Hid.SharedMemory.Npads[(int)state.PlayerId].InternalState;
+            ref NpadInternalState currentNpad = ref Horizon.Instance.Device.Hid.SharedMemory.Npads[(int)state.PlayerId].InternalState;
 
             if (currentNpad.StyleSet == NpadStyleTag.None)
             {
@@ -441,7 +441,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 
         private void UpdateDisconnectedInput(PlayerIndex index)
         {
-            ref NpadInternalState currentNpad = ref _device.Hid.SharedMemory.Npads[(int)index].InternalState;
+            ref NpadInternalState currentNpad = ref Horizon.Instance.Device.Hid.SharedMemory.Npads[(int)index].InternalState;
 
             NpadCommonState newState = new NpadCommonState();
 
@@ -516,7 +516,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
                 return false;
             }
 
-            ref NpadInternalState currentNpad = ref _device.Hid.SharedMemory.Npads[(int)state.PlayerId].InternalState;
+            ref NpadInternalState currentNpad = ref Horizon.Instance.Device.Hid.SharedMemory.Npads[(int)state.PlayerId].InternalState;
 
             if (currentNpad.StyleSet == NpadStyleTag.None)
             {
@@ -583,7 +583,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 
         private void UpdateDisconnectedInputSixAxis(PlayerIndex index)
         {
-            ref NpadInternalState currentNpad = ref _device.Hid.SharedMemory.Npads[(int)index].InternalState;
+            ref NpadInternalState currentNpad = ref Horizon.Instance.Device.Hid.SharedMemory.Npads[(int)index].InternalState;
 
             SixAxisSensorState newState = new SixAxisSensorState();
 

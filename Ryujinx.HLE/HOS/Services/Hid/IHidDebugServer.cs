@@ -3,6 +3,5 @@
     [Service("hid:dbg")]
     class IHidDebugServer : IpcService
     {
-        public IHidDebugServer() { }
     }
 }

@@ -3,6 +3,5 @@
     [Service("spsm")]
     class IPowerStateInterface : IpcService
     {
-        public IPowerStateInterface() { }
     }
 }

@@ -45,7 +45,7 @@ namespace Ryujinx.HLE.HOS.Services.Account.Acc.AccountService
 
         public ResultCode EnsureIdTokenCacheAsync(ServiceCtx context, out IAsyncContext asyncContext)
         {
-            KEvent         asyncEvent     = new KEvent(context.Device.System.KernelContext);
+            KEvent         asyncEvent     = new KEvent(Horizon.Instance.Device.System.KernelContext);
             AsyncExecution asyncExecution = new AsyncExecution(asyncEvent);
 
             asyncExecution.Initialize(1000, EnsureIdTokenCacheAsyncImpl);

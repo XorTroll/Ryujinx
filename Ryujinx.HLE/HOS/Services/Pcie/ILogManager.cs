@@ -3,6 +3,5 @@
     [Service("pcie:log")]
     class ILogManager : IpcService
     {
-        public ILogManager() { }
     }
 }

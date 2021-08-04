@@ -2,6 +2,5 @@
 {
     class IOverlayFunctions : IpcService
     {
-        public IOverlayFunctions() { }
     }
 }

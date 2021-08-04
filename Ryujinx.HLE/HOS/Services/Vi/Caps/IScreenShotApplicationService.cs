@@ -8,13 +8,11 @@ namespace Ryujinx.HLE.HOS.Services.Vi.Caps
     [Service("caps:su")] // 6.0.0+
     class IScreenShotApplicationService : IpcService
     {
-        public IScreenShotApplicationService() { }
-
         [CommandHipc(32)] // 7.0.0+
         // SetShimLibraryVersion(pid, u64, nn::applet::AppletResourceUserId)
         public CapsResultCode SetShimLibraryVersion(ServiceCtx context)
         {
-            return context.Device.System.CaptureManager.SetShimLibraryVersion(context);
+            return Horizon.Instance.CaptureManager.SetShimLibraryVersion(context);
         }
 
         [CommandHipc(203)]
@@ -33,7 +31,7 @@ namespace Ryujinx.HLE.HOS.Services.Vi.Caps
 
             byte[] screenshotData = context.Memory.GetSpan(screenshotDataPosition, (int)screenshotDataSize, true).ToArray();
 
-            var resultCode = context.Device.System.CaptureManager.SaveScreenShot(screenshotData, appletResourceUserId, context.Device.Application.TitleId, out ApplicationAlbumEntry applicationAlbumEntry);
+            var resultCode = Horizon.Instance.CaptureManager.SaveScreenShot(screenshotData, appletResourceUserId, Horizon.Instance.Device.Application.TitleId, out ApplicationAlbumEntry applicationAlbumEntry);
 
             context.ResponseData.WriteStruct(applicationAlbumEntry);
 
@@ -62,7 +60,7 @@ namespace Ryujinx.HLE.HOS.Services.Vi.Caps
 
             byte[] screenshotData = context.Memory.GetSpan(screenshotDataPosition, (int)screenshotDataSize, true).ToArray();
 
-            var resultCode = context.Device.System.CaptureManager.SaveScreenShot(screenshotData, appletResourceUserId, context.Device.Application.TitleId, out ApplicationAlbumEntry applicationAlbumEntry);
+            var resultCode = Horizon.Instance.CaptureManager.SaveScreenShot(screenshotData, appletResourceUserId, Horizon.Instance.Device.Application.TitleId, out ApplicationAlbumEntry applicationAlbumEntry);
 
             context.ResponseData.WriteStruct(applicationAlbumEntry);
 
@@ -90,7 +88,7 @@ namespace Ryujinx.HLE.HOS.Services.Vi.Caps
 
             byte[] screenshotData = context.Memory.GetSpan(screenshotDataPosition, (int)screenshotDataSize, true).ToArray();
 
-            var resultCode = context.Device.System.CaptureManager.SaveScreenShot(screenshotData, appletResourceUserId, context.Device.Application.TitleId, out ApplicationAlbumEntry applicationAlbumEntry);
+            var resultCode = Horizon.Instance.CaptureManager.SaveScreenShot(screenshotData, appletResourceUserId, Horizon.Instance.Device.Application.TitleId, out ApplicationAlbumEntry applicationAlbumEntry);
 
             context.ResponseData.WriteStruct(applicationAlbumEntry);
 

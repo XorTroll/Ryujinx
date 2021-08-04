@@ -3,6 +3,5 @@
     [Service("audren:d")]
     class IAudioRendererManagerForDebugger : IpcService
     {
-        public IAudioRendererManagerForDebugger() { }
     }
 }

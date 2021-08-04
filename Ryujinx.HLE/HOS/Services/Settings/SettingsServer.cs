@@ -5,7 +5,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
 {
     class SettingsServer : ServerManager
     {
-        public SettingsServer(Horizon system) : base(system, "settings", 0x0100000000000009, 44) { }
+        public SettingsServer() : base("settings", 0x0100000000000009, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

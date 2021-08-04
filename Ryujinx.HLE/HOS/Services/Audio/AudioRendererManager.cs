@@ -21,7 +21,7 @@ namespace Ryujinx.HLE.HOS.Services.Audio
 
         public ResultCode GetAudioDeviceServiceWithRevisionInfo(ServiceCtx context, out IAudioDevice outObject, int revision, ulong appletResourceUserId)
         {
-            outObject = new AudioDevice(_registry, context.Device.System.KernelContext, appletResourceUserId, revision);
+            outObject = new AudioDevice(_registry, Horizon.Instance.KernelContext, appletResourceUserId, revision);
 
             return ResultCode.Success;
         }

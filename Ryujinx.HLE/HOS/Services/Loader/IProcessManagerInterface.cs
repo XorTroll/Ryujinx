@@ -3,6 +3,5 @@
     [Service("ldr:pm")]
     class IProcessManagerInterface : IpcService
     {
-        public IProcessManagerInterface() { }
     }
 }

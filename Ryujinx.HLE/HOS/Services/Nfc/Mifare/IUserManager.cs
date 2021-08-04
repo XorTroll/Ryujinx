@@ -3,6 +3,5 @@
     [Service("nfc:mf:u")]
     class IUserManager : IpcService
     {
-        public IUserManager() { }
     }
 }

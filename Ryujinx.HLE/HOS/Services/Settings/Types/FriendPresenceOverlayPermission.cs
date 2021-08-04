@@ -1,6 +1,6 @@
-﻿namespace Ryujinx.HLE.HOS.Services.Settings.Types
+﻿namespace Ryujinx.HLE.HOS.Services.Settings
 {
-    enum FriendPresenceOverlayPermission
+    public enum FriendPresenceOverlayPermission : uint
     {
         NotConfirmed = 0,
         NoDisplay = 1,

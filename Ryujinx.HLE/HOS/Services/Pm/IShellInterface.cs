@@ -3,8 +3,6 @@
     [Service("pm:shell")]
     class IShellInterface : IpcService
     {
-        public IShellInterface() { }
-
         [CommandHipc(6)]
         // GetApplicationProcessIdForShell() -> u64
         public ResultCode GetApplicationProcessIdForShell(ServiceCtx context)

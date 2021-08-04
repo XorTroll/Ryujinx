@@ -3,6 +3,5 @@
     [Service("usb:obsv")] // 8.0.0+
     class IUnknown2 : IpcService
     {
-        public IUnknown2() { }
     }
 }

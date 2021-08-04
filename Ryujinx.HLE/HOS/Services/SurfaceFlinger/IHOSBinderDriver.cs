@@ -7,8 +7,6 @@ namespace Ryujinx.HLE.HOS.Services.SurfaceFlinger
 {
     abstract class IHOSBinderDriver : IpcService
     {
-        public IHOSBinderDriver() { }
-
         [CommandHipc(0)]
         // TransactParcel(s32, u32, u32, buffer<unknown, 5, 0>) -> buffer<unknown, 6, 0>
         public ResultCode TransactParcel(ServiceCtx context)

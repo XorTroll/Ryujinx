@@ -28,7 +28,7 @@ namespace Ryujinx.HLE.HOS.Services.Audio
 
             if (result == ResultCode.Success)
             {
-                obj = new AudioOut.AudioOut(outSystem, context.Device.System.KernelContext, processHandle);
+                obj = new AudioOut.AudioOut(outSystem, processHandle);
             }
             else
             {

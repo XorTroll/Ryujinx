@@ -3,6 +3,5 @@
     [Service("arp:r")]
     class IReader : IpcService
     {
-        public IReader() { }
     }
 }

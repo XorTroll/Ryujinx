@@ -3,6 +3,5 @@
     [Service("wlan:lg")]
     class ILocalGetFrame : IpcService
     {
-        public ILocalGetFrame() { }
     }
 }

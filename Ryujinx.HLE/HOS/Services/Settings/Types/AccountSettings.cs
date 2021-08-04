@@ -1,12 +1,12 @@
-﻿namespace Ryujinx.HLE.HOS.Services.Settings.Types
+﻿namespace Ryujinx.HLE.HOS.Services.Settings
 {
-    class AccountSettings
+    public struct AccountSettings
     {
-        public uint SelectorFlag { get; set; }
+        public UserSelectorFlag UserSelectorFlags { get; set; }
 
         public static AccountSettings Default = new AccountSettings
         {
-            SelectorFlag = (uint)UserSelectorFlag.SkipIfSingleUser
+            UserSelectorFlags = UserSelectorFlag.SkipIfSingleUser
         };
     }
 }

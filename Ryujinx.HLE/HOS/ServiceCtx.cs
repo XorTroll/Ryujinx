@@ -8,7 +8,6 @@ namespace Ryujinx.HLE.HOS
 {
     class ServiceCtx
     {
-        public Switch Device { get; }
         public KProcess Process { get; }
         public IVirtualMemoryManager Memory { get; }
         public KThread Thread { get; }
@@ -19,7 +18,6 @@ namespace Ryujinx.HLE.HOS
         public bool IsTipcProtocol { get; }
 
         public ServiceCtx(
-            Switch device,
             KProcess process,
             IVirtualMemoryManager memory,
             KThread thread,
@@ -29,7 +27,6 @@ namespace Ryujinx.HLE.HOS
             BinaryWriter responseData,
             bool isTipcProtocol)
         {
-            Device = device;
             Process = process;
             Memory = memory;
             Thread = thread;

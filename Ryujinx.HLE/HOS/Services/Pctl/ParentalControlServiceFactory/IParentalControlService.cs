@@ -31,18 +31,13 @@ namespace Ryujinx.HLE.HOS.Services.Pctl.ParentalControlServiceFactory
         private KEvent _playTimerEvent;
         private int _playTimerEventHandle;
 
-        public IParentalControlService(ServiceCtx context, long pid, bool withInitialize, int permissionFlag)
+        public IParentalControlService(long pid, int permissionFlag)
         {
             _pid            = pid;
             _permissionFlag = permissionFlag;
-            _synchronizationEvent = new KEvent(context.Device.System.KernelContext);
-            _unlinkedEvent = new KEvent(context.Device.System.KernelContext);
-            _playTimerEvent = new KEvent(context.Device.System.KernelContext);
-
-            if (withInitialize)
-            {
-                Initialize(context);
-            }
+            _synchronizationEvent = new KEvent(Horizon.Instance.KernelContext);
+            _unlinkedEvent = new KEvent(Horizon.Instance.KernelContext);
+            _playTimerEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(1)] // 4.0.0+
@@ -67,8 +62,8 @@ namespace Ryujinx.HLE.HOS.Services.Pctl.ParentalControlServiceFactory
                         _titleId = titleId;
 
                         // TODO: Call nn::arp::GetApplicationControlProperty here when implemented, if it return ResultCode.Success we assign fields.
-                        _ratingAge           = Array.ConvertAll(context.Device.Application.ControlData.Value.RatingAge.ToArray(), Convert.ToInt32);
-                        _parentalControlFlag = context.Device.Application.ControlData.Value.ParentalControl;
+                        _ratingAge           = Array.ConvertAll(Horizon.Instance.Device.Application.ControlData.Value.RatingAge.ToArray(), Convert.ToInt32);
+                        _parentalControlFlag = Horizon.Instance.Device.Application.ControlData.Value.ParentalControl;
                     }
                 }
 

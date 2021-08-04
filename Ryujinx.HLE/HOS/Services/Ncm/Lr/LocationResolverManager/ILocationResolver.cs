@@ -144,7 +144,7 @@ namespace Ryujinx.HLE.HOS.Services.Ncm.Lr.LocationResolverManager
         // Refresh()
         public ResultCode Refresh(ServiceCtx context)
         {
-            context.Device.System.ContentManager.RefreshEntries(_storageId, 1);
+            Horizon.Instance.ContentManager.RefreshEntries(_storageId, 1);
 
             return ResultCode.Success;
         }
@@ -164,7 +164,7 @@ namespace Ryujinx.HLE.HOS.Services.Ncm.Lr.LocationResolverManager
         // ClearLocationResolver2()
         public ResultCode ClearLocationResolver2(ServiceCtx context)
         {
-            context.Device.System.ContentManager.RefreshEntries(_storageId, 1);
+            Horizon.Instance.ContentManager.RefreshEntries(_storageId, 1);
 
             return ResultCode.Success;
         }
@@ -218,12 +218,12 @@ namespace Ryujinx.HLE.HOS.Services.Ncm.Lr.LocationResolverManager
             string        contentPath = ReadUtf8String(context);
             LocationEntry newLocation = new LocationEntry(contentPath, flag, titleId, contentType);
 
-            context.Device.System.ContentManager.RedirectLocation(newLocation, _storageId);
+            Horizon.Instance.ContentManager.RedirectLocation(newLocation, _storageId);
         }
 
         private bool ResolvePath(ServiceCtx context, ulong titleId, NcaContentType contentType)
         {
-            ContentManager contentManager = context.Device.System.ContentManager;
+            ContentManager contentManager = Horizon.Instance.ContentManager;
             string         contentPath    = contentManager.GetInstalledContentPath(titleId, _storageId, NcaContentType.Program);
 
             if (!string.IsNullOrWhiteSpace(contentPath))
@@ -245,7 +245,7 @@ namespace Ryujinx.HLE.HOS.Services.Ncm.Lr.LocationResolverManager
 
         private void DeleteContentPath(ServiceCtx context, ulong titleId, NcaContentType contentType)
         {
-            ContentManager contentManager = context.Device.System.ContentManager;
+            ContentManager contentManager = Horizon.Instance.ContentManager;
             string         contentPath    = contentManager.GetInstalledContentPath(titleId, _storageId, NcaContentType.Manual);
 
             contentManager.ClearEntry(titleId, NcaContentType.Manual, _storageId);

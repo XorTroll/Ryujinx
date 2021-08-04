@@ -13,9 +13,9 @@ namespace Ryujinx.HLE.HOS.Services.Bcat
     {
         private LibHac.Bcat.Detail.Ipc.IServiceCreator _base;
 
-        public IServiceCreator(Horizon system, string serviceName)
+        public IServiceCreator(string serviceName)
         {
-            system.Device.System.LibHacHorizonClient.Sm.GetService(out _base, serviceName).ThrowIfFailure();
+            Horizon.Instance.LibHacHorizonClient.Sm.GetService(out _base, serviceName).ThrowIfFailure();
         }
 
         [CommandHipc(0)]
@@ -28,7 +28,7 @@ namespace Ryujinx.HLE.HOS.Services.Bcat
             //       Add an instance of nn::bcat::detail::service::core::TaskManager who load "bcat-sys:/" system save data and open "dc/task.bin". 
             //       If the file don't exist, create a new one (size of 0x800) and write 2 empty struct with a size of 0x400.
 
-            MakeObject(context, new IBcatService(ApplicationLaunchProperty.GetByPid(context)));
+            MakeObject(context, new IBcatService());
 
             // NOTE: If the IBcatService is null this error is returned, Doesn't occur in our case. 
             //       return ResultCode.NullObject;

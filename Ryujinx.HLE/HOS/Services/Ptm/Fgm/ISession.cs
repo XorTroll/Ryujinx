@@ -5,6 +5,5 @@
     [Service("fgm:9")] // 2.0.0+
     class ISession : IpcService
     {
-        public ISession() { }
     }
 }

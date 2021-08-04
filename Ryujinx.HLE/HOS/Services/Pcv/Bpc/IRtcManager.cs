@@ -5,8 +5,6 @@ namespace Ryujinx.HLE.HOS.Services.Pcv.Bpc
     [Service("bpc:r")] //  1.0.0 - 8.1.0
     class IRtcManager : IpcService
     {
-        public IRtcManager() { }
-
         [CommandHipc(0)]
         // GetRtcTime() -> u64
         public ResultCode GetRtcTime(ServiceCtx context)

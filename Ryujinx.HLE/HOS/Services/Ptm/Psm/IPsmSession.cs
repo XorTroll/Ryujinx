@@ -11,9 +11,9 @@ namespace Ryujinx.HLE.HOS.Services.Ptm.Psm
         private KEvent _stateChangeEvent;
         private int    _stateChangeEventHandle;
 
-        public IPsmSession(KernelContext context)
+        public IPsmSession()
         {
-            _stateChangeEvent = new KEvent(context);
+            _stateChangeEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(0)]

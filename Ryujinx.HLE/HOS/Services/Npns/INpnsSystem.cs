@@ -3,6 +3,5 @@
     [Service("npns:s")]
     class INpnsSystem : IpcService
     {
-        public INpnsSystem() { }
     }
 }

@@ -8,7 +8,7 @@ namespace Ryujinx.HLE.HOS.Services.Vi
 {
     class ViServer : ServerManager
     {
-        public ViServer(Horizon system) : base(system, "vi", 0x010000000000002D, 44) { }
+        public ViServer() : base("vi", 0x010000000000002D, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

@@ -54,7 +54,7 @@ namespace Ryujinx.HLE.HOS.Services.Sdb.Mii
 
         public bool IsValidDeviceCrc()
         {
-            UInt128 deviceId = Helper.GetDeviceId();
+            UInt128 deviceId = Horizon.Instance.State.MiiAuthorId;
 
             ushort deviceIdCrc16 = Helper.CalculateCrc16(SpanHelpers.AsByteSpan(ref deviceId), 0, false);
 
@@ -68,7 +68,7 @@ namespace Ryujinx.HLE.HOS.Services.Sdb.Mii
 
         private ushort CalculateDeviceCrc()
         {
-            UInt128 deviceId = Helper.GetDeviceId();
+            UInt128 deviceId = Horizon.Instance.State.MiiAuthorId;
 
             ushort deviceIdCrc16 = Helper.CalculateCrc16(SpanHelpers.AsByteSpan(ref deviceId), 0, false);
 

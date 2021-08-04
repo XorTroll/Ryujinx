@@ -2,16 +2,16 @@
 using Ryujinx.HLE.HOS.SystemState;
 using System.Runtime.InteropServices;
 
-namespace Ryujinx.HLE.HOS.Services.Settings.Types
+namespace Ryujinx.HLE.HOS.Services.Settings
 {
     [StructLayout(LayoutKind.Sequential)]
-    struct EulaVersion
+    public struct EulaVersion
     {
         public uint Version { get; set; }
 
-        public uint Region { get; set; }
+        public RegionCode RegionCode { get; set; }
 
-        public uint ClockType { get; set; }
+        public EulaVersionClockType EulaVersionClockType { get; set; }
 
         public uint Reserved { get; set; }
 
@@ -22,8 +22,8 @@ namespace Ryujinx.HLE.HOS.Services.Settings.Types
         public static EulaVersion Default = new EulaVersion
         {
             Version = 0x10000,
-            Region = (uint)RegionCode.USA,
-            ClockType = (uint)EulaVersionClockType.SteadyClock,
+            RegionCode = RegionCode.USA,
+            EulaVersionClockType = EulaVersionClockType.SteadyClock,
             NetworkSystemClockTime = 0,
             SteadyClockTime = new SteadyClockContext()
         };

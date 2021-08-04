@@ -323,13 +323,13 @@ namespace Ryujinx.HLE.HOS.Services.Nv
 
             _clientMemory = context.Process.HandleTable.GetKProcess(clientHandle).CpuMemory;
 
-            context.Device.System.KernelContext.Syscall.GetProcessId(clientHandle, out _owner);
+            Horizon.Instance.KernelContext.Syscall.GetProcessId(clientHandle, out _owner);
 
             context.ResponseData.Write((uint)NvResult.Success);
 
             // Close the process and transfer memory handles immediately as we don't use them.
-            context.Device.System.KernelContext.Syscall.CloseHandle(clientHandle);
-            context.Device.System.KernelContext.Syscall.CloseHandle(transferMemHandle);
+            Horizon.Instance.KernelContext.Syscall.CloseHandle(clientHandle);
+            Horizon.Instance.KernelContext.Syscall.CloseHandle(transferMemHandle);
 
             return ResultCode.Success;
         }

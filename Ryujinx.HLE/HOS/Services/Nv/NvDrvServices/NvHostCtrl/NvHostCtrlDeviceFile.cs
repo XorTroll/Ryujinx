@@ -17,7 +17,6 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostCtrl
         public const int EventsCount = 64;
 
         private bool          _isProductionMode;
-        private Switch        _device;
         private NvHostEvent[] _events;
 
         public NvHostCtrlDeviceFile(ServiceCtx context, IVirtualMemoryManager memory, long owner) : base(context, owner)
@@ -30,8 +29,6 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostCtrl
             {
                 _isProductionMode = true;
             }
-
-            _device = context.Device;
 
             _events = new NvHostEvent[EventsCount];
         }
@@ -153,7 +150,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostCtrl
                 return NvInternalResult.InvalidInput;
             }
 
-            _device.System.HostSyncpoint.Increment(id);
+            Horizon.Instance.HostSyncpoint.Increment(id);
 
             return NvInternalResult.Success;
         }
@@ -235,7 +232,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostCtrl
 
                 if (result == NvInternalResult.Success)
                 {
-                    _events[userEventId] = new NvHostEvent(_device.System.HostSyncpoint, userEventId, _device.System);
+                    _events[userEventId] = new NvHostEvent(Horizon.Instance.HostSyncpoint, userEventId);
                 }
 
                 return result;
@@ -323,12 +320,12 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostCtrl
                     {
                         hostEvent.State = NvHostEventState.Cancelling;
 
-                        hostEvent.Cancel(_device.Gpu);
+                        hostEvent.Cancel(Horizon.Instance.Device.Gpu);
                     }
 
                     hostEvent.State = NvHostEventState.Cancelled;
 
-                    _device.System.HostSyncpoint.UpdateMin(hostEvent.Fence.Id);
+                    Horizon.Instance.HostSyncpoint.UpdateMin(hostEvent.Fence.Id);
 
                     return NvInternalResult.Success;
                 }
@@ -344,11 +341,11 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostCtrl
 
             if (max)
             {
-                arguments.Value = _device.System.HostSyncpoint.ReadSyncpointMaxValue(arguments.Id);
+                arguments.Value = Horizon.Instance.HostSyncpoint.ReadSyncpointMaxValue(arguments.Id);
             }
             else
             {
-                arguments.Value = _device.System.HostSyncpoint.ReadSyncpointValue(arguments.Id);
+                arguments.Value = Horizon.Instance.HostSyncpoint.ReadSyncpointValue(arguments.Id);
             }
 
             return NvInternalResult.Success;
@@ -362,18 +359,18 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostCtrl
             }
 
             // First try to check if the syncpoint is already expired on the CPU side
-            if (_device.System.HostSyncpoint.IsSyncpointExpired(fence.Id, fence.Value))
+            if (Horizon.Instance.HostSyncpoint.IsSyncpointExpired(fence.Id, fence.Value))
             {
-                value = _device.System.HostSyncpoint.ReadSyncpointMinValue(fence.Id);
+                value = Horizon.Instance.HostSyncpoint.ReadSyncpointMinValue(fence.Id);
 
                 return NvInternalResult.Success;
             }
 
             // Try to invalidate the CPU cache and check for expiration again.
-            uint newCachedSyncpointValue = _device.System.HostSyncpoint.UpdateMin(fence.Id);
+            uint newCachedSyncpointValue = Horizon.Instance.HostSyncpoint.UpdateMin(fence.Id);
 
             // Has the fence already expired?
-            if (_device.System.HostSyncpoint.IsSyncpointExpired(fence.Id, fence.Value))
+            if (Horizon.Instance.HostSyncpoint.IsSyncpointExpired(fence.Id, fence.Value))
             {
                 value = newCachedSyncpointValue;
 
@@ -425,7 +422,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostCtrl
                             hostEvent.State == NvHostEventState.Signaled ||
                             hostEvent.State == NvHostEventState.Cancelled)
                         {
-                            bool timedOut = hostEvent.Wait(_device.Gpu, fence);
+                            bool timedOut = hostEvent.Wait(Horizon.Instance.Device.Gpu, fence);
 
                             if (timedOut)
                             {
@@ -455,7 +452,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostCtrl
 
                             if (hostEvent != null)
                             {
-                                Logger.Error?.Print(LogClass.ServiceNv, hostEvent.DumpState(_device.Gpu));
+                                Logger.Error?.Print(LogClass.ServiceNv, hostEvent.DumpState(Horizon.Instance.Device.Gpu));
                             }
 
                             result = NvInternalResult.InvalidInput;
@@ -539,7 +536,7 @@ namespace Ryujinx.HLE.HOS.Services.Nv.NvDrvServices.NvHostCtrl
                             {
                                 evnt.State = NvHostEventState.Cancelling;
 
-                                evnt.Cancel(_device.Gpu);
+                                evnt.Cancel(Horizon.Instance.Device.Gpu);
                             }
                             else if (evnt.State == NvHostEventState.Signaling)
                             {

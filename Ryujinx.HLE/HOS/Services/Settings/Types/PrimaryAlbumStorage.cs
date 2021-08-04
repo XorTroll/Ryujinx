@@ -1,6 +1,6 @@
-﻿namespace Ryujinx.HLE.HOS.Services.Settings.Types
+﻿namespace Ryujinx.HLE.HOS.Services.Settings
 {
-    enum PrimaryAlbumStorage
+    public enum PrimaryAlbumStorage
     {
         Nand = 0,
         SdCard = 1

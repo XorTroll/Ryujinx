@@ -3,6 +3,5 @@
     [Service("nim:shp")]
     class IShopServiceManager : IpcService
     {
-        public IShopServiceManager() { }
     }
 }

@@ -1,4 +1,7 @@
+using Ryujinx.HLE.HOS.Services.Settings;
+using Ryujinx.HLE.Utilities;
 using System;
+using System.Collections.Generic;
 
 namespace Ryujinx.HLE.HOS.SystemState
 {
@@ -25,21 +28,61 @@ namespace Ryujinx.HLE.HOS.SystemState
             "zh-Hant"
         };
 
-        internal long DesiredKeyboardLayout { get; private set; }
+        // TODO: make customizable (from the UI) all fields here (except those which can be edited using qlaunch?)
 
-        internal SystemLanguage DesiredSystemLanguage { get; private set; }
+        public KeyboardLayout DesiredKeyboardLayout { get; set; }
 
-        internal long DesiredLanguageCode { get; private set; }
+        public SystemLanguage DesiredSystemLanguage { get; set; }
 
-        internal uint DesiredRegionCode { get; private set; }
+        public long DesiredLanguageCode { get; set; }
 
-        public TitleLanguage DesiredTitleLanguage { get; private set; }
+        public RegionCode DesiredRegionCode { get; set; }
+
+        public TitleLanguage DesiredTitleLanguage { get; set; }
 
         public bool DockedMode { get; set; }
 
-        public ColorSet ThemeColor { get; set; }
+        public ColorSetId ColorSetId { get; set; }
 
         public string DeviceNickName { get; set; }
+
+        public bool LockScreenFlag { get; set; }
+
+        public AccountSettings AccountSettings { get; set; }
+
+        public List<EulaVersion> EulaVersions { get; set; }
+
+        public NotificationSettings NotificationSettings { get; set; }
+
+        public List<AccountNotificationSettings> AccountNotificationSettings { get; set; }
+
+        public TvSettings TvSettings { get; set; }
+
+        public bool QuestFlag { get; set; }
+
+        public bool UserSystemClockAutomaticCorrectionEnabled { get; set; }
+
+        public PrimaryAlbumStorage PrimaryAlbumStorage { get; set; }
+
+        public SleepSettings SleepSettings { get; set; }
+
+        public InitialLaunchSettings InitialLaunchSettings { get; set; }
+
+        public ProductModel ProductModel { get; set; }
+
+        public UInt128 MiiAuthorId { get; set; }
+
+        public bool AutoUpdateEnableFlag { get; set; }
+
+        public bool BatteryPercentageFlag { get; set; }
+
+        public ErrorReportSharePermission ErrorReportSharePermission { get; set; }
+
+        public AppletLaunchFlag AppletLaunchFlags { get; set; }
+
+        public ChineseTraditionalInputMethod ChineseTraditionalInputMethod { get; set; }
+
+        public PlatformRegion PlatformRegion => (DesiredRegionCode == RegionCode.China) ? PlatformRegion.China : PlatformRegion.Global;
 
         public SystemStateMgr()
         {
@@ -65,7 +108,7 @@ namespace Ryujinx.HLE.HOS.SystemState
 
         public void SetRegion(RegionCode region)
         {
-            DesiredRegionCode = (uint)region;
+            DesiredRegionCode = region;
         }
 
         internal static long GetLanguageCode(int index)

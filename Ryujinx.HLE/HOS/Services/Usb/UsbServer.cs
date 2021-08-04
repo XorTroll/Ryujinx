@@ -5,7 +5,7 @@ namespace Ryujinx.HLE.HOS.Services.Usb
 {
     class UsbServer : ServerManager
     {
-        public UsbServer(Horizon system) : base(system, "usb", 0x0100000000000006, 44) { }
+        public UsbServer() : base("usb", 0x0100000000000006, 44) { }
 
         public override Dictionary<string, Func<IpcService>> ServiceTable => new()
         {

@@ -24,12 +24,12 @@ namespace Ryujinx.HLE.HOS.Services.Friend.ServiceCreator
         private bool _hasNewFriendRequest;
         private bool _hasFriendListUpdate;
 
-        public INotificationService(ServiceCtx context, UserId userId, FriendServicePermissionLevel permissionLevel)
+        public INotificationService(UserId userId, FriendServicePermissionLevel permissionLevel)
         {
             _userId            = userId;
             _permissionLevel   = permissionLevel;
             _notifications     = new LinkedList<NotificationInfo>();
-            _notificationEvent = new KEvent(context.Device.System.KernelContext);
+            _notificationEvent = new KEvent(Horizon.Instance.KernelContext);
 
             _hasNewFriendRequest = false;
             _hasFriendListUpdate = false;

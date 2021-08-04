@@ -1,6 +1,6 @@
-﻿namespace Ryujinx.HLE.HOS.Services.Settings.Types
+﻿namespace Ryujinx.HLE.HOS.Services.Settings
 {
-    enum TvResolution
+    public enum TvResolution
     {
         Auto = 0,
         R_1080p = 1,

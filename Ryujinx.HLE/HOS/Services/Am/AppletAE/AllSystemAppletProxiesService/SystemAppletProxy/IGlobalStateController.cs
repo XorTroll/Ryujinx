@@ -11,9 +11,9 @@ namespace Ryujinx.HLE.HOS.Services.Am.AppletAE.AllSystemAppletProxiesService.Sys
         private KEvent _hdcpAuthenticationFailedEvent;
         private int _hdcpAuthenticationFailedEventHandle;
 
-        public IGlobalStateController(ServiceCtx context)
+        public IGlobalStateController()
         {
-            _hdcpAuthenticationFailedEvent = new KEvent(context.Device.System.KernelContext);
+            _hdcpAuthenticationFailedEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(14)]

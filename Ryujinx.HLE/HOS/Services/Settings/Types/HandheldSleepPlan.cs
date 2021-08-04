@@ -1,6 +1,6 @@
-﻿namespace Ryujinx.HLE.HOS.Services.Settings.Types
+﻿namespace Ryujinx.HLE.HOS.Services.Settings
 {
-    enum HandheldSleepPlan
+    public enum HandheldSleepPlan
     {
         S_1Min = 0,
         S_3Min = 1,
