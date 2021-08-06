@@ -61,6 +61,31 @@ namespace Ryujinx.Modules
             }
         }
 
+        public static void SwitchToSystemState(string displayVersion)
+        {
+            _discordClient?.SetPresence(new RichPresence
+            {
+                Assets = new Assets
+                {
+                    LargeImageKey = "game",
+                    LargeImageText = "Whatdafucc",
+                    SmallImageKey = "ryujinx",
+                    SmallImageText = Description,
+                },
+                Details = $"System menu",
+                State = $"Playing on {displayVersion}",
+                Timestamps = Timestamps.Now,
+                Buttons = new Button[]
+                {
+                    new Button()
+                    {
+                        Label = "Website",
+                        Url   = "https://ryujinx.org/"
+                    }
+                }
+            });
+        }
+
         public static void SwitchToPlayingState(string titleId, string titleName)
         {
             _discordClient?.SetPresence(new RichPresence

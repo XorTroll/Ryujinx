@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace Ryujinx.HLE.HOS.Kernel.Threading
 {
-    class KPriorityQueue
+    public class KPriorityQueue
     {
         private LinkedList<KThread>[][] _scheduledThreadsPerPrioPerCore;
         private LinkedList<KThread>[][] _suggestedThreadsPerPrioPerCore;

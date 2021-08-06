@@ -1,39 +1,74 @@
-using Ryujinx.HLE.HOS.Kernel.Threading;
+using Ryujinx.HLE.HOS.Kernel;
 using Ryujinx.HLE.HOS.Services.Am.Applet;
+using Ryujinx.HLE.HOS.Kernel.Threading;
 using System.Collections.Concurrent;
 
 namespace Ryujinx.HLE.HOS.SystemState
 {
     class AppletStateMgr
     {
-        public ConcurrentQueue<AppletMessage> Messages { get; }
+        private IdDictionary _appletResourceUserIds;
 
-        public FocusState FocusState { get; private set; }
+        public ConcurrentDictionary<long, AppletContext> Applets { get; }
 
-        public KEvent MessageEvent { get; }
+        public KEvent PopFromGeneralChannelEvent { get; }
 
-        public IdDictionary AppletResourceUserIds { get; }
+        public AppletSession GeneralChannel { get; }
 
-        public AppletStateMgr(Horizon system)
+        public AppletStateMgr(KernelContext context)
         {
-            Messages     = new ConcurrentQueue<AppletMessage>();
-            MessageEvent = new KEvent(system.KernelContext);
-
-            AppletResourceUserIds = new IdDictionary();
+            _appletResourceUserIds = new();
+            Applets = new();
+            GeneralChannel = new();
+            PopFromGeneralChannelEvent = new KEvent(context);
         }
 
-        public void SetFocus(bool isFocused)
+        public void RegisterNewApplet(long processId, AppletId appletId, AppletProcessLaunchReason launchReason, LibraryAppletContext libraryAppletContext)
         {
-            FocusState = isFocused ? FocusState.InFocus : FocusState.OutOfFocus;
+            var appletResourceUserId = _appletResourceUserIds.Add(processId);
+            Applets.TryAdd(processId, new AppletContext(appletId, processId, appletResourceUserId, launchReason, libraryAppletContext));
+        }
 
-            Messages.Enqueue(AppletMessage.FocusStateChanged);
+        public void PushToGeneralChannel(byte[] data)
+        {
+            GeneralChannel.Push(data);
+            PopFromGeneralChannelEvent.ReadableEvent.Signal();
+        }
 
-            if (isFocused)
+        public bool TryPopFromGeneralChannel(out byte[] data)
+        {
+            var generalChannelConsumer = GeneralChannel.GetConsumer();
+            return generalChannelConsumer.TryPop(out data);
+        }
+
+        public long FindProcessIdByAppletResourceUserId(long appletResourceUserId)
+        {
+            foreach(var (processId, applet) in Applets)
             {
-                Messages.Enqueue(AppletMessage.ChangeIntoForeground);
+                if(applet.AppletResourceUserId == appletResourceUserId)
+                {
+                    return processId;
+                }
             }
 
-            MessageEvent.ReadableEvent.Signal();
+            return -1;
+        }
+
+        public void SendMessagesToAllApplets(params AppletMessage[] messages)
+        {
+            foreach(var (_, applet) in Applets)
+            {
+                applet.SendMessages(messages);
+            }
+        }
+
+        public void SetFocusedApplet(long processId)
+        {
+            foreach (var (appletProcessId, applet) in Applets)
+            {
+                Ryujinx.Common.Logging.Logger.Error?.Print(Common.Logging.LogClass.ServiceAm, "Applet " + applet.AppletId + " in focus -> " + (appletProcessId == processId));
+                applet.SetFocus(appletProcessId == processId);
+            }
         }
     }
 }

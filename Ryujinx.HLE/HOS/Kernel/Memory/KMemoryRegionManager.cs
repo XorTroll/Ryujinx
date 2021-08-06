@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Ryujinx.HLE.HOS.Kernel.Memory
 {
-    class KMemoryRegionManager
+    public class KMemoryRegionManager
     {
         private static readonly int[] BlockOrders = new int[] { 12, 16, 21, 22, 25, 29, 30 };
 

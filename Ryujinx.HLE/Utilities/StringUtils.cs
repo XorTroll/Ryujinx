@@ -4,6 +4,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Ryujinx.HLE.Utilities
@@ -72,6 +73,11 @@ namespace Ryujinx.HLE.Utilities
 
                 return Encoding.UTF8.GetString(ms.ToArray());
             }
+        }
+
+        public static string FromSpan(ReadOnlySpan<byte> span)
+        {
+            return Encoding.UTF8.GetString(span.Slice(0, span.IndexOf((byte)0)));
         }
 
         public static U8Span ReadUtf8Span(ServiceCtx context, int index = 0)

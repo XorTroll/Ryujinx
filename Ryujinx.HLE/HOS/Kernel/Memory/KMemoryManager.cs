@@ -3,7 +3,7 @@ using System;
 
 namespace Ryujinx.HLE.HOS.Kernel.Memory
 {
-    class KMemoryManager
+    public class KMemoryManager
     {
         public KMemoryRegionManager[] MemoryRegions { get; }
 

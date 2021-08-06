@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Ryujinx.HLE.HOS.Kernel.Memory
 {
-    class KSlabHeap
+    public class KSlabHeap
     {
         private LinkedList<ulong> _items;
 

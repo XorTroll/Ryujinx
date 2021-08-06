@@ -19,7 +19,7 @@ namespace Ryujinx.HLE.HOS.Services.Vi.RootService.ApplicationDisplayService
             long displayId            = context.RequestData.ReadInt64();
             long appletResourceUserId = context.RequestData.ReadInt64();
 
-            long pid = Horizon.Instance.AppletState.AppletResourceUserIds.GetData<long>((int)appletResourceUserId);
+            long pid = Horizon.Instance.AppletState.FindProcessIdByAppletResourceUserId(appletResourceUserId);
 
             Horizon.Instance.SurfaceFlinger.CreateLayer(pid, out long layerId);
             Horizon.Instance.SurfaceFlinger.SetRenderLayer(layerId);

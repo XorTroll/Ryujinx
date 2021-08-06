@@ -1,63 +1,32 @@
 ﻿using Ryujinx.Common.Logging;
-using Ryujinx.HLE.HOS.Applets;
+using Ryujinx.HLE.FileSystem.Content;
 using Ryujinx.HLE.HOS.Ipc;
 using Ryujinx.HLE.HOS.Kernel;
 using Ryujinx.HLE.HOS.Kernel.Common;
 using Ryujinx.HLE.HOS.Kernel.Threading;
 using System;
+using System.Collections.Concurrent;
 
 namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy.LibraryAppletCreator
 {
     class ILibraryAppletAccessor : DisposableIpcService
     {
-        private KernelContext _kernelContext;
-
-        private IApplet _applet;
-
-        private AppletSession _normalSession;
-        private AppletSession _interactiveSession;
-
-        private KEvent _stateChangedEvent;
-        private KEvent _normalOutDataEvent;
-        private KEvent _interactiveOutDataEvent;
+        private AppletContext _self;
+        private AppletId _appletId;
+        private LibraryAppletContext _libraryAppletContext;
 
         private int _stateChangedEventHandle;
         private int _normalOutDataEventHandle;
         private int _interactiveOutDataEventHandle;
+        
 
-        public ILibraryAppletAccessor(AppletId appletId)
+        public ILibraryAppletAccessor(AppletContext self, AppletId appletId, LibraryAppletMode libraryAppletMode)
         {
-            _kernelContext = Horizon.Instance.KernelContext;
+            _self = self;
+            _appletId = appletId;
+            _libraryAppletContext = new LibraryAppletContext(self.ProcessId, libraryAppletMode);
 
-            _stateChangedEvent       = new KEvent(Horizon.Instance.KernelContext);
-            _normalOutDataEvent      = new KEvent(Horizon.Instance.KernelContext);
-            _interactiveOutDataEvent = new KEvent(Horizon.Instance.KernelContext);
-
-            _applet = AppletManager.Create(appletId, Horizon.Instance);
-
-            _normalSession      = new AppletSession();
-            _interactiveSession = new AppletSession();
-
-            _applet.AppletStateChanged        += OnAppletStateChanged;
-            _normalSession.DataAvailable      += OnNormalOutData;
-            _interactiveSession.DataAvailable += OnInteractiveOutData;
-
-            Logger.Info?.Print(LogClass.ServiceAm, $"Applet '{appletId}' created.");
-        }
-
-        private void OnAppletStateChanged(object sender, EventArgs e)
-        {
-            _stateChangedEvent.WritableEvent.Signal();
-        }
-
-        private void OnNormalOutData(object sender, EventArgs e)
-        {
-            _normalOutDataEvent.WritableEvent.Signal();
-        }
-
-        private void OnInteractiveOutData(object sender, EventArgs e)
-        {
-            _interactiveOutDataEvent.WritableEvent.Signal();
+            Logger.Info?.Print(LogClass.ServiceAm, $"Applet '{appletId}' created...");
         }
 
         [CommandHipc(0)]
@@ -66,13 +35,15 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy.LibraryAppletCreator
         {
             if (_stateChangedEventHandle == 0)
             {
-                if (context.Process.HandleTable.GenerateHandle(_stateChangedEvent.ReadableEvent, out _stateChangedEventHandle) != KernelResult.Success)
+                if (!_libraryAppletContext.TryCreateStateChangedEventHandle(context.Process, out _stateChangedEventHandle))
                 {
                     throw new InvalidOperationException("Out of handles!");
                 }
             }
 
             context.Response.HandleDesc = IpcHandleDesc.MakeCopy(_stateChangedEventHandle);
+
+            Logger.Stub?.PrintStub(LogClass.ServiceAm);
 
             return ResultCode.Success;
         }
@@ -81,17 +52,25 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy.LibraryAppletCreator
         // Start()
         public ResultCode Start(ServiceCtx context)
         {
-            return (ResultCode)_applet.Start(_normalSession.GetConsumer(), _interactiveSession.GetConsumer());
+            Logger.Info?.Print(LogClass.ServiceAm, "Starting applet...");
+
+            var processId = Horizon.Instance.Device.Application.LoadApplet(_appletId, _libraryAppletContext);
+            if (processId < 0)
+            {
+                return ResultCode.AppletLaunchFailed;
+            }
+            else
+            {
+                return ResultCode.Success;
+            }
         }
 
         [CommandHipc(20)]
         // RequestExit()
         public ResultCode RequestExit(ServiceCtx context)
         {
-            // TODO: Since we don't support software Applet for now, we can just signals the changed state of the applet.
-            _stateChangedEvent.ReadableEvent.Signal();
-
-            Logger.Stub?.PrintStub(LogClass.ServiceAm);
+            // TODO: do this properly
+            _libraryAppletContext.Terminate();
 
             return ResultCode.Success;
         }
@@ -100,7 +79,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy.LibraryAppletCreator
         // GetResult()
         public ResultCode GetResult(ServiceCtx context)
         {
-            return (ResultCode)_applet.GetResult();
+            return (ResultCode)_libraryAppletContext.Result;
         }
 
         [CommandHipc(60)]
@@ -120,9 +99,9 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy.LibraryAppletCreator
         // PushInData(object<nn::am::service::IStorage>)
         public ResultCode PushInData(ServiceCtx context)
         {
-            IStorage data = GetObject<IStorage>(context, 0);
+            var data = GetObject<IStorage>(context, 0);
 
-            _normalSession.Push(data.Data);
+            _libraryAppletContext.PushInData(data.Data, false);
 
             return ResultCode.Success;
         }
@@ -131,25 +110,27 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy.LibraryAppletCreator
         // PopOutData() -> object<nn::am::service::IStorage>
         public ResultCode PopOutData(ServiceCtx context)
         {
-            if(_normalSession.TryPop(out byte[] data))
+            if (_libraryAppletContext.TryPopOutData(out var data, false))
             {
                 MakeObject(context, new IStorage(data));
 
-                _normalOutDataEvent.WritableEvent.Clear();
+                Logger.Warning?.Print(LogClass.ServiceAm, "Popped out data from applet " + _libraryAppletContext.AppletId + " of size " + data.Length);
 
                 return ResultCode.Success;
             }
-
-            return ResultCode.NotAvailable;
+            else
+            {
+                return ResultCode.NotAvailable;
+            }
         }
 
         [CommandHipc(103)]
         // PushInteractiveInData(object<nn::am::service::IStorage>)
         public ResultCode PushInteractiveInData(ServiceCtx context)
         {
-            IStorage data = GetObject<IStorage>(context, 0);
+            var data = GetObject<IStorage>(context, 0);
 
-            _interactiveSession.Push(data.Data);
+            _libraryAppletContext.PushInData(data.Data, true);
 
             return ResultCode.Success;
         }
@@ -158,11 +139,9 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy.LibraryAppletCreator
         // PopInteractiveOutData() -> object<nn::am::service::IStorage>
         public ResultCode PopInteractiveOutData(ServiceCtx context)
         {
-            if(_interactiveSession.TryPop(out byte[] data))
+            if (_libraryAppletContext.TryPopOutData(out byte[] data, true))
             {
                 MakeObject(context, new IStorage(data));
-
-                _interactiveOutDataEvent.WritableEvent.Clear();
 
                 return ResultCode.Success;
             }
@@ -176,7 +155,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy.LibraryAppletCreator
         {
             if (_normalOutDataEventHandle == 0)
             {
-                if (context.Process.HandleTable.GenerateHandle(_normalOutDataEvent.ReadableEvent, out _normalOutDataEventHandle) != KernelResult.Success)
+                if (!_libraryAppletContext.TryCreatePopOutDataEventHandle(context.Process, out _normalOutDataEventHandle))
                 {
                     throw new InvalidOperationException("Out of handles!");
                 }
@@ -193,7 +172,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy.LibraryAppletCreator
         {
             if (_interactiveOutDataEventHandle == 0)
             {
-                if (context.Process.HandleTable.GenerateHandle(_interactiveOutDataEvent.ReadableEvent, out _interactiveOutDataEventHandle) != KernelResult.Success)
+                if (!_libraryAppletContext.TryCreatePopInteractiveOutDataEventHandle(context.Process, out _interactiveOutDataEventHandle))
                 {
                     throw new InvalidOperationException("Out of handles!");
                 }
@@ -247,17 +226,17 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy.LibraryAppletCreator
             {
                 if (_stateChangedEventHandle != 0)
                 {
-                    _kernelContext.Syscall.CloseHandle(_stateChangedEventHandle);
+                    Horizon.Instance.KernelContext.Syscall.CloseHandle(_stateChangedEventHandle);
                 }
 
                 if (_normalOutDataEventHandle != 0)
                 {
-                    _kernelContext.Syscall.CloseHandle(_normalOutDataEventHandle);
+                    Horizon.Instance.KernelContext.Syscall.CloseHandle(_normalOutDataEventHandle);
                 }
 
                 if (_interactiveOutDataEventHandle != 0)
                 {
-                    _kernelContext.Syscall.CloseHandle(_interactiveOutDataEventHandle);
+                    Horizon.Instance.KernelContext.Syscall.CloseHandle(_interactiveOutDataEventHandle);
                 }
             }
         }

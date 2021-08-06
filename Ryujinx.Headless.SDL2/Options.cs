@@ -1,5 +1,6 @@
 ﻿using CommandLine;
 using Ryujinx.Common.Configuration;
+using Ryujinx.HLE.HOS.Services.Settings;
 using Ryujinx.HLE.HOS.SystemState;
 
 namespace Ryujinx.Headless.SDL2

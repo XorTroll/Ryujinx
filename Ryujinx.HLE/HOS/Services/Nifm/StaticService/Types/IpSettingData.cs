@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Ryujinx.HLE.HOS.Services.Nifm.StaticService.Types
+namespace Ryujinx.HLE.HOS.Services.Nifm.StaticService
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 0xc2)]
     struct IpSettingData

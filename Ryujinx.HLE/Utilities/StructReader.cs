@@ -26,6 +26,19 @@ namespace Ryujinx.HLE.Utilities
             return value;
         }
 
+        public static T FromBytes<T>(byte[] bytes) where T : struct
+        {
+            var handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+            try
+            {
+                return (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
+            }
+            finally
+            {
+                handle.Free();
+            }
+        }
+
         public ReadOnlySpan<T> Read<T>(int size) where T : unmanaged
         {
             ReadOnlySpan<byte> data = _memory.GetSpan(Position, size);

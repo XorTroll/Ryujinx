@@ -1,6 +1,6 @@
 namespace Ryujinx.HLE.HOS.Kernel.Memory
 {
-    enum AddressSpaceType
+    public enum AddressSpaceType
     {
         Addr32Bits      = 0,
         Addr36Bits      = 1,

@@ -300,9 +300,7 @@ namespace Ryujinx.HLE.HOS
 
             AppletCaptureBufferTransfer = new KTransferMemory(KernelContext, appletCaptureBufferStorage);
 
-            AppletState = new AppletStateMgr(this);
-
-            AppletState.SetFocus(true);
+            AppletState = new AppletStateMgr(KernelContext);
 
             Font = new SharedFontManager(device, fontStorage);
 
@@ -312,7 +310,7 @@ namespace Ryujinx.HLE.HOS
 
             AccountManager = device.Configuration.AccountManager;
             ContentManager = device.Configuration.ContentManager;
-            CaptureManager = new CaptureManager();
+            CaptureManager = new CaptureManager(device);
 
             // TODO: use set:sys (and get external clock source id from settings)
             // TODO: use "time!standard_steady_clock_rtc_update_interval_minutes" and implement a worker thread to be accurate.
@@ -493,9 +491,7 @@ namespace Ryujinx.HLE.HOS
                 State.DockedMode = newState;
                 PerformanceState.PerformanceMode = State.DockedMode ? PerformanceMode.Boost : PerformanceMode.Default;
 
-                AppletState.Messages.Enqueue(AppletMessage.OperationModeChanged);
-                AppletState.Messages.Enqueue(AppletMessage.PerformanceModeChanged);
-                AppletState.MessageEvent.ReadableEvent.Signal();
+                AppletState.SendMessagesToAllApplets(AppletMessage.OperationModeChanged, AppletMessage.PerformanceModeChanged);
 
                 SignalDisplayResolutionChange();
 
@@ -505,13 +501,15 @@ namespace Ryujinx.HLE.HOS
 
         public void ReturnFocus()
         {
-            AppletState.SetFocus(true);
+            // AppletState.SetFocus(true);
         }
 
         public void SimulateWakeUpMessage()
         {
+            /*
             AppletState.Messages.Enqueue(AppletMessage.Resume);
             AppletState.MessageEvent.ReadableEvent.Signal();
+            */
         }
 
         public void ScanAmiibo(int nfpDeviceId, string amiiboId, bool useRandomUuid)
@@ -626,10 +624,13 @@ namespace Ryujinx.HLE.HOS
 
         public static Horizon Instance => _instance;
 
+        public static bool Initialized => _instance != null;
+
         public static void Initialize(HLEConfiguration configuration)
         {
             var device = new Switch(configuration);
             _instance = device.System;
+            device.Initialize();
         }
     }
 }

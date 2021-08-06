@@ -1,6 +1,6 @@
 ﻿namespace Ryujinx.HLE.HOS.Kernel.Process
 {
-    enum ProcessCreationFlags
+    public enum ProcessCreationFlags
     {
         Is64Bit = 1 << 0,
 

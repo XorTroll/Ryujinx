@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace Ryujinx.HLE.HOS.Kernel.Threading
 {
-    class KAddressArbiter
+    public class KAddressArbiter
     {
         private const int HasListenersMask = 0x40000000;
 

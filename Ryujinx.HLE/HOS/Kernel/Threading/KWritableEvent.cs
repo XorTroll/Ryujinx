@@ -2,7 +2,7 @@ using Ryujinx.HLE.HOS.Kernel.Common;
 
 namespace Ryujinx.HLE.HOS.Kernel.Threading
 {
-    class KWritableEvent : KAutoObject
+    public class KWritableEvent : KAutoObject
     {
         private readonly KEvent _parent;
 

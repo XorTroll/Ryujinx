@@ -12,20 +12,20 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
 
     class AppletProxyBase : IpcService
     {
-        private AppletProxyType _type;
-        private long _pid;
+        protected AppletProxyType _appletProxytype;
+        protected AppletContext _self;
 
-        public AppletProxyBase(AppletProxyType type, long pid)
+        public AppletProxyBase(AppletProxyType appletProxytype, AppletContext self)
         {
-            _type = type;
-            _pid = pid;
+            _appletProxytype = appletProxytype;
+            _self = self;
         }
 
         [CommandHipc(0)]
         // GetCommonStateGetter() -> object<nn::am::service::ICommonStateGetter>
         public ResultCode GetCommonStateGetter(ServiceCtx context)
         {
-            MakeObject(context, new ICommonStateGetter());
+            MakeObject(context, new ICommonStateGetter(_self));
 
             return ResultCode.Success;
         }
@@ -34,7 +34,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
         // GetSelfController() -> object<nn::am::service::ISelfController>
         public ResultCode GetSelfController(ServiceCtx context)
         {
-            MakeObject(context, new ISelfController(_pid));
+            MakeObject(context, new ISelfController(_self));
 
             return ResultCode.Success;
         }
@@ -43,7 +43,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
         // GetWindowController() -> object<nn::am::service::IWindowController>
         public ResultCode GetWindowController(ServiceCtx context)
         {
-            MakeObject(context, new IWindowController(_pid));
+            MakeObject(context, new IWindowController(_self));
 
             return ResultCode.Success;
         }
@@ -70,7 +70,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
         // GetProcessWindingController() -> object<nn::am::service::IProcessWindingController>
         public ResultCode GetProcessWindingController(ServiceCtx context)
         {
-            MakeObject(context, new IProcessWindingController());
+            MakeObject(context, new IProcessWindingController(_self));
 
             return ResultCode.Success;
         }
@@ -79,7 +79,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
         // GetLibraryAppletCreator() -> object<nn::am::service::ILibraryAppletCreator>
         public ResultCode GetLibraryAppletCreator(ServiceCtx context)
         {
-            MakeObject(context, new ILibraryAppletCreator());
+            MakeObject(context, new ILibraryAppletCreator(_self));
 
             return ResultCode.Success;
         }

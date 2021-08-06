@@ -32,6 +32,7 @@ using Ryujinx.HLE.FileSystem;
 using Ryujinx.HLE.FileSystem.Content;
 using Ryujinx.HLE.HOS;
 using Ryujinx.HLE.HOS.Services.Account.Acc;
+using Ryujinx.HLE.HOS.Services.Am.Applet;
 using Ryujinx.HLE.HOS.Services.Settings;
 using Ryujinx.HLE.HOS.SystemState;
 using Ryujinx.Input.GTK3;
@@ -137,6 +138,7 @@ namespace Ryujinx.Ui
 
         private MainWindow(Builder builder) : base(builder.GetObject("_mainWin").Handle)
         {
+            // InitializeSwitchInstance();
             builder.Autoconnect(this);
 
             // Apply custom theme if needed.
@@ -158,7 +160,7 @@ namespace Ryujinx.Ui
             // Instanciate HLE objects.
             _virtualFileSystem      = VirtualFileSystem.CreateInstance();
             _contentManager         = new ContentManager(_virtualFileSystem);
-            _accountManager         = new AccountManager(_virtualFileSystem);
+            _accountManager         = new AccountManager();
             _userChannelPersistence = new UserChannelPersistence();
 
             // Instanciate GUI objects.
@@ -561,6 +563,77 @@ namespace Ryujinx.Ui
             }
         }
 
+        public void LoadSystem(bool startFullscreen)
+        {
+            InitializeSwitchInstance();
+
+            if (!_contentManager.TryGetCurrentFirmwareVersion(out var firmwareVersion))
+            {
+                GtkDialog.CreateInfoDialog("No firmware was detected", "Please install firmware on this emulator.");
+            }
+            else
+            {
+                var displayVersion = firmwareVersion.GetDisplayVersion();
+                Logger.Notice.Print(LogClass.Application, $"Loading system with firmware '{displayVersion}'");
+
+                PerformanceCheck();
+
+                Logger.RestartTime();
+
+                RendererWidget = CreateRendererWidget();
+
+                SwitchToRenderWidget(startFullscreen);
+
+                UpdateGraphicsConfig();
+
+                SetupProgressUiHandlers();
+
+                /*
+                TODO:
+
+                Horizon.Instance.Device.LoadApplet(_contentManager, AppletId.OverlayDisp);
+
+                */
+
+                /*
+                var miiContext = new LibraryAppletContext(AppletId.QLaunch, LibraryAppletMode.AllForeground);
+                byte[] miiEditInputData = new byte[0x100];
+                miiEditInputData[0] = 0x03; // Hardcoded unknown value.
+                miiContext.PushInData(miiEditInputData, false);
+                Horizon.Instance.Device.Application.LoadApplet(AppletId.MiiEdit, miiContext);
+                */
+
+                Horizon.Instance.Device.Application.LoadApplet(AppletId.QLaunch);
+
+                _deviceExitStatus.Reset();
+
+                Translator.IsReadyForTranslation.Reset();
+#if MACOS_BUILD
+                CreateGameWindow();
+#else
+                Thread windowThread = new Thread(() =>
+                {
+                    CreateGameWindow();
+                })
+                {
+                    Name = "GUI.WindowThread"
+                };
+
+                windowThread.Start();
+#endif
+
+                _gameLoaded = true;
+                _actionMenu.Sensitive = true;
+
+                _lastScannedAmiiboId = "";
+
+                _firmwareInstallFile.Sensitive = false;
+                _firmwareInstallDirectory.Sensitive = false;
+
+                DiscordIntegrationModule.SwitchToSystemState(displayVersion);
+            }
+        }
+
         public void LoadApplication(string path, bool startFullscreen = false)
         {
             if (_gameLoaded)
@@ -583,7 +656,7 @@ namespace Ryujinx.Ui
 
                 SetupProgressUiHandlers();
 
-                SystemVersion firmwareVersion = _contentManager.GetCurrentFirmwareVersion();
+                _contentManager.TryGetCurrentFirmwareVersion(out var firmwareVersion);
 
                 bool isDirectory     = Directory.Exists(path);
                 bool isFirmwareTitle = false;
@@ -595,14 +668,13 @@ namespace Ryujinx.Ui
                     isFirmwareTitle = true;
                 }
 
-                /*
                 if (!SetupValidator.CanStartApplication(_contentManager, path, out UserError userError))
                 {
-                    if (SetupValidator.CanFixStartApplication(_contentManager, path, userError, out firmwareVersion))
+                    if (SetupValidator.CanFixStartApplication(_contentManager, path, userError, out var systemVersion))
                     {
                         if (userError == UserError.NoFirmware)
                         {
-                            string message = $"Would you like to install the firmware embedded in this game? (Firmware {firmwareVersion.VersionString})";
+                            string message = $"Would you like to install the firmware embedded in this game? (Firmware {systemVersion.VersionString})";
 
                             ResponseType responseDialog = (ResponseType)GtkDialog.CreateConfirmationDialog("No Firmware Installed", message).Run();
 
@@ -610,7 +682,7 @@ namespace Ryujinx.Ui
                             {
                                 UserErrorDialog.CreateUserErrorDialog(userError);
 
-                                _emulationContext.Dispose();
+                                Horizon.Instance.Device.Dispose();
                                 SwitchToGameTable();
                                 RendererWidget.Dispose();
 
@@ -622,7 +694,7 @@ namespace Ryujinx.Ui
                         {
                             UserErrorDialog.CreateUserErrorDialog(userError);
 
-                            _emulationContext.Dispose();
+                            Horizon.Instance.Device.Dispose();
                             SwitchToGameTable();
                             RendererWidget.Dispose();
 
@@ -632,40 +704,34 @@ namespace Ryujinx.Ui
                         // Tell the user that we installed a firmware for them.
                         if (userError == UserError.NoFirmware)
                         {
-                            firmwareVersion = _contentManager.GetCurrentFirmwareVersion();
+                            _contentManager.TryGetCurrentFirmwareVersion(out var firmwareVersion1);
 
                             RefreshFirmwareLabel();
 
-                            string message = $"No installed firmware was found but Ryujinx was able to install firmware {firmwareVersion.VersionString} from the provided game.\nThe emulator will now start.";
+                            string message = $"No installed firmware was found but Ryujinx was able to install firmware {firmwareVersion1.GetDisplayVersion()} from the provided game.\nThe emulator will now start.";
 
-                            GtkDialog.CreateInfoDialog($"Firmware {firmwareVersion.VersionString} was installed", message);
+                            GtkDialog.CreateInfoDialog($"Firmware {firmwareVersion1.GetDisplayVersion()} was installed", message);
                         }
                     }
                     else
                     {
                         UserErrorDialog.CreateUserErrorDialog(userError);
 
-                        _emulationContext.Dispose();
+                        Horizon.Instance.Device.Dispose();
                         SwitchToGameTable();
                         RendererWidget.Dispose();
 
                         return;
                     }
                 }
-                */
 
-                Logger.Notice.Print(LogClass.Application, $"Using Firmware Version: {firmwareVersion?.VersionString}");
+                Logger.Notice.Print(LogClass.Application, $"Using Firmware Version: {firmwareVersion.GetDisplayVersion()}");
 
                 if (isFirmwareTitle)
                 {
-                    Logger.Info?.Print(LogClass.Application, "Loading firmware...");
+                    Logger.Info?.Print(LogClass.Application, "Loading as Firmware Title (NCA).");
 
-                    // Horizon.Instance.Device.LoadNca(path);
-                    // Horizon.Instance.Device.LoadSystemTitle(_contentManager, 0x010000000000100C);
-                    // Horizon.Instance.Device.LoadSystemTitle(_contentManager, 0x0100000000001012);
-                    Horizon.Instance.Device.LoadSystemTitle(_contentManager, 0x0100000000001000);
-                    // Horizon.Instance.Device.LoadSystemTitle(_contentManager, 0x01008BB00013C000);
-                    // Horizon.Instance.Device.LoadSystemBuiltinTitles(_contentManager);
+                    Horizon.Instance.Device.Application.LoadNca(path);
                 }
                 else if (Directory.Exists(path))
                 {
@@ -679,12 +745,12 @@ namespace Ryujinx.Ui
                     if (romFsFiles.Length > 0)
                     {
                         Logger.Info?.Print(LogClass.Application, "Loading as cart with RomFS.");
-                        Horizon.Instance.Device.LoadCart(path, romFsFiles[0]);
+                        Horizon.Instance.Device.Application.LoadCart(path, romFsFiles[0]);
                     }
                     else
                     {
                         Logger.Info?.Print(LogClass.Application, "Loading as cart WITHOUT RomFS.");
-                        Horizon.Instance.Device.LoadCart(path);
+                        Horizon.Instance.Device.Application.LoadCart(path);
                     }
                 }
                 else if (File.Exists(path))
@@ -693,23 +759,22 @@ namespace Ryujinx.Ui
                     {
                         case ".xci":
                             Logger.Info?.Print(LogClass.Application, "Loading as XCI.");
-                            Horizon.Instance.Device.LoadXci(path);
+                            Horizon.Instance.Device.Application.LoadXci(path);
                             break;
                         case ".nca":
                             Logger.Info?.Print(LogClass.Application, "Loading as NCA.");
-                            Horizon.Instance.Device.LoadNca(path);
+                            Horizon.Instance.Device.Application.LoadNca(path);
                             break;
                         case ".nsp":
                         case ".pfs0":
                             Logger.Info?.Print(LogClass.Application, "Loading as NSP.");
-                            Horizon.Instance.Device.LoadNsp(path);
+                            Horizon.Instance.Device.Application.LoadNsp(path);
                             break;
                         default:
                             Logger.Info?.Print(LogClass.Application, "Loading as Homebrew.");
                             try
                             {
-                                Horizon.Instance.Device.LoadSystemTitle(_contentManager, 0x0100000000001000);
-                                Horizon.Instance.Device.LoadProgram(path);
+                                Horizon.Instance.Device.Application.LoadProgram(path);
                             }
                             catch (ArgumentOutOfRangeException)
                             {
@@ -850,7 +915,7 @@ namespace Ryujinx.Ui
 
             DisplaySleep.Prevent();
 
-            RendererWidget.Initialize(Horizon.Instance.Device);
+            RendererWidget.Initialize();
 
             RendererWidget.WaitEvent.WaitOne();
 
@@ -1143,7 +1208,7 @@ namespace Ryujinx.Ui
 
         private void FileMenu_StateChanged(object o, StateChangedArgs args)
         {
-            _appletMenu.Sensitive            = Horizon.Instance.Device == null && _contentManager.GetCurrentFirmwareVersion() != null && _contentManager.GetCurrentFirmwareVersion().Major > 3;
+            _appletMenu.Sensitive = Horizon.Instance.Device == null; // && _contentManager.GetCurrentFirmwareVersion() != null && _contentManager.GetCurrentFirmwareVersion().Major > 3;
             _loadApplicationFile.Sensitive   = Horizon.Instance.Device == null;
             _loadApplicationFolder.Sensitive = Horizon.Instance.Device == null;
         }
@@ -1233,13 +1298,11 @@ namespace Ryujinx.Ui
                         return;
                     }
 
-                    SystemVersion currentVersion = _contentManager.GetCurrentFirmwareVersion();
-
                     string dialogMessage = $"System version {firmwareVersion.VersionString} will be installed.";
 
-                    if (currentVersion != null)
+                    if (_contentManager.TryGetCurrentFirmwareVersion(out var currentVersion))
                     {
-                        dialogMessage += $"\n\nThis will replace the current system version {currentVersion.VersionString}. ";
+                        dialogMessage += $"\n\nThis will replace the current system version {currentVersion.GetDisplayVersion()}. ";
                     }
 
                     dialogMessage += "\n\nDo you want to continue?";
@@ -1320,11 +1383,16 @@ namespace Ryujinx.Ui
 
         private void RefreshFirmwareLabel()
         {
-            SystemVersion currentFirmware = _contentManager.GetCurrentFirmwareVersion();
+            var fwVersionText = "<...>";
+
+            if(Horizon.Initialized && _contentManager.TryGetCurrentFirmwareVersion(out var firmwareVersion))
+            {
+                fwVersionText = firmwareVersion.GetDisplayVersion();
+            }
 
             Application.Invoke(delegate
             {
-                _firmwareVersionLabel.Text = currentFirmware != null ? currentFirmware.VersionString : "0.0.0";
+                _firmwareVersionLabel.Text = fwVersionText;
             });
         }
 
@@ -1403,8 +1471,8 @@ namespace Ryujinx.Ui
 
         private void ActionMenu_StateChanged(object o, StateChangedArgs args)
         {
-            _scanAmiibo.Sensitive     = Horizon.Instance.Device != null && Horizon.Instance.Device.System.SearchingForAmiibo(out int _);
-            _takeScreenshot.Sensitive = Horizon.Instance.Device != null;
+            _scanAmiibo.Sensitive     = Horizon.Instance != null && Horizon.Instance.Device != null && Horizon.Instance.Device.System.SearchingForAmiibo(out int _);
+            _takeScreenshot.Sensitive = Horizon.Instance != null && Horizon.Instance.Device != null;
         }
 
         private void Scan_Amiibo(object sender, EventArgs args)

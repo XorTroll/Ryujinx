@@ -13,7 +13,7 @@ namespace Ryujinx.Ui.Helper
     {
         public static bool IsFirmwareValid(ContentManager contentManager, out UserError error)
         {
-            bool hasFirmware = contentManager.GetCurrentFirmwareVersion() != null;
+            bool hasFirmware = contentManager.TryGetCurrentFirmwareVersion(out _);
 
             if (hasFirmware)
             {

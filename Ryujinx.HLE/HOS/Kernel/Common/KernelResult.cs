@@ -1,6 +1,6 @@
 namespace Ryujinx.HLE.HOS.Kernel.Common
 {
-    enum KernelResult
+    public enum KernelResult
     {
         Success              = 0,
         SessionCountExceeded = 0xe01,

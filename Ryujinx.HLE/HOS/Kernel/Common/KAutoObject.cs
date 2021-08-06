@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace Ryujinx.HLE.HOS.Kernel.Common
 {
-    class KAutoObject
+    public class KAutoObject
     {
         protected KernelContext KernelContext;
 

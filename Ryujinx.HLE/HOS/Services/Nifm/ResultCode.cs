@@ -9,6 +9,7 @@ namespace Ryujinx.HLE.HOS.Services.Nifm
 
         Unknown112           = (112 << ErrorCodeShift) | ModuleId, // IRequest::GetResult
         Unknown180           = (180 << ErrorCodeShift) | ModuleId, // IRequest::GetAppletInfo
+        Unknown200           = (200 << ErrorCodeShift) | ModuleId, // IGeneralService::EnumerateNetworkInterfaces
         NoInternetConnection = (300 << ErrorCodeShift) | ModuleId,
         ObjectIsNull         = (350 << ErrorCodeShift) | ModuleId
     }

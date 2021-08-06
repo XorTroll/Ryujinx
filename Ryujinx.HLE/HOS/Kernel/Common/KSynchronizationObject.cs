@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Ryujinx.HLE.HOS.Kernel.Common
 {
-    class KSynchronizationObject : KAutoObject
+    public class KSynchronizationObject : KAutoObject
     {
         public LinkedList<KThread> WaitingThreads { get; }
 

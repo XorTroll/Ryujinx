@@ -9,9 +9,15 @@ namespace Ryujinx.HLE.HOS.Services.Am.AppletOE
         // OpenApplicationProxy(u64, pid, handle<copy>) -> object<nn::am::service::IApplicationProxy>
         public ResultCode OpenApplicationProxy(ServiceCtx context)
         {
-            MakeObject(context, new IApplicationProxy(context.Request.HandleDesc.PId));
-
-            return ResultCode.Success;
+            if (Horizon.Instance.AppletState.Applets.TryGetValue(context.Request.HandleDesc.PId, out var self))
+            {
+                MakeObject(context, new IApplicationProxy(self));
+                return ResultCode.Success;
+            }
+            else
+            {
+                return ResultCode.NotAvailable;
+            }
         }
     }
 }

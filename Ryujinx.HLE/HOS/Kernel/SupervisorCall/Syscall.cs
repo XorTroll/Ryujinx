@@ -13,7 +13,7 @@ using System.Threading;
 
 namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
 {
-    class Syscall
+    public class Syscall
     {
         private readonly KernelContext _context;
 
@@ -1488,9 +1488,14 @@ namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
             return KernelStatic.GetCurrentThread().Context.CntpctEl0;
         }
 
-        public void Break(ulong reason, ulong address, ulong size)
+        public void Break(BreakReason reason, ulong address, ulong size)
         {
-            if ((reason & (1UL << 31)) == 0)
+            Logger.Info?.Print(LogClass.KernelSvc, $"Reason: {reason}");
+            if ((reason & BreakReason.NotificationOnlyFlag) != 0)
+            {
+                Logger.Debug?.Print(LogClass.KernelSvc, "Debugger triggered.");
+            }
+            else
             {
                 var data = new byte[size];
                 if(KernelTransfer.UserToKernelBytes(_context, address, data))
@@ -1498,12 +1503,12 @@ namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
                     if (size == 4)
                     {
                         var result = BitConverter.ToUInt32(data);
-                        Logger.Error?.Print(LogClass.KernelSvc, "Break result: " + result);
+                        Logger.Error?.Print(LogClass.KernelSvc, $"Break result: 0x{result:X}");
                     }
                 }
                 else
                 {
-                    Logger.Warning?.Print(LogClass.KernelSvc, "No break data...");
+                    Logger.Warning?.Print(LogClass.KernelSvc, "Break without extra data...");
                 }
 
                 KThread currentThread = KernelStatic.GetCurrentThread();
@@ -1521,10 +1526,6 @@ namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
                 currentThread.Owner.TerminateCurrentProcess();
 
                 throw new GuestBrokeExecutionException();
-            }
-            else
-            {
-                Logger.Debug?.Print(LogClass.KernelSvc, "Debugger triggered.");
             }
         }
 
@@ -2322,12 +2323,10 @@ namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
 
                 for (; processedHandles < handlesCount; processedHandles++)
                 {
-                    // Logger.Warning?.Print(LogClass.KernelSvc, "Handle: " + handles[processedHandles].ToString("X"));
                     KSynchronizationObject syncObj = currentProcess.HandleTable.GetObject<KSynchronizationObject>(handles[processedHandles]);
 
                     if (syncObj == null)
                     {
-                        Logger.Warning?.Print(LogClass.KernelSvc, "Invalid handle[" + processedHandles + "] (count = " + handlesCount + "): " + handles[processedHandles].ToString("X"));
                         break;
                     }
 
@@ -2497,6 +2496,15 @@ namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
                     => currentProcess.AddressArbiter.SignalAndModifyIfEqual(address, value, count),
                 _ => KernelResult.InvalidEnumValue
             };
+        }
+
+        public KernelResult CreateCodeMemory(ulong address, ulong size, out int codeMemoryHandle)
+        {
+            codeMemoryHandle = 0;
+            Logger.Info?.Print(LogClass.KernelSvc, $"Address: 0x{address:X}, Size: 0x{size:X}");
+            // TODO
+
+            return KernelResult.InvalidMemState;
         }
 
         private bool IsPointingInsideKernel(ulong address)

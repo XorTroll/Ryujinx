@@ -1,9 +1,9 @@
 ﻿namespace Ryujinx.HLE.HOS.Services.Am.Applet
 {
-    enum AppletId
+    public enum AppletId : uint
     {
         Application          = 0x01,
-        OverlayDisplay       = 0x02,
+        OverlayDisp          = 0x02,
         QLaunch              = 0x03,
         Starter              = 0x04,
         Auth                 = 0x0A,

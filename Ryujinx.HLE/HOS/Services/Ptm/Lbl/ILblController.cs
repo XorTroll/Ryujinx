@@ -32,6 +32,51 @@ namespace Ryujinx.HLE.HOS.Services.Ptm.Lbl
             return ResultCode.Success;
         }
 
+        [CommandHipc(2)]
+        // SetCurrentBrightnessSetting(float)
+        public ResultCode SetCurrentBrightnessSetting(ServiceCtx context)
+        {
+            Horizon.Instance.State.Brightness = context.RequestData.ReadSingle();
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(3)]
+        // GetCurrentBrightnessSetting() -> float
+        public ResultCode GetCurrentBrightnessSetting(ServiceCtx context)
+        {
+            context.ResponseData.Write(Horizon.Instance.State.Brightness);
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(12)]
+        // EnableAutoBrightnessControl()
+        public ResultCode EnableAutoBrightnessControl(ServiceCtx context)
+        {
+            Horizon.Instance.State.AutoBrightnessControlEnabled = true;
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(13)]
+        // DisableAutoBrightnessControl()
+        public ResultCode DisableAutoBrightnessControl(ServiceCtx context)
+        {
+            Horizon.Instance.State.AutoBrightnessControlEnabled = false;
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(14)]
+        // IsAutoBrightnessControlEnabled() -> bool
+        public ResultCode IsAutoBrightnessControlEnabled(ServiceCtx context)
+        {
+            context.ResponseData.Write(Horizon.Instance.State.AutoBrightnessControlEnabled);
+
+            return ResultCode.Success;
+        }
+
         [CommandHipc(17)]
         // SetBrightnessReflectionDelayLevel(float, float)
         public ResultCode SetBrightnessReflectionDelayLevel(ServiceCtx context)

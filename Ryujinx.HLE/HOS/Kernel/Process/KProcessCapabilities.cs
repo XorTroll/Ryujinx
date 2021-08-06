@@ -1,4 +1,5 @@
 using Ryujinx.Common;
+using Ryujinx.Common.Logging;
 using Ryujinx.HLE.HOS.Kernel.Common;
 using Ryujinx.HLE.HOS.Kernel.Memory;
 using Ryujinx.HLE.HOS.Kernel.Threading;
@@ -6,7 +7,7 @@ using System;
 
 namespace Ryujinx.HLE.HOS.Kernel.Process
 {
-    class KProcessCapabilities
+    public class KProcessCapabilities
     {
         public byte[] SvcAccessMask { get; private set; }
         public byte[] IrqAccessMask { get; private set; }
@@ -143,161 +144,170 @@ namespace Ryujinx.HLE.HOS.Kernel.Process
             switch (code)
             {
                 case 8:
-                {
-                    if (AllowedCpuCoresMask != 0 || AllowedThreadPriosMask != 0)
                     {
-                        return KernelResult.InvalidCapability;
+                        if (AllowedCpuCoresMask != 0 || AllowedThreadPriosMask != 0)
+                        {
+                            return KernelResult.InvalidCapability;
+                        }
+
+                        int lowestCpuCore  = (cap >> 16) & 0xff;
+                        int highestCpuCore = (cap >> 24) & 0xff;
+
+                        if (lowestCpuCore > highestCpuCore)
+                        {
+                            return KernelResult.InvalidCombination;
+                        }
+
+                        int highestThreadPrio = (cap >>  4) & 0x3f;
+                        int lowestThreadPrio  = (cap >> 10) & 0x3f;
+
+                        if (lowestThreadPrio > highestThreadPrio)
+                        {
+                            return KernelResult.InvalidCombination;
+                        }
+
+                        if (highestCpuCore >= KScheduler.CpuCoresCount)
+                        {
+                            return KernelResult.InvalidCpuCore;
+                        }
+
+                        AllowedCpuCoresMask    = GetMaskFromMinMax(lowestCpuCore,    highestCpuCore);
+                        AllowedThreadPriosMask = GetMaskFromMinMax(lowestThreadPrio, highestThreadPrio);
+
+                        break;
                     }
-
-                    int lowestCpuCore  = (cap >> 16) & 0xff;
-                    int highestCpuCore = (cap >> 24) & 0xff;
-
-                    if (lowestCpuCore > highestCpuCore)
-                    {
-                        return KernelResult.InvalidCombination;
-                    }
-
-                    int highestThreadPrio = (cap >>  4) & 0x3f;
-                    int lowestThreadPrio  = (cap >> 10) & 0x3f;
-
-                    if (lowestThreadPrio > highestThreadPrio)
-                    {
-                        return KernelResult.InvalidCombination;
-                    }
-
-                    if (highestCpuCore >= KScheduler.CpuCoresCount)
-                    {
-                        return KernelResult.InvalidCpuCore;
-                    }
-
-                    AllowedCpuCoresMask    = GetMaskFromMinMax(lowestCpuCore,    highestCpuCore);
-                    AllowedThreadPriosMask = GetMaskFromMinMax(lowestThreadPrio, highestThreadPrio);
-
-                    break;
-                }
 
                 case 0x10:
-                {
-                    int slot = (cap >> 29) & 7;
-
-                    int svcSlotMask = 1 << slot;
-
-                    if ((mask1 & svcSlotMask) != 0)
                     {
-                        return KernelResult.InvalidCombination;
-                    }
+                        int slot = (cap >> 29) & 7;
 
-                    mask1 |= svcSlotMask;
+                        int svcSlotMask = 1 << slot;
 
-                    int svcMask = (cap >> 5) & 0xffffff;
-
-                    int baseSvc = slot * 24;
-
-                    for (int index = 0; index < 24; index++)
-                    {
-                        if (((svcMask >> index) & 1) == 0)
+                        if ((mask1 & svcSlotMask) != 0)
                         {
-                            continue;
+                            return KernelResult.InvalidCombination;
                         }
 
-                        int svcId = baseSvc + index;
+                        mask1 |= svcSlotMask;
 
-                        if (svcId > 0x7f)
+                        int svcMask = (cap >> 5) & 0xffffff;
+
+                        int baseSvc = slot * 24;
+
+                        for (int index = 0; index < 24; index++)
                         {
-                            return KernelResult.MaximumExceeded;
+                            if (((svcMask >> index) & 1) == 0)
+                            {
+                                continue;
+                            }
+
+                            int svcId = baseSvc + index;
+
+                            if (svcId > 0x7f)
+                            {
+                                return KernelResult.MaximumExceeded;
+                            }
+
+                            SvcAccessMask[svcId / 8] |= (byte)(1 << (svcId & 7));
                         }
 
-                        SvcAccessMask[svcId / 8] |= (byte)(1 << (svcId & 7));
+                        break;
                     }
-
-                    break;
-                }
 
                 case 0x80:
-                {
-                    long address = ((long)(uint)cap << 4) & 0xffffff000;
+                    {
+                        long address = ((long)(uint)cap << 4) & 0xffffff000;
 
-                    memoryManager.MapIoMemory(address, KPageTableBase.PageSize, KMemoryPermission.ReadAndWrite);
+                        memoryManager.MapIoMemory(address, KPageTableBase.PageSize, KMemoryPermission.ReadAndWrite);
 
-                    break;
-                }
+                        break;
+                    }
+                case 0x400:
+                    {
+                        // TODO
 
+                        break;
+                    }
                 case 0x800:
-                {
-                    // TODO: GIC distributor check.
-                    int irq0 = (cap >> 12) & 0x3ff;
-                    int irq1 = (cap >> 22) & 0x3ff;
-
-                    if (irq0 != 0x3ff)
                     {
-                        IrqAccessMask[irq0 / 8] |= (byte)(1 << (irq0 & 7));
-                    }
+                        // TODO: GIC distributor check.
+                        int irq0 = (cap >> 12) & 0x3ff;
+                        int irq1 = (cap >> 22) & 0x3ff;
 
-                    if (irq1 != 0x3ff)
-                    {
-                        IrqAccessMask[irq1 / 8] |= (byte)(1 << (irq1 & 7));
-                    }
+                        if (irq0 != 0x3ff)
+                        {
+                            IrqAccessMask[irq0 / 8] |= (byte)(1 << (irq0 & 7));
+                        }
 
-                    break;
-                }
+                        if (irq1 != 0x3ff)
+                        {
+                            IrqAccessMask[irq1 / 8] |= (byte)(1 << (irq1 & 7));
+                        }
+
+                        break;
+                    }
 
                 case 0x2000:
-                {
-                    int applicationType = cap >> 14;
-
-                    if ((uint)applicationType > 7)
                     {
-                        return KernelResult.ReservedValue;
+                        int applicationType = cap >> 14;
+
+                        if ((uint)applicationType > 7)
+                        {
+                            return KernelResult.ReservedValue;
+                        }
+
+                        ApplicationType = applicationType;
+
+                        break;
                     }
-
-                    ApplicationType = applicationType;
-
-                    break;
-                }
 
                 case 0x4000:
-                {
-                    // Note: This check is bugged on kernel too, we are just replicating the bug here.
-                    if ((KernelReleaseVersion >> 17) != 0 || cap < 0x80000)
                     {
-                        return KernelResult.ReservedValue;
+                        // Note: This check is bugged on kernel too, we are just replicating the bug here.
+                        if ((KernelReleaseVersion >> 17) != 0 || cap < 0x80000)
+                        {
+                            return KernelResult.ReservedValue;
+                        }
+
+                        KernelReleaseVersion = cap;
+
+                        break;
                     }
-
-                    KernelReleaseVersion = cap;
-
-                    break;
-                }
 
                 case 0x8000:
-                {
-                    int handleTableSize = cap >> 26;
-
-                    if ((uint)handleTableSize > 0x3ff)
                     {
-                        return KernelResult.ReservedValue;
+                        int handleTableSize = cap >> 26;
+
+                        if ((uint)handleTableSize > 0x3ff)
+                        {
+                            return KernelResult.ReservedValue;
+                        }
+
+                        HandleTableSize = handleTableSize;
+
+                        break;
                     }
-
-                    HandleTableSize = handleTableSize;
-
-                    break;
-                }
 
                 case 0x10000:
-                {
-                    int debuggingFlags = cap >> 19;
-
-                    if ((uint)debuggingFlags > 3)
                     {
-                        return KernelResult.ReservedValue;
+                        int debuggingFlags = cap >> 19;
+
+                        if ((uint)debuggingFlags > 3)
+                        {
+                            return KernelResult.ReservedValue;
+                        }
+
+                        DebuggingFlags &= ~3;
+                        DebuggingFlags |= debuggingFlags;
+
+                        break;
                     }
 
-                    DebuggingFlags &= ~3;
-                    DebuggingFlags |= debuggingFlags;
-
-                    break;
-                }
-
-                default: return KernelResult.InvalidCapability;
+                default:
+                    {
+                        Logger.Error?.Print(LogClass.Kernel, $"Unimplemented capability -> code: 0x{code:X}");
+                        return KernelResult.InvalidCapability;
+                    }
             }
 
             return KernelResult.Success;

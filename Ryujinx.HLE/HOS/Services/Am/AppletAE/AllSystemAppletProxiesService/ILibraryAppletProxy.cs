@@ -5,13 +5,13 @@ namespace Ryujinx.HLE.HOS.Services.Am.AppletAE.AllSystemAppletProxiesService
 {
     class ILibraryAppletProxy : AppletProxyBase
     {
-        public ILibraryAppletProxy(long pid) : base(AppletProxyType.LibraryApplet, pid) { }
+        public ILibraryAppletProxy(AppletContext self) : base(AppletProxyType.LibraryApplet, self) { }
 
         [CommandHipc(20)]
         // OpenLibraryAppletSelfAccessor() -> object<nn::am::service::ILibraryAppletSelfAccessor>
         public ResultCode OpenLibraryAppletSelfAccessor(ServiceCtx context)
         {
-            MakeObject(context, new ILibraryAppletSelfAccessor());
+            MakeObject(context, new ILibraryAppletSelfAccessor(_self.LibraryAppletContext));
 
             return ResultCode.Success;
         }

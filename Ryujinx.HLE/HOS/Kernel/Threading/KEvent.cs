@@ -1,6 +1,6 @@
 namespace Ryujinx.HLE.HOS.Kernel.Threading
 {
-    class KEvent
+    public class KEvent
     {
         public KReadableEvent ReadableEvent { get; private set; }
         public KWritableEvent WritableEvent { get; private set; }

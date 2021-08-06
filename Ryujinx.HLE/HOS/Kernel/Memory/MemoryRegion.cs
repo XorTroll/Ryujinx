@@ -1,6 +1,6 @@
 namespace Ryujinx.HLE.HOS.Kernel.Memory
 {
-    enum MemoryRegion
+    public enum MemoryRegion
     {
         Application = 0,
         Applet      = 1,

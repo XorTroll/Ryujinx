@@ -163,12 +163,13 @@ namespace Ryujinx
 
             if (launchPathArg != null)
             {
+                // Load the specified executable
                 mainWindow.LoadApplication(launchPathArg, startFullscreenArg);
             }
             else
             {
-                // Test loading system titles
-                mainWindow.LoadApplication("@SystemContent:/dummy", false);
+                // Load system titles
+                mainWindow.LoadSystem(startFullscreenArg);
             }
 
             if (ConfigurationState.Instance.CheckUpdatesOnStart.Value && Updater.CanUpdate(false))

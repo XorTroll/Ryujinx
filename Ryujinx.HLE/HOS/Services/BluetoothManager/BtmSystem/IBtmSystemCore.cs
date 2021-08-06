@@ -16,6 +16,13 @@ namespace Ryujinx.HLE.HOS.Services.BluetoothManager.BtmSystem
             _radioEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
+        [CommandHipc(4)]
+        // EnableRadio()
+        public ResultCode EnableRadio(ServiceCtx context)
+        {
+            return ResultCode.Success;
+        }
+
         [CommandHipc(6)]
         // GetRadioOnOff() -> bool
         public ResultCode GetRadioOnOff(ServiceCtx context)

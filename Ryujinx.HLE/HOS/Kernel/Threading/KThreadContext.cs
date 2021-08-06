@@ -2,7 +2,7 @@
 
 namespace Ryujinx.HLE.HOS.Kernel.Threading
 {
-    class KThreadContext
+    public class KThreadContext
     {
         private int _locked;
 

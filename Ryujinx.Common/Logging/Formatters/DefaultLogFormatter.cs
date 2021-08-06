@@ -19,17 +19,11 @@ namespace Ryujinx.Common.Logging
                 sb.AppendFormat(@"{0:hh\:mm\:ss\.fff}", args.Time);
                 sb.Append($" |{args.Level.ToString()[0]}| ");
 
-                if (args.ProcessName != null)
-                {
-                    sb.Append(args.ProcessName);
-                    sb.Append(' ');
-                }
+                var processName = args.ProcessName ?? "";
+                sb.Append(processName.PadRight(0x10));
 
-                if (args.ThreadName != null)
-                {
-                    sb.Append(args.ThreadName);
-                    sb.Append(' ');
-                }
+                var threadName = args.ThreadName ?? "";
+                sb.Append(threadName.PadRight(0x20));
 
                 sb.Append(args.Message);
 

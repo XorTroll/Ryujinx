@@ -4,7 +4,7 @@ using System;
 
 namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
 {
-    partial class SyscallHandler
+    public partial class SyscallHandler
     {
         private readonly KernelContext _context;
         private readonly Syscall32 _syscall32;

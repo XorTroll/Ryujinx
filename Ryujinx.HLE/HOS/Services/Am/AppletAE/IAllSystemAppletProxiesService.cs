@@ -10,9 +10,15 @@ namespace Ryujinx.HLE.HOS.Services.Am.AppletAE
         // OpenSystemAppletProxy(u64, pid, handle<copy>) -> object<nn::am::service::ISystemAppletProxy>
         public ResultCode OpenSystemAppletProxy(ServiceCtx context)
         {
-            MakeObject(context, new ISystemAppletProxy(context.Request.HandleDesc.PId));
-
-            return ResultCode.Success;
+            if (Horizon.Instance.AppletState.Applets.TryGetValue(context.Request.HandleDesc.PId, out var self))
+            {
+                MakeObject(context, new ISystemAppletProxy(self));
+                return ResultCode.Success;
+            }
+            else
+            {
+                return ResultCode.NotAvailable;
+            }
         }
 
         [CommandHipc(200)]
@@ -20,27 +26,45 @@ namespace Ryujinx.HLE.HOS.Services.Am.AppletAE
         // OpenLibraryAppletProxy(u64, pid, handle<copy>) -> object<nn::am::service::ILibraryAppletProxy>
         public ResultCode OpenLibraryAppletProxy(ServiceCtx context)
         {
-            MakeObject(context, new ILibraryAppletProxy(context.Request.HandleDesc.PId));
-
-            return ResultCode.Success;
+            if (Horizon.Instance.AppletState.Applets.TryGetValue(context.Request.HandleDesc.PId, out var self))
+            {
+                MakeObject(context, new ILibraryAppletProxy(self));
+                return ResultCode.Success;
+            }
+            else
+            {
+                return ResultCode.NotAvailable;
+            }
         }
 
         [CommandHipc(300)]
         // OpenOverlayAppletProxy(u64, pid, handle<copy>) -> object<nn::am::service::IOverlayAppletProxy>
         public ResultCode OpenOverlayAppletProxy(ServiceCtx context)
         {
-            MakeObject(context, new IOverlayAppletProxy(context.Request.HandleDesc.PId));
-
-            return ResultCode.Success;
+            if (Horizon.Instance.AppletState.Applets.TryGetValue(context.Request.HandleDesc.PId, out var self))
+            {
+                MakeObject(context, new IOverlayAppletProxy(self));
+                return ResultCode.Success;
+            }
+            else
+            {
+                return ResultCode.NotAvailable;
+            }
         }
 
         [CommandHipc(350)]
         // OpenSystemApplicationProxy(u64, pid, handle<copy>) -> object<nn::am::service::IApplicationProxy>
         public ResultCode OpenSystemApplicationProxy(ServiceCtx context)
         {
-            MakeObject(context, new IApplicationProxy(context.Request.HandleDesc.PId));
-
-            return ResultCode.Success;
+            if (Horizon.Instance.AppletState.Applets.TryGetValue(context.Request.HandleDesc.PId, out var self))
+            {
+                MakeObject(context, new IApplicationProxy(self));
+                return ResultCode.Success;
+            }
+            else
+            {
+                return ResultCode.NotAvailable;
+            }
         }
     }
 }

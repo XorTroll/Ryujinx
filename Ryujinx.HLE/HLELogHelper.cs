@@ -12,6 +12,9 @@ namespace Ryujinx.HLE
         public string GetCurrentProcessName()
         {
             var currentProcess = KernelStatic.GetCurrentProcess();
+
+            // TODO: read module name!
+
             return currentProcess?.Name;
         }
 

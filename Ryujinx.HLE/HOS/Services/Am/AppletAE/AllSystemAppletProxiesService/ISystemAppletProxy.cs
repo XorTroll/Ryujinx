@@ -5,7 +5,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.AppletAE.AllSystemAppletProxiesService
 {
     class ISystemAppletProxy : AppletProxyBase
     {
-        public ISystemAppletProxy(long pid) : base(AppletProxyType.SystemApplet, pid) { }
+        public ISystemAppletProxy(AppletContext self) : base(AppletProxyType.SystemApplet, self) { }
 
         [CommandHipc(20)]
         // GetHomeMenuFunctions() -> object<nn::am::service::IHomeMenuFunctions>

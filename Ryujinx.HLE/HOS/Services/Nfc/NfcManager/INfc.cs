@@ -22,14 +22,24 @@ namespace Ryujinx.HLE.HOS.Services.Nfc.NfcManager
         }
 
         [CommandHipc(3)]
+        // IsNfcEnabledOld() -> bool
         [CommandHipc(403)] // 4.0.0+
-        // IsNfcEnabled() -> b8
+        // IsNfcEnabled() -> bool
         public ResultCode IsNfcEnabled(ServiceCtx context)
         {
             // NOTE: Write false value here could make nfp service not called.
-            context.ResponseData.Write(true);
+            context.ResponseData.Write(Horizon.Instance.State.NfcEnabled);
 
-            Logger.Stub?.PrintStub(LogClass.ServiceNfc, new { _permissionLevel });
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(100)]
+        // SetNfcEnabledOld(bool)
+        [CommandHipc(500)] // 4.0.0+
+        // SetNfcEnabled(bool)
+        public ResultCode SetNfcEnabled(ServiceCtx context)
+        {
+            Horizon.Instance.State.NfcEnabled = context.RequestData.ReadBoolean();
 
             return ResultCode.Success;
         }

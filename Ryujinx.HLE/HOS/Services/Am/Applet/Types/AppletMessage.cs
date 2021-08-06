@@ -1,6 +1,6 @@
 namespace Ryujinx.HLE.HOS.Services.Am.Applet
 {
-    enum AppletMessage
+    public enum AppletMessage : uint
     {
         None                             = 0,
         ChangeIntoForeground             = 1,

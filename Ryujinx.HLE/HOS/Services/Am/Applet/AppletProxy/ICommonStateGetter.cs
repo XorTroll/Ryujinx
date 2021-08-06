@@ -26,8 +26,11 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         private KEvent _acquiredSleepLockEvent;
         private int _acquiredSleepLockEventHandle;
 
-        public ICommonStateGetter()
+        private AppletContext _self;
+
+        public ICommonStateGetter(AppletContext self)
         {
+            _self = self;
             _apmManagerServer       = new ManagerServer();
             _apmSystemManagerServer = new SystemManagerServer();
             _lblControllerServer    = new LblControllerServer();
@@ -38,11 +41,9 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         // GetEventHandle() -> handle<copy>
         public ResultCode GetEventHandle(ServiceCtx context)
         {
-            KEvent messageEvent = Horizon.Instance.AppletState.MessageEvent;
-
             if (_messageEventHandle == 0)
             {
-                if (context.Process.HandleTable.GenerateHandle(messageEvent.ReadableEvent, out _messageEventHandle) != KernelResult.Success)
+                if (context.Process.HandleTable.GenerateHandle(_self.MessageEvent.ReadableEvent, out _messageEventHandle) != KernelResult.Success)
                 {
                     throw new InvalidOperationException("Out of handles!");
                 }
@@ -57,26 +58,24 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         // ReceiveMessage() -> nn::am::AppletMessage
         public ResultCode ReceiveMessage(ServiceCtx context)
         {
-            if (!Horizon.Instance.AppletState.Messages.TryDequeue(out AppletMessage message))
+            if (!_self.Messages.TryDequeue(out AppletMessage message))
             {
                 return ResultCode.NoMessages;
             }
 
-            KEvent messageEvent = Horizon.Instance.AppletState.MessageEvent;
-
             // NOTE: Service checks if current states are different than the stored ones.
             //       Since we don't support any states for now, it's fine to check if there is still messages available.
 
-            if (Horizon.Instance.AppletState.Messages.IsEmpty)
+            if (_self.Messages.IsEmpty)
             {
-                messageEvent.ReadableEvent.Clear();
+                _self.MessageEvent.ReadableEvent.Clear();
             }
             else
             {
-                messageEvent.ReadableEvent.Signal();
+                _self.MessageEvent.ReadableEvent.Signal();
             }
 
-            context.ResponseData.Write((int)message);
+            context.ResponseData.WriteStruct(message);
 
             return ResultCode.Success;
         }
@@ -85,11 +84,11 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         // GetOperationMode() -> u8
         public ResultCode GetOperationMode(ServiceCtx context)
         {
-            OperationMode mode = Horizon.Instance.State.DockedMode
+            var mode = Horizon.Instance.State.DockedMode
                 ? OperationMode.Docked
                 : OperationMode.Handheld;
 
-            context.ResponseData.Write((byte)mode);
+            context.ResponseData.WriteStruct(mode);
 
             return ResultCode.Success;
         }
@@ -116,7 +115,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         // GetCurrentFocusState() -> u8
         public ResultCode GetCurrentFocusState(ServiceCtx context)
         {
-            context.ResponseData.WriteStruct(Horizon.Instance.AppletState.FocusState);
+            context.ResponseData.WriteStruct(_self.FocusState);
 
             return ResultCode.Success;
         }
@@ -155,9 +154,9 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         // PushToGeneralChannel(object<nn::am::service::IStorage>)
         public ResultCode PushToGeneralChannel(ServiceCtx context)
         {
-            // TODO
+            var data = GetObject<IStorage>(context, 0);
 
-            Logger.Stub?.PrintStub(LogClass.ServiceAm);
+            Horizon.Instance.AppletState.PushToGeneralChannel(data.Data);
 
             return ResultCode.Success;
         }
@@ -188,7 +187,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         // SetVrModeEnabled(b8)
         public ResultCode SetVrModeEnabled(ServiceCtx context)
         {
-            bool vrModeEnabled = context.RequestData.ReadBoolean();
+            var vrModeEnabled = context.RequestData.ReadBoolean();
 
             UpdateVrMode(vrModeEnabled);
 

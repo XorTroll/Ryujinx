@@ -4,7 +4,7 @@ using System;
 
 namespace Ryujinx.HLE.HOS.Kernel.Process
 {
-    interface IProcessContext : IDisposable
+    public interface IProcessContext : IDisposable
     {
         IVirtualMemoryManager AddressSpace { get; }
 

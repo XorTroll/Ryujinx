@@ -12,6 +12,7 @@ using Ryujinx.Common.Logging;
 using Ryujinx.HLE.FileSystem;
 using Ryujinx.HLE.FileSystem.Content;
 using Ryujinx.HLE.HOS.Kernel.Process;
+using Ryujinx.HLE.HOS.Services.Am.Applet;
 using Ryujinx.HLE.Loaders.Executables;
 using Ryujinx.HLE.Loaders.Npdm;
 using System;
@@ -69,7 +70,7 @@ namespace Ryujinx.HLE.HOS
             _controlData = new BlitStruct<ApplicationControlProperty>(1);
         }
 
-        public void LoadCart(string exeFsDir, string romFsFile = null)
+        public long LoadCart(string exeFsDir, string romFsFile = null)
         {
             if (romFsFile != null)
             {
@@ -87,7 +88,7 @@ namespace Ryujinx.HLE.HOS
                 EnsureSaveData(new ApplicationId(TitleId));
             }
 
-            LoadExeFs(codeFs, metaData);
+            return LoadExeFs(codeFs, metaData);
         }
 
         public static (Nca main, Nca patch, Nca control) GetGameData(VirtualFileSystem fileSystem, PartitionFileSystem pfs, int programIndex)
@@ -200,7 +201,7 @@ namespace Ryujinx.HLE.HOS
             return (null, null);
         }
 
-        public void LoadXci(string xciFile)
+        public long LoadXci(string xciFile)
         {
             FileStream file = new FileStream(xciFile, FileMode.Open, FileAccess.Read);
             Xci        xci  = new Xci(_device.Configuration.VirtualFileSystem.KeySet, file.AsStorage());
@@ -209,7 +210,7 @@ namespace Ryujinx.HLE.HOS
             {
                 Logger.Error?.Print(LogClass.Loader, "Unable to load XCI: Could not find XCI secure partition");
 
-                return;
+                return -1;
             }
 
             PartitionFileSystem securePartition = xci.OpenPartition(XciPartitionType.Secure);
@@ -226,24 +227,24 @@ namespace Ryujinx.HLE.HOS
             {
                 Logger.Error?.Print(LogClass.Loader, $"Unable to load XCI: {e.Message}");
 
-                return;
+                return -1;
             }
 
             if (mainNca == null)
             {
                 Logger.Error?.Print(LogClass.Loader, "Unable to load XCI: Could not find Main NCA");
 
-                return;
+                return -1;
             }
 
             _device.Configuration.ContentManager.LoadEntries(_device);
             _device.Configuration.ContentManager.ClearAocData();
             _device.Configuration.ContentManager.AddAocData(securePartition, xciFile, mainNca.Header.TitleId, _device.Configuration.FsIntegrityCheckLevel);
 
-            LoadNca(mainNca, patchNca, controlNca);
+            return LoadNca(mainNca, patchNca, controlNca);
         }
 
-        public void LoadNsp(string nspFile)
+        public long LoadNsp(string nspFile)
         {
             FileStream          file = new FileStream(nspFile, FileMode.Open, FileAccess.Read);
             PartitionFileSystem nsp  = new PartitionFileSystem(file.AsStorage());
@@ -260,14 +261,7 @@ namespace Ryujinx.HLE.HOS
             {
                 Logger.Error?.Print(LogClass.Loader, $"Unable to load NSP: {e.Message}");
 
-                return;
-            }
-
-            if (mainNca == null)
-            {
-                Logger.Error?.Print(LogClass.Loader, "Unable to load NSP: Could not find Main NCA");
-
-                return;
+                return -1;
             }
 
             if (mainNca != null)
@@ -275,89 +269,67 @@ namespace Ryujinx.HLE.HOS
                 _device.Configuration.ContentManager.ClearAocData();
                 _device.Configuration.ContentManager.AddAocData(nsp, nspFile, mainNca.Header.TitleId, _device.Configuration.FsIntegrityCheckLevel);
 
-                LoadNca(mainNca, patchNca, controlNca);
-
-                return;
+                return LoadNca(mainNca, patchNca, controlNca);
             }
 
             // This is not a normal NSP, it's actually a ExeFS as a NSP
-            LoadExeFs(nsp);
+            return LoadExeFs(nsp);
         }
 
-        public void LoadSystemBuiltinTitles(ContentManager manager)
+        public long LoadApplet(AppletId appletId, LibraryAppletContext libraryAppletContext = null)
         {
-            var pkg2_content_path = manager.GetInstalledContentPath(0x0100000000000819, StorageId.NandSystem, NcaContentType.Data);
-            if (!string.IsNullOrEmpty(pkg2_content_path))
+            var programId = AppletContext.GetProgramIdFromAppletId(appletId, libraryAppletContext != null);
+            if (programId != 0x0)
             {
-                var path = _device.Configuration.VirtualFileSystem.SwitchPathToSystemPath(pkg2_content_path);
-                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read))
+                var processId = LoadSystemTitle(programId);
+                if (processId != -1)
                 {
-                    var pkg2_nca = new Nca(_device.Configuration.VirtualFileSystem.KeySet, fs.AsStorage());
+                    // TODO: launch reason
+                    var launchReason = new AppletProcessLaunchReason();
 
-                    var romfs = pkg2_nca.OpenFileSystem(NcaSectionType.Data, IntegrityCheckLevel.ErrorOnInvalid);
-                    if(romfs.OpenFile(out var file, "/nx/package2".ToU8Span(), OpenMode.Read).IsSuccess())
-                    {
-                        file.GetSize(out var file_size);
-                        var file_data = new byte[file_size];
-                        if(file.Read(out _, 0, file_data).IsSuccess())
-                        {
-                            using(var mem = new MemoryStream(file_data))
-                            {
-                                var pkg2 = new LibHac.Boot.Package2StorageReader();
-                                if(pkg2.Initialize(_device.Configuration.VirtualFileSystem.KeySet, mem.AsStorage()).IsSuccess())
-                                {
-                                    if(pkg2.OpenIni(out var ini_storage).IsSuccess())
-                                    {
-                                        var ini = new Ini1(ini_storage);
-                                        foreach(var kip in ini.Kips)
-                                        {
-                                            Logger.Info?.Print(LogClass.Loader, "Loading built-in process '" + kip.Name.ToString() + "'...");
-                                            TitleIs64Bit = kip.Is64Bit;
-                                            TitleId = kip.ProgramId;
-                                            _titleName = kip.Name.ToString();
+                    Horizon.Instance.AppletState.RegisterNewApplet(processId, appletId, launchReason, libraryAppletContext);
 
-                                            if (ProgramLoader.LoadKip(_device.System.KernelContext, new KipExecutable(kip)))
-                                            {
-                                                return;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    // TODO: set focused only when necessary
+                    Horizon.Instance.AppletState.SetFocusedApplet(processId);
                 }
+                return processId;
             }
-            throw new Exception("Bad");
+
+            return -1;
         }
 
-        public void LoadSystemTitle(ContentManager manager, ulong app_id)
+        public long LoadSystemTitle(ulong programId)
         {
-            var content_path = manager.GetInstalledContentPath(app_id, StorageId.NandSystem, NcaContentType.Program);
-            if(!string.IsNullOrEmpty(content_path))
+            var contentPath = Horizon.Instance.ContentManager.GetInstalledContentPath(programId, StorageId.NandSystem, NcaContentType.Program);
+            if(!string.IsNullOrEmpty(contentPath))
             {
-                Logger.Info?.Print(LogClass.Loader, "Found system title NCA: '" + content_path + "'");
-                var path = _device.Configuration.VirtualFileSystem.SwitchPathToSystemPath(content_path);
-                Logger.Info?.Print(LogClass.Loader, "Found path NCA: '" + path + "'");
-                LoadNca(path);
+                return LoadSystemTitle(contentPath);
             }
+
+            return -1;
         }
 
-        public void LoadNca(string ncaFile)
+        public long LoadSystemTitle(string programContentPath)
+        {
+            var path = _device.Configuration.VirtualFileSystem.SwitchPathToSystemPath(programContentPath);
+            return LoadNca(path);
+        }
+
+        public long LoadNca(string ncaFile)
         {
             FileStream file = new FileStream(ncaFile, FileMode.Open, FileAccess.Read);
             Nca        nca  = new Nca(_device.Configuration.VirtualFileSystem.KeySet, file.AsStorage(false));
 
-            LoadNca(nca, null, null);
+            return LoadNca(nca, null, null);
         }
 
-        private void LoadNca(Nca mainNca, Nca patchNca, Nca controlNca)
+        private long LoadNca(Nca mainNca, Nca patchNca, Nca controlNca)
         {
             if (mainNca.Header.ContentType != NcaContentType.Program)
             {
                 Logger.Error?.Print(LogClass.Loader, "Selected NCA is not a \"Program\" NCA");
 
-                return;
+                return -1;
             }
 
             IStorage    dataStorage = null;
@@ -423,7 +395,7 @@ namespace Ryujinx.HLE.HOS
             {
                 Logger.Error?.Print(LogClass.Loader, "No ExeFS found in NCA");
 
-                return;
+                return -1;
             }
 
             Npdm metaData = ReadNpdm(codeFs);
@@ -465,9 +437,11 @@ namespace Ryujinx.HLE.HOS
                 EnsureSaveData(new ApplicationId(TitleId));
             }
 
-            LoadExeFs(codeFs, metaData);
+            var processId = LoadExeFs(codeFs, metaData);
 
             Logger.Info?.Print(LogClass.Loader, $"Application Loaded: {TitleName} v{DisplayVersion} [{TitleIdText}] [{(TitleIs64Bit ? "64-bit" : "32-bit")}]");
+
+            return processId;
         }
 
         // Sets TitleId, so be sure to call before using it
@@ -521,7 +495,7 @@ namespace Ryujinx.HLE.HOS
             }
         }
 
-        private void LoadExeFs(IFileSystem codeFs, Npdm metaData = null)
+        private long LoadExeFs(IFileSystem codeFs, Npdm metaData = null)
         {
             if (_device.Configuration.VirtualFileSystem.ModLoader.ReplaceExefsPartition(TitleId, ref codeFs))
             {
@@ -584,9 +558,11 @@ namespace Ryujinx.HLE.HOS
 
             Ptc.Initialize(TitleIdText, DisplayVersion, usePtc, _device.Configuration.MemoryManagerMode);
 
-            ProgramLoader.LoadNsos(_device.System.KernelContext, out ProcessTamperInfo tamperInfo, metaData, executables: programs);
+            var processId = ProgramLoader.LoadNsos(_device.System.KernelContext, out ProcessTamperInfo tamperInfo, metaData, executables: programs);
 
             _device.Configuration.VirtualFileSystem.ModLoader.LoadCheats(TitleId, tamperInfo, _device.TamperMachine);
+
+            return processId;
         }
 
         public void LoadProgram(string filePath)

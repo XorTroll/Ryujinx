@@ -1,21 +1,30 @@
+using Ryujinx.Common;
 using Ryujinx.Common.Logging;
 using Ryujinx.HLE.HOS.Kernel.Memory;
 using Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy.LibraryAppletCreator;
+using System;
 
 namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
 {
     class ILibraryAppletCreator : IpcService
     {
+        private AppletContext _self;
+
+        public ILibraryAppletCreator(AppletContext self)
+        {
+            _self = self;
+        }
+
         [CommandHipc(0)]
         // CreateLibraryApplet(u32, u32) -> object<nn::am::service::ILibraryAppletAccessor>
         public ResultCode CreateLibraryApplet(ServiceCtx context)
         {
-            var appletId = (AppletId)context.RequestData.ReadInt32();
-            var libraryAppletMode = (LibraryAppletMode)context.RequestData.ReadInt32();
+            var appletId = context.RequestData.ReadStruct<AppletId>();
+            var libraryAppletMode = context.RequestData.ReadStruct<LibraryAppletMode>();
 
             Logger.Stub?.PrintStub(LogClass.ServiceAm, new { appletId, libraryAppletMode });
 
-            MakeObject(context, new ILibraryAppletAccessor(appletId));
+            MakeObject(context, new ILibraryAppletAccessor(_self, appletId, libraryAppletMode));
 
             return ResultCode.Success;
         }

@@ -2,7 +2,7 @@
 
 namespace Ryujinx.HLE.HOS.Kernel.Process
 {
-    interface IProcessContextFactory
+    public interface IProcessContextFactory
     {
         IProcessContext Create(KernelContext context, long pid, ulong addressSpaceSize, InvalidAccessHandler invalidAccessHandler, bool for64Bit);
     }

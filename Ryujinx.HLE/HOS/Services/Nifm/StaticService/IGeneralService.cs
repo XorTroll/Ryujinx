@@ -1,7 +1,6 @@
 using Ryujinx.Common;
 using Ryujinx.Common.Logging;
 using Ryujinx.HLE.HOS.Services.Nifm.StaticService.GeneralService;
-using Ryujinx.HLE.HOS.Services.Nifm.StaticService.Types;
 using Ryujinx.HLE.Utilities;
 using System;
 using System.Net.NetworkInformation;
@@ -60,7 +59,7 @@ namespace Ryujinx.HLE.HOS.Services.Nifm.StaticService
         {
             ulong networkProfileDataPosition = context.Request.RecvListBuff[0].Position;
 
-            (IPInterfaceProperties interfaceProperties, UnicastIPAddressInformation unicastAddress) = GetLocalInterface();
+            (IPInterfaceProperties interfaceProperties, UnicastIPAddressInformation unicastAddress, _) = GetLocalInterface();
 
             if (interfaceProperties == null || unicastAddress == null)
             {
@@ -86,11 +85,56 @@ namespace Ryujinx.HLE.HOS.Services.Nifm.StaticService
             return ResultCode.Success;
         }
 
+        [CommandHipc(6)]
+        // EnumerateNetworkInterfaces(u32) -> (u32, buffer<nn::nifm::detail::sf::NetworkInterfaceInfo, 0xa>)
+        public ResultCode EnumerateNetworkInterfaces(ServiceCtx context)
+        {
+            var unk = context.RequestData.ReadUInt32();
+            var networkIntfsBuf = context.Request.RecvListBuff[0];
+
+            // unk seems to be an enum of possible values 0, 1, 2, 3 (different ones cause errors)
+            // Each interface seems to be 8 bytes
+
+            uint count = 0;
+
+            // Only returned for 1, 3
+            switch(unk)
+            {
+                case 0:
+                case 2:
+                    break;
+                case 1:
+                case 3:
+                    count = 1;
+
+                    (_, _, var macAddress) = GetLocalInterface();
+
+                    var networkIntf = new NetworkInterfaceInfo();
+                    var macAddressData = macAddress.GetAddressBytes().AsSpan();
+                    macAddressData.CopyTo(networkIntf.MACAddress.ToSpan());
+
+                    // ???
+                    networkIntf.Unk1 = 1;
+                    networkIntf.Unk2 = 1;
+
+                    System.Diagnostics.Debug.Assert(System.Runtime.InteropServices.Marshal.SizeOf<NetworkInterfaceInfo>() == 8);
+
+                    context.Memory.Write(networkIntfsBuf.Position, networkIntf);
+                    break;
+                default:
+                    return ResultCode.Unknown200;
+            }
+
+            context.ResponseData.Write(count);
+
+            return ResultCode.Success;
+        }
+
         [CommandHipc(12)]
         // GetCurrentIpAddress() -> nn::nifm::IpV4Address
         public ResultCode GetCurrentIpAddress(ServiceCtx context)
         {
-            (_, UnicastIPAddressInformation unicastAddress) = GetLocalInterface();
+            (_, UnicastIPAddressInformation unicastAddress, _) = GetLocalInterface();
 
             if (unicastAddress == null)
             {
@@ -108,7 +152,7 @@ namespace Ryujinx.HLE.HOS.Services.Nifm.StaticService
         // GetCurrentIpConfigInfo() -> (nn::nifm::IpAddressSetting, nn::nifm::DnsSetting)
         public ResultCode GetCurrentIpConfigInfo(ServiceCtx context)
         {
-            (IPInterfaceProperties interfaceProperties, UnicastIPAddressInformation unicastAddress) = GetLocalInterface();
+            (IPInterfaceProperties interfaceProperties, UnicastIPAddressInformation unicastAddress, _) = GetLocalInterface();
 
             if (interfaceProperties == null || unicastAddress == null)
             {
@@ -123,13 +167,20 @@ namespace Ryujinx.HLE.HOS.Services.Nifm.StaticService
             return ResultCode.Success;
         }
 
+        [CommandHipc(16)]
+        // SetWirelessCommunicationEnabled(bool)
+        public ResultCode SetWirelessCommunicationEnabled(ServiceCtx context)
+        {
+            Horizon.Instance.State.WirelessCommunicationEnabled = context.RequestData.ReadBoolean();
+
+            return ResultCode.Success;
+        }
+
         [CommandHipc(17)]
         // IsWirelessCommunicationEnabled() -> bool
         public ResultCode IsWirelessCommunicationEnabled(ServiceCtx context)
         {
-            context.ResponseData.Write(true);
-
-            Logger.Stub?.PrintStub(LogClass.ServiceNifm);
+            context.ResponseData.Write(Horizon.Instance.State.WirelessCommunicationEnabled);
 
             return ResultCode.Success;
         }
@@ -182,43 +233,43 @@ namespace Ryujinx.HLE.HOS.Services.Nifm.StaticService
             return ResultCode.Success;
         }
 
-        private (IPInterfaceProperties, UnicastIPAddressInformation) GetLocalInterface()
+        private (IPInterfaceProperties, UnicastIPAddressInformation, PhysicalAddress) GetLocalInterface()
         {
-            if (!NetworkInterface.GetIsNetworkAvailable())
-            {
-                return (null, null);
-            }
-
-            IPInterfaceProperties       targetProperties  = null;
+            IPInterfaceProperties targetProperties = null;
             UnicastIPAddressInformation targetAddressInfo = null;
+            PhysicalAddress macAddress = null;
 
-            NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
-
-            foreach (NetworkInterface adapter in interfaces)
+            if (NetworkInterface.GetIsNetworkAvailable())
             {
-                // Ignore loopback and non IPv4 capable interface.
-                if (targetProperties == null && adapter.NetworkInterfaceType != NetworkInterfaceType.Loopback && adapter.Supports(NetworkInterfaceComponent.IPv4))
+                NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
+
+                foreach (NetworkInterface adapter in interfaces)
                 {
-                    IPInterfaceProperties properties = adapter.GetIPProperties();
-
-                    if (properties.GatewayAddresses.Count > 0 && properties.DnsAddresses.Count > 0)
+                    // Ignore loopback and non IPv4 capable interface.
+                    if (targetProperties == null && adapter.NetworkInterfaceType != NetworkInterfaceType.Loopback && adapter.Supports(NetworkInterfaceComponent.IPv4))
                     {
-                        foreach (UnicastIPAddressInformation info in properties.UnicastAddresses)
-                        {
-                            // Only accept an IPv4 address
-                            if (info.Address.GetAddressBytes().Length == 4)
-                            {
-                                targetProperties  = properties;
-                                targetAddressInfo = info;
+                        IPInterfaceProperties properties = adapter.GetIPProperties();
 
-                                break;
+                        if (properties.GatewayAddresses.Count > 0 && properties.DnsAddresses.Count > 0)
+                        {
+                            foreach (UnicastIPAddressInformation info in properties.UnicastAddresses)
+                            {
+                                // Only accept an IPv4 address
+                                if (info.Address.GetAddressBytes().Length == 4)
+                                {
+                                    targetProperties = properties;
+                                    targetAddressInfo = info;
+                                    macAddress = adapter.GetPhysicalAddress();
+
+                                    break;
+                                }
                             }
                         }
                     }
                 }
             }
 
-            return (targetProperties, targetAddressInfo);
+            return (targetProperties, targetAddressInfo, macAddress);
         }
 
         protected override void Dispose(bool isDisposing)

@@ -2,6 +2,7 @@
 using Gtk;
 using Ryujinx.Common.Configuration;
 using Ryujinx.Input.HLE;
+using Ryujinx.HLE.HOS;
 using SPB.Graphics.Vulkan;
 using SPB.Platform.Win32;
 using SPB.Platform.X11;
@@ -73,7 +74,7 @@ namespace Ryujinx.Ui
 
         protected override void Dispose(bool disposing)
         {
-            Device.DisposeGpu();
+            Horizon.Instance.Device.DisposeGpu();
             NpadManager.Dispose();
         }
     }

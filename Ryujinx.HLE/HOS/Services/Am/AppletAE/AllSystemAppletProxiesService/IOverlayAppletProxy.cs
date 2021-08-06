@@ -5,7 +5,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.AppletAE.AllSystemAppletProxiesService
 {
     class IOverlayAppletProxy : AppletProxyBase
     {
-        public IOverlayAppletProxy(long pid) : base(AppletProxyType.OverlayApplet, pid) { }
+        public IOverlayAppletProxy(AppletContext self) : base(AppletProxyType.OverlayApplet, self) { }
 
         [CommandHipc(20)]
         // GetOverlayFunctions() -> object<nn::am::service::IOverlayFunctions>

@@ -1,10 +1,11 @@
 ﻿using Ryujinx.HLE.HOS.Kernel.Common;
 using Ryujinx.HLE.HOS.Kernel.Memory;
+using Ryujinx.HLE.HOS.Kernel.Process;
 using Ryujinx.HLE.HOS.Kernel.Threading;
 
 namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
 {
-    class Syscall32
+    public class Syscall32
     {
         private readonly Syscall _syscall;
 
@@ -237,7 +238,7 @@ namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
             return result;
         }
 
-        public void Break32([R(0)] uint reason, [R(1)] uint address, [R(2)] uint size)
+        public void Break32([R(0)] BreakReason reason, [R(1)] uint address, [R(2)] uint size)
         {
             _syscall.Break(reason, address, size);
         }
@@ -440,6 +441,11 @@ namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
         public KernelResult SignalToAddress32([R(0)] uint address, [R(1)] SignalType type, [R(2)] int value, [R(3)] int count)
         {
             return _syscall.SignalToAddress(address, type, value, count);
+        }
+
+        public KernelResult CreateCodeMemory32([R(1)] uint address, [R(2)] uint size, [R(1)] out int codeMemoryHandle)
+        {
+            return _syscall.CreateCodeMemory(address, size, out codeMemoryHandle);
         }
     }
 }

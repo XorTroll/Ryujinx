@@ -72,7 +72,7 @@ namespace Ryujinx.Headless.SDL2
         {
             Renderer = Horizon.Instance.Device.Gpu.Renderer;
 
-            NpadManager.Initialize(Horizon.Instance.Device, inputConfigs, enableKeyboard, enableMouse);
+            NpadManager.Initialize(inputConfigs, enableKeyboard, enableMouse);
             TouchScreenManager.Initialize(Horizon.Instance.Device);
         }
 

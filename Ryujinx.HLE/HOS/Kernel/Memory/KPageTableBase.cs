@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Ryujinx.HLE.HOS.Kernel.Memory
 {
-    abstract class KPageTableBase
+    public abstract class KPageTableBase
     {
         private static readonly int[] MappingUnitSizes = new int[]
         {

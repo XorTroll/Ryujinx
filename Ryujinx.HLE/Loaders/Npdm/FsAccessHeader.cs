@@ -6,8 +6,23 @@ namespace Ryujinx.HLE.Loaders.Npdm
 {
     class FsAccessHeader
     {
-        public int   Version            { get; private set; }
-        public ulong PermissionsBitmask { get; private set; }
+        public byte Version { get; private set; }
+        
+        public FsAccessFlag AccessFlag { get; private set; }
+
+        public uint ContentOwnerInfoOffset { get; private set; }
+
+        public uint ContentOwnerInfoSize { get; private set; }
+
+        public uint SaveDataOwnerInfoOffset { get; private set; }
+
+        public uint SaveDataOwnerInfoSize { get; private set; }
+
+        public ulong[] ContentOwnerIds { get; private set; }
+
+        public byte[] SaveDataAccessibilities { get; private set; }
+
+        public ulong[] SaveDataOwnerIds { get; private set; }
 
         public FsAccessHeader(Stream stream, int offset, int size)
         {
@@ -15,23 +30,36 @@ namespace Ryujinx.HLE.Loaders.Npdm
 
             BinaryReader reader = new BinaryReader(stream);
 
-            Version            = reader.ReadInt32();
-            PermissionsBitmask = reader.ReadUInt64();
+            Version            = reader.ReadByte();
+            reader.ReadBytes(3); // Padding
+            AccessFlag = (FsAccessFlag)reader.ReadInt64();
 
-            int dataSize = reader.ReadInt32();
+            ContentOwnerInfoOffset = reader.ReadUInt32();
+            ContentOwnerInfoSize = reader.ReadUInt32();
 
-            if (dataSize != 0x1c)
+            SaveDataOwnerInfoOffset = reader.ReadUInt32();
+            SaveDataOwnerInfoSize = reader.ReadUInt32();
+
+            /* TODO: use this only on certain versions?
+            var contentOwnerIdCount = reader.ReadUInt32();
+            ContentOwnerIds = new ulong[contentOwnerIdCount];
+            for(var i = 0; i < contentOwnerIdCount; i++)
             {
-                throw new InvalidNpdmException("FsAccessHeader is corrupted!");
+                ContentOwnerIds[i] = reader.ReadUInt64();
             }
 
-            int contentOwnerIdSize        = reader.ReadInt32();
-            int dataAndContentOwnerIdSize = reader.ReadInt32();
-
-            if (dataAndContentOwnerIdSize != 0x1c)
+            var saveDataOwnerIdCount = reader.ReadUInt32();
+            SaveDataAccessibilities = new byte[saveDataOwnerIdCount];
+            for (var i = 0; i < saveDataOwnerIdCount; i++)
             {
-                throw new NotImplementedException("ContentOwnerId section is not implemented!");
+                SaveDataAccessibilities[i] = reader.ReadByte();
             }
+            SaveDataOwnerIds = new ulong[saveDataOwnerIdCount];
+            for (var i = 0; i < saveDataOwnerIdCount; i++)
+            {
+                SaveDataOwnerIds[i] = reader.ReadUInt64();
+            }
+            */
         }
     }
 }

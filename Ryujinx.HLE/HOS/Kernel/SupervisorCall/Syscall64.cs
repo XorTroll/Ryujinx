@@ -1,10 +1,11 @@
 ﻿using Ryujinx.HLE.HOS.Kernel.Common;
 using Ryujinx.HLE.HOS.Kernel.Memory;
+using Ryujinx.HLE.HOS.Kernel.Process;
 using Ryujinx.HLE.HOS.Kernel.Threading;
 
 namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
 {
-    class Syscall64
+    public class Syscall64
     {
         private readonly Syscall _syscall;
 
@@ -229,7 +230,7 @@ namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
             return _syscall.GetProcessId(handle, out pid);
         }
 
-        public void Break64([R(0)] ulong reason, [R(1)] ulong address, [R(2)] ulong size)
+        public void Break64([R(0)] BreakReason reason, [R(1)] ulong address, [R(2)] ulong size)
         {
             _syscall.Break(reason, address, size);
         }
@@ -371,6 +372,11 @@ namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
         public KernelResult SignalToAddress64([R(0)] ulong address, [R(1)] SignalType type, [R(2)] int value, [R(3)] int count)
         {
             return _syscall.SignalToAddress(address, type, value, count);
+        }
+
+        public KernelResult CreateCodeMemory64([R(1)] ulong address, [R(2)] ulong size, [R(1)] out int codeMemoryHandle)
+        {
+            return _syscall.CreateCodeMemory(address, size, out codeMemoryHandle);
         }
     }
 }

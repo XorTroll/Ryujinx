@@ -2,7 +2,7 @@
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 
-namespace Ryujinx.HLE.HOS.Services.Nifm.StaticService.Types
+namespace Ryujinx.HLE.HOS.Services.Nifm.StaticService
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 9)]
     struct DnsSetting

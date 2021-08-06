@@ -4,22 +4,18 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
 {
     class IWindowController : IpcService
     {
-        private readonly long _pid;
+        private AppletContext _self;
 
-        public IWindowController(long pid)
+        public IWindowController(AppletContext self)
         {
-            _pid = pid;
+            _self = self;
         }
 
         [CommandHipc(1)]
         // GetAppletResourceUserId() -> nn::applet::AppletResourceUserId
         public ResultCode GetAppletResourceUserId(ServiceCtx context)
         {
-            Logger.Stub?.PrintStub(LogClass.ServiceAm);
-
-            long appletResourceUserId = Horizon.Instance.AppletState.AppletResourceUserIds.Add(_pid);
-
-            context.ResponseData.Write(appletResourceUserId);
+            context.ResponseData.Write(_self.AppletResourceUserId);
 
             return ResultCode.Success;
         }

@@ -10,7 +10,7 @@ using System.Threading;
 
 namespace Ryujinx.HLE.HOS.Kernel.Threading
 {
-    class KThread : KSynchronizationObject, IKFutureSchedulerObject
+    public class KThread : KSynchronizationObject, IKFutureSchedulerObject
     {
         public const int MaxWaitSyncObjects = 64;
 
@@ -1014,25 +1014,38 @@ namespace Ryujinx.HLE.HOS.Kernel.Threading
 
         public string GetName()
         {
-            // Try parsing the actual name on the TLS.
-            // TODO: libnx thread support
-
+            // By default
             var name = HostThread.Name;
 
-            var currentThreadTypePtrAddr = TlsAddress + 0x1F8;
-
-            var currentThreadTypePtr = Owner.CpuMemory.Read<ulong>(currentThreadTypePtrAddr);
-            // Thread ptr might still not be set
-            if (currentThreadTypePtr != 0)
+            var libnxThreadMagicAddr = TlsAddress + 0x1E0;
+            var libnxThreadMagic = Owner.CpuMemory.Read<uint>(libnxThreadMagicAddr);
+            if (libnxThreadMagic != 0x21545624 /* !TV$ */)
             {
-                // New SDK versions have it at 0x180
-                name = MemoryHelper.ReadAsciiString(Owner.CpuMemory, currentThreadTypePtr + 0x180, 0x20);
-                if (string.IsNullOrEmpty(name))
+                // Not a libnx thread
+                // Try parsing the actual name on the TLS
+
+                var currentThreadTypePtrAddr = TlsAddress + 0x1F8;
+
+                var currentThreadTypePtr = Owner.CpuMemory.Read<ulong>(currentThreadTypePtrAddr);
+                // Thread ptr might still not be set
+                if (currentThreadTypePtr != 0)
                 {
-                    // Old SDK versions have it at 0x188
-                    name = MemoryHelper.ReadAsciiString(Owner.CpuMemory, currentThreadTypePtr + 0x188, 0x20);
+                    // New SDK versions have it at 0x180
+                    name = MemoryHelper.ReadAsciiString(Owner.CpuMemory, currentThreadTypePtr + 0x180, 0x20);
+                    if (string.IsNullOrEmpty(name))
+                    {
+                        // Old SDK versions have it at 0x188
+                        name = MemoryHelper.ReadAsciiString(Owner.CpuMemory, currentThreadTypePtr + 0x188, 0x20);
+                    }
                 }
             }
+            else
+            {
+                // Let's just show the thread ID since libnx threads lack names
+
+                name = $"LibnxThread[{ThreadUid}]";
+            }
+            
             return name;
         }
 

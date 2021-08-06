@@ -1,48 +1,78 @@
 ﻿using Ryujinx.Common;
+using Ryujinx.Common.Logging;
 using Ryujinx.HLE.HOS.Services.Am.Applet;
 using Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy;
-using System;
 
 namespace Ryujinx.HLE.HOS.Services.Am.AppletAE.AllSystemAppletProxiesService.LibraryAppletProxy
 {
     class ILibraryAppletSelfAccessor : IpcService
     {
-        private AppletStandalone _appletStandalone = new AppletStandalone();
+        private LibraryAppletContext _selfContext;
 
-        public ILibraryAppletSelfAccessor()
+        public ILibraryAppletSelfAccessor(LibraryAppletContext selfContext)
         {
-            if (Horizon.Instance.Device.Application.TitleId == 0x0100000000001009)
-            {
-                // Create MiiEdit data.
-                _appletStandalone = new AppletStandalone()
-                {
-                    AppletId          = AppletId.MiiEdit,
-                    LibraryAppletMode = LibraryAppletMode.AllForeground
-                };
-
-                byte[] miiEditInputData = new byte[0x100];
-                miiEditInputData[0] = 0x03; // Hardcoded unknown value.
-
-                _appletStandalone.InputData.Enqueue(miiEditInputData);
-            }
-            else
-            {
-                throw new NotImplementedException($"{Horizon.Instance.Device.Application.TitleId} applet is not implemented.");
-            }
+            _selfContext = selfContext;
         }
 
         [CommandHipc(0)]
         // PopInData() -> object<nn::am::service::IStorage>
         public ResultCode PopInData(ServiceCtx context)
         {
-            byte[] appletData = _appletStandalone.InputData.Dequeue();
+            if (_selfContext.TryPopInData(out var data, false))
+            {
+                MakeObject(context, new IStorage(data));
 
-            if (appletData.Length == 0)
+                return ResultCode.Success;
+            }
+            else
             {
                 return ResultCode.NotAvailable;
             }
+        }
 
-            MakeObject(context, new IStorage(appletData));
+        [CommandHipc(1)]
+        // PushOutData(object<nn::am::service::IStorage>)
+        public ResultCode PushOutData(ServiceCtx context)
+        {
+            var data = GetObject<IStorage>(context, 0);
+
+            _selfContext.PushOutData(data.Data, false);
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(2)]
+        // PopInteractiveInData() -> object<nn::am::service::IStorage>
+        public ResultCode PopInteractiveInData(ServiceCtx context)
+        {
+            if (_selfContext.TryPopInData(out var data, true))
+            {
+                MakeObject(context, new IStorage(data));
+
+                return ResultCode.Success;
+            }
+            else
+            {
+                return ResultCode.NotAvailable;
+            }
+        }
+
+        [CommandHipc(3)]
+        // PushInteractiveOutData(object<nn::am::service::IStorage>)
+        public ResultCode PushInteractiveOutData(ServiceCtx context)
+        {
+            var data = GetObject<IStorage>(context, 0);
+
+            _selfContext.PushOutData(data.Data, true);
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(10)]
+        // ExitProcessAndReturn()
+        public ResultCode ExitProcessAndReturn(ServiceCtx context)
+        {
+            _selfContext.Terminate();
 
             return ResultCode.Success;
         }
@@ -51,10 +81,10 @@ namespace Ryujinx.HLE.HOS.Services.Am.AppletAE.AllSystemAppletProxiesService.Lib
         // GetLibraryAppletInfo() -> nn::am::service::LibraryAppletInfo
         public ResultCode GetLibraryAppletInfo(ServiceCtx context)
         {
-            LibraryAppletInfo libraryAppletInfo = new LibraryAppletInfo()
+            var libraryAppletInfo = new LibraryAppletInfo()
             {
-                AppletId          = _appletStandalone.AppletId,
-                LibraryAppletMode = _appletStandalone.LibraryAppletMode
+                AppletId          = _selfContext.AppletId,
+                LibraryAppletMode = _selfContext.LibraryAppletMode
             };
 
             context.ResponseData.WriteStruct(libraryAppletInfo);
@@ -66,15 +96,22 @@ namespace Ryujinx.HLE.HOS.Services.Am.AppletAE.AllSystemAppletProxiesService.Lib
         // GetCallerAppletIdentityInfo() -> nn::am::service::AppletIdentityInfo
         public ResultCode GetCallerAppletIdentityInfo(ServiceCtx context)
         {
-            AppletIdentifyInfo appletIdentifyInfo = new AppletIdentifyInfo()
+            if (Horizon.Instance.AppletState.Applets.TryGetValue(_selfContext.CallerProcessId, out var callerApplet))
             {
-                AppletId = AppletId.QLaunch,
-                TitleId  = 0x0100000000001000
-            };
+                var appletIdentifyInfo = new AppletIdentifyInfo()
+                {
+                    AppletId = callerApplet.AppletId,
+                    TitleId = AppletContext.GetProgramIdFromAppletId(callerApplet.AppletId, false)
+                };
 
-            context.ResponseData.WriteStruct(appletIdentifyInfo);
+                context.ResponseData.WriteStruct(appletIdentifyInfo);
 
-            return ResultCode.Success;
+                return ResultCode.Success;
+            }
+            else
+            {
+                throw new System.Exception();
+            }
         }
     }
 }

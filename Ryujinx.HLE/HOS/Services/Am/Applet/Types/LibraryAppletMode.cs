@@ -3,7 +3,7 @@
 namespace Ryujinx.HLE.HOS.Services.Am.Applet
 {
     [Flags]
-    enum LibraryAppletMode : uint
+    public enum LibraryAppletMode : uint
     {
         AllForeground,
         PartialForeground,

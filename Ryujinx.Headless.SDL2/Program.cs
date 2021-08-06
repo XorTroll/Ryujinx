@@ -61,7 +61,7 @@ namespace Ryujinx.Headless.SDL2
 
             _virtualFileSystem = VirtualFileSystem.CreateInstance();
             _contentManager = new ContentManager(_virtualFileSystem);
-            _accountManager = new AccountManager(_virtualFileSystem);
+            _accountManager = new AccountManager();
             _userChannelPersistence = new UserChannelPersistence();
 
             _inputManager = new InputManager(new SDL2KeyboardDriver(), new SDL2GamepadDriver());

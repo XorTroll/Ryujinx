@@ -125,7 +125,7 @@ namespace Ryujinx.HLE.HOS
             return true;
         }
 
-        public static bool LoadNsos(KernelContext context, out ProcessTamperInfo tamperInfo, Npdm metaData, byte[] arguments = null, params IExecutable[] executables)
+        public static long LoadNsos(KernelContext context, out ProcessTamperInfo tamperInfo, Npdm metaData, byte[] arguments = null, params IExecutable[] executables)
         {
             ulong argsStart = 0;
             uint  argsSize  = 0;
@@ -212,7 +212,7 @@ namespace Ryujinx.HLE.HOS
 
                 tamperInfo = null;
 
-                return false;
+                return -1;
             }
 
             KProcess process = new KProcess(context);
@@ -225,7 +225,7 @@ namespace Ryujinx.HLE.HOS
 
                 tamperInfo = null;
 
-                return false;
+                return -1;
             }
 
             var processContextFactory = new ArmProcessContextFactory(context.Device.Gpu);
@@ -243,7 +243,7 @@ namespace Ryujinx.HLE.HOS
 
                 tamperInfo = null;
 
-                return false;
+                return -1;
             }
 
             for (int index = 0; index < executables.Length; index++)
@@ -258,7 +258,7 @@ namespace Ryujinx.HLE.HOS
 
                     tamperInfo = null;
 
-                    return false;
+                    return -1;
                 }
             }
 
@@ -272,7 +272,7 @@ namespace Ryujinx.HLE.HOS
 
                 tamperInfo = null;
 
-                return false;
+                return -1;
             }
 
             context.Processes.TryAdd(process.Pid, process);
@@ -282,7 +282,7 @@ namespace Ryujinx.HLE.HOS
             // memory modifications are relative to this address.
             tamperInfo = new ProcessTamperInfo(process, buildIds, nsoBase, process.MemoryManager.HeapRegionStart);
 
-            return true;
+            return process.Pid;
         }
 
         private static KernelResult LoadIntoMemory(KProcess process, IExecutable image, ulong baseAddress)

@@ -137,8 +137,6 @@ namespace Ryujinx.Ui
         {
             ConfigurationState.Instance.HideCursorOnIdle.Event -= HideCursorStateChanged;
 
-            Window.Cursor = null;
-
             NpadManager.Dispose();
             Dispose();
         }
@@ -150,7 +148,7 @@ namespace Ryujinx.Ui
                 _lastCursorMoveTime = Stopwatch.GetTimestamp();
             }
 
-            if(ConfigurationState.Instance.Hid.EnableMouse)
+            if (ConfigurationState.Instance.Hid.EnableMouse)
             {
                 Window.Cursor = _invisibleCursor;
             }
@@ -302,7 +300,7 @@ namespace Ryujinx.Ui
                 Renderer.ScreenCaptured += Renderer_ScreenCaptured;
             }
 
-            NpadManager.Initialize(Horizon.Instance.Device, ConfigurationState.Instance.Hid.InputConfig, ConfigurationState.Instance.Hid.EnableKeyboard, ConfigurationState.Instance.Hid.EnableMouse);
+            NpadManager.Initialize(ConfigurationState.Instance.Hid.InputConfig, ConfigurationState.Instance.Hid.EnableKeyboard, ConfigurationState.Instance.Hid.EnableMouse);
             TouchScreenManager.Initialize(Horizon.Instance.Device);
         }
 
@@ -607,7 +605,7 @@ namespace Ryujinx.Ui
             {
                 state |= KeyboardHotkeyState.ToggleVSync;
             }
-            
+
             if (_keyboardInterface.IsPressed((Key)ConfigurationState.Instance.Hid.Hotkeys.Value.Screenshot))
             {
                 state |= KeyboardHotkeyState.Screenshot;

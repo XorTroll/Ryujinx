@@ -4,6 +4,7 @@ using Ryujinx.Common.Configuration;
 using Ryujinx.Common.Logging;
 using Ryujinx.Graphics.OpenGL;
 using Ryujinx.Input.HLE;
+using Ryujinx.HLE.HOS;
 using System;
 
 using static SDL2.SDL;
@@ -152,7 +153,7 @@ namespace Ryujinx.Headless.SDL2.OpenGL
             // Try to bind the OpenGL context before calling the gpu disposal.
             _openGLContext.MakeCurrent();
 
-            Device.DisposeGpu();
+            Horizon.Instance.Device.DisposeGpu();
 
             // Unbind context and destroy everything
             SDL_GL_MakeCurrent(WindowHandle, IntPtr.Zero);

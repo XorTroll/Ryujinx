@@ -19,6 +19,8 @@ namespace Ryujinx.HLE.HOS.Services.Bcat.News
             var msgpackData = new byte[msgpackBuf.Size];
             context.Memory.Read(msgpackBuf.Position, msgpackData);
 
+            // NOTE: not printing the msgpack since it prints all the image data byte by byte... :P
+            /*
             var builder = new StringBuilder();
             MessagePackObject deserializedReport = MessagePackSerializer.UnpackMessagePackObject(msgpackData);
 
@@ -28,6 +30,7 @@ namespace Ryujinx.HLE.HOS.Services.Bcat.News
             builder.AppendLine($" Local news: {MessagePackObjectFormatter.Format(deserializedReport)}");
 
             Logger.Stub?.Print(LogClass.Service, builder.ToString());
+            */
 
             return ResultCode.Success;
         }

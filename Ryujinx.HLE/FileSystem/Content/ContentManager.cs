@@ -7,6 +7,7 @@ using LibHac.FsSystem.NcaUtils;
 using LibHac.Ncm;
 using Ryujinx.Common.Logging;
 using Ryujinx.HLE.Exceptions;
+using Ryujinx.HLE.HOS.Services.Settings;
 using Ryujinx.HLE.HOS.Services.Time;
 using Ryujinx.HLE.Utilities;
 using System;
@@ -14,14 +15,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.InteropServices;
+
+using HOSHorizon = Ryujinx.HLE.HOS.Horizon;
 
 namespace Ryujinx.HLE.FileSystem.Content
 {
     public class ContentManager
     {
-        private const ulong SystemVersionTitleId = 0x0100000000000809;
-        private const ulong SystemUpdateTitleId  = 0x0100000000000816;
-
         private Dictionary<StorageId, LinkedList<LocationEntry>> _locationEntries;
 
         private Dictionary<string, ulong>  _sharedFontTitleDictionary;
@@ -57,22 +58,22 @@ namespace Ryujinx.HLE.FileSystem.Content
 
             _sharedFontTitleDictionary = new Dictionary<string, ulong>
             {
-                { "FontStandard",                  0x0100000000000811 },
-                { "FontChineseSimplified",         0x0100000000000814 },
-                { "FontExtendedChineseSimplified", 0x0100000000000814 },
-                { "FontKorean",                    0x0100000000000812 },
-                { "FontChineseTraditional",        0x0100000000000813 },
-                { "FontNintendoExtended",          0x0100000000000810 }
+                { "FontStandard",                  SystemProgramIds.SystemArchives.FontStandard },
+                { "FontChineseSimplified",         SystemProgramIds.SystemArchives.FontChineseSimple },
+                { "FontExtendedChineseSimplified", SystemProgramIds.SystemArchives.FontChineseSimple },
+                { "FontKorean",                    SystemProgramIds.SystemArchives.FontKorean },
+                { "FontChineseTraditional",        SystemProgramIds.SystemArchives.FontChineseTraditional },
+                { "FontNintendoExtended",          SystemProgramIds.SystemArchives.FontNintendoExtension }
             };
 
             _systemTitlesNameDictionary = new Dictionary<ulong, string>()
             {
-                { 0x010000000000080E, "TimeZoneBinary"         },
-                { 0x0100000000000810, "FontNintendoExtension"  },
-                { 0x0100000000000811, "FontStandard"           },
-                { 0x0100000000000812, "FontKorean"             },
-                { 0x0100000000000813, "FontChineseTraditional" },
-                { 0x0100000000000814, "FontChineseSimple"      },
+                { SystemProgramIds.SystemArchives.TimeZoneBinary,         "TimeZoneBinary"         },
+                { SystemProgramIds.SystemArchives.FontNintendoExtension,  "FontNintendoExtension"  },
+                { SystemProgramIds.SystemArchives.FontStandard,           "FontStandard"           },
+                { SystemProgramIds.SystemArchives.FontKorean,             "FontKorean"             },
+                { SystemProgramIds.SystemArchives.FontChineseTraditional, "FontChineseTraditional" },
+                { SystemProgramIds.SystemArchives.FontChineseSimple,      "FontChineseSimple"      },
             };
 
             _sharedFontFilenameDictionary = new Dictionary<string, string>
@@ -735,9 +736,9 @@ namespace Ryujinx.HLE.FileSystem.Content
                     }
                 }
 
-                if (updateNcas.ContainsKey(SystemUpdateTitleId))
+                if (updateNcas.ContainsKey(SystemProgramIds.SystemArchives.SystemUpdate))
                 {
-                    var ncaEntry = updateNcas[SystemUpdateTitleId];
+                    var ncaEntry = updateNcas[SystemProgramIds.SystemArchives.SystemUpdate];
 
                     string metaPath = ncaEntry.Find(x => x.type == NcaContentType.Meta).path;
 
@@ -761,7 +762,7 @@ namespace Ryujinx.HLE.FileSystem.Content
                             {
                                 metaEntries = meta.MetaEntries;
 
-                                updateNcas.Remove(SystemUpdateTitleId);
+                                updateNcas.Remove(SystemProgramIds.SystemArchives.SystemUpdate);
                             };
                         }
                     }
@@ -771,9 +772,9 @@ namespace Ryujinx.HLE.FileSystem.Content
                         throw new FileNotFoundException("System update title was not found in the firmware package.");
                     }
 
-                    if (updateNcas.ContainsKey(SystemVersionTitleId))
+                    if (updateNcas.ContainsKey(SystemProgramIds.SystemArchives.SystemVersion))
                     {
-                        string versionEntry = updateNcas[SystemVersionTitleId].Find(x => x.type != NcaContentType.Meta).path;
+                        string versionEntry = updateNcas[SystemProgramIds.SystemArchives.SystemVersion].Find(x => x.type != NcaContentType.Meta).path;
 
                         using (Stream ncaStream = GetZipStream(archive.GetEntry(versionEntry)))
                         {
@@ -881,7 +882,7 @@ namespace Ryujinx.HLE.FileSystem.Content
 
                     Nca nca = new Nca(_virtualFileSystem.KeySet, ncaStorage);
 
-                    if (nca.Header.TitleId == SystemUpdateTitleId && nca.Header.ContentType == NcaContentType.Meta)
+                    if (nca.Header.TitleId == SystemProgramIds.SystemArchives.SystemUpdate && nca.Header.ContentType == NcaContentType.Meta)
                     {
                         IFileSystem fs = nca.OpenFileSystem(NcaSectionType.Data, IntegrityCheckLevel.ErrorOnInvalid);
 
@@ -899,7 +900,7 @@ namespace Ryujinx.HLE.FileSystem.Content
 
                         continue;
                     }
-                    else if (nca.Header.TitleId == SystemVersionTitleId && nca.Header.ContentType == NcaContentType.Data)
+                    else if (nca.Header.TitleId == SystemProgramIds.SystemArchives.SystemVersion && nca.Header.ContentType == NcaContentType.Data)
                     {
                         var romfs = nca.OpenFileSystem(NcaSectionType.Data, IntegrityCheckLevel.ErrorOnInvalid);
 
@@ -998,40 +999,59 @@ namespace Ryujinx.HLE.FileSystem.Content
             return null;
         }
 
-        public SystemVersion GetCurrentFirmwareVersion()
+        public bool TryGetCurrentFirmwareVersion(out FirmwareVersion firmwareVersion)
         {
+            firmwareVersion = new FirmwareVersion();
+
             LoadEntries();
 
-            lock (_lock)
+            var contentPath = GetInstalledContentPath(SystemProgramIds.SystemArchives.SystemVersion, StorageId.NandSystem, NcaContentType.Data);
+
+            if (string.IsNullOrWhiteSpace(contentPath))
             {
-                var locationEnties = _locationEntries[StorageId.NandSystem];
-
-                foreach (var entry in locationEnties)
-                {
-                    if (entry.ContentType == NcaContentType.Data)
-                    {
-                        var path = _virtualFileSystem.SwitchPathToSystemPath(entry.ContentPath);
-
-                        using (FileStream fileStream = File.OpenRead(path))
-                        {
-                            Nca nca = new Nca(_virtualFileSystem.KeySet, fileStream.AsStorage());
-
-                            if (nca.Header.TitleId == SystemVersionTitleId && nca.Header.ContentType == NcaContentType.Data)
-                            {
-                                var romfs = nca.OpenFileSystem(NcaSectionType.Data, IntegrityCheckLevel.ErrorOnInvalid);
-
-                                if (romfs.OpenFile(out IFile systemVersionFile, "/file".ToU8Span(), OpenMode.Read).IsSuccess())
-                                {
-                                    return new SystemVersion(systemVersionFile.AsStream());
-                                }
-                            }
-
-                        }
-                    }
-                }
+                return false;
             }
 
-            return null;
+            string firmwareTitlePath = HOSHorizon.Instance.Device.FileSystem.SwitchPathToSystemPath(contentPath);
+
+            using (IStorage firmwareStorage = new LocalStorage(firmwareTitlePath, FileAccess.Read))
+            {
+                Nca firmwareContent = new Nca(HOSHorizon.Instance.KeySet, firmwareStorage);
+
+                if (!firmwareContent.CanOpenSection(NcaSectionType.Data))
+                {
+                    return false;
+                }
+
+                IFileSystem firmwareRomFs = firmwareContent.OpenFileSystem(NcaSectionType.Data, HOSHorizon.Instance.FsIntegrityCheckLevel);
+
+                Result result = firmwareRomFs.OpenFile(out IFile firmwareFile, "/file".ToU8Span(), OpenMode.Read);
+                if (result.IsFailure())
+                {
+                    return false;
+                }
+
+                result = firmwareFile.GetSize(out long fileSize);
+                if (result.IsFailure())
+                {
+                    return false;
+                }
+                if (fileSize < Marshal.SizeOf<FirmwareVersion>())
+                {
+                    return false;
+                }
+
+                var fwData = new byte[fileSize];
+
+                result = firmwareFile.Read(out _, 0, fwData);
+                if (result.IsFailure())
+                {
+                    return false;
+                }
+
+                firmwareVersion = MemoryMarshal.Read<FirmwareVersion>(fwData);
+                return true;
+            }
         }
     }
 }

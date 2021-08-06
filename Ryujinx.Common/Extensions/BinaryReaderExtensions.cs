@@ -9,13 +9,29 @@ namespace Ryujinx.Common
         public unsafe static T ReadStruct<T>(this BinaryReader reader)
             where T : struct
         {
-            int size = Marshal.SizeOf<T>();
+            int size;
+            if (typeof(T).IsEnum)
+            {
+                size = Marshal.SizeOf(Enum.GetUnderlyingType(typeof(T)));
+            }
+            else
+            {
+                size = Marshal.SizeOf<T>();
+            }
 
             byte[] data = reader.ReadBytes(size);
 
             fixed (byte* ptr = data)
             {
-                return Marshal.PtrToStructure<T>((IntPtr)ptr);
+                if(typeof(T).IsEnum)
+                {
+                    var rawValue = Marshal.PtrToStructure((IntPtr)ptr, Enum.GetUnderlyingType(typeof(T)));
+                    return (T)rawValue;
+                }
+                else
+                {
+                    return Marshal.PtrToStructure<T>((IntPtr)ptr);
+                }
             }
         }
 
@@ -42,13 +58,29 @@ namespace Ryujinx.Common
         public unsafe static void WriteStruct<T>(this BinaryWriter writer, T value)
             where T : struct
         {
-            long size = Marshal.SizeOf<T>();
+            long size;
+            if (typeof(T).IsEnum)
+            {
+                size = Marshal.SizeOf(Enum.GetUnderlyingType(typeof(T)));
+            }
+            else
+            {
+                size = Marshal.SizeOf<T>();
+            }
 
             byte[] data = new byte[size];
-
+            
             fixed (byte* ptr = data)
             {
-                Marshal.StructureToPtr<T>(value, (IntPtr)ptr, false);
+                if (typeof(T).IsEnum)
+                {
+                    var convertValue = Convert.ChangeType(value, Enum.GetUnderlyingType(typeof(T)));
+                    Marshal.StructureToPtr((object)convertValue, (IntPtr)ptr, false);
+                }
+                else
+                {
+                    Marshal.StructureToPtr(value, (IntPtr)ptr, false);
+                }
             }
 
             writer.Write(data);

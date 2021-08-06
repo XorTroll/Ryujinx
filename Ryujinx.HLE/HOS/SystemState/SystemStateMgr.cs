@@ -42,6 +42,14 @@ namespace Ryujinx.HLE.HOS.SystemState
 
         public bool DockedMode { get; set; }
 
+        public float Brightness { get; set; }
+
+        public bool AutoBrightnessControlEnabled { get; set; }
+
+        public bool WirelessCommunicationEnabled { get; set; }
+
+        public bool NfcEnabled { get; set; }
+
         public ColorSetId ColorSetId { get; set; }
 
         public string DeviceNickName { get; set; }
@@ -88,7 +96,30 @@ namespace Ryujinx.HLE.HOS.SystemState
         {
             // TODO: Let user specify fields.
             DesiredKeyboardLayout = (long)KeyboardLayout.Default;
-            DeviceNickName        = "Ryujinx's Switch";
+            ColorSetId = ColorSetId.BasicBlack;
+            DeviceNickName = "Ryujinx's Switch";
+            Brightness = 1.0f;
+            AutoBrightnessControlEnabled = false;
+            WirelessCommunicationEnabled = true;
+            LockScreenFlag = false;
+            NfcEnabled = true;
+            AccountSettings = AccountSettings.Default;
+            EulaVersions = new List<EulaVersion>() { EulaVersion.Default };
+            NotificationSettings = NotificationSettings.Default;
+            AccountNotificationSettings = new List<AccountNotificationSettings>() { new AccountNotificationSettings() };
+            TvSettings = TvSettings.Default;
+            QuestFlag = false;
+            UserSystemClockAutomaticCorrectionEnabled = true;
+            PrimaryAlbumStorage = PrimaryAlbumStorage.SdCard;
+            SleepSettings = SleepSettings.Default;
+            InitialLaunchSettings = InitialLaunchSettings.Default;
+            ProductModel = ProductModel.Nx;
+            MiiAuthorId = new UInt128("5279754d69694e780000000000000000");
+            AutoUpdateEnableFlag = false;
+            BatteryPercentageFlag = true;
+            ErrorReportSharePermission = ErrorReportSharePermission.Denied;
+            AppletLaunchFlags = AppletLaunchFlag.None;
+            ChineseTraditionalInputMethod = ChineseTraditionalInputMethod.Unk1;
         }
 
         public void SetLanguage(SystemLanguage language)

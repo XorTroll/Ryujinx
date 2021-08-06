@@ -15,9 +15,9 @@ namespace Ryujinx.HLE.HOS.Services.Caps
 
         private uint _shimLibraryVersion;
 
-        public CaptureManager()
+        public CaptureManager(Switch device)
         {
-            _sdCardPath = Horizon.Instance.Device.FileSystem.GetSdCardPath();
+            _sdCardPath = device.FileSystem.GetSdCardPath();
         }
 
         public ResultCode SetShimLibraryVersion(ServiceCtx context)

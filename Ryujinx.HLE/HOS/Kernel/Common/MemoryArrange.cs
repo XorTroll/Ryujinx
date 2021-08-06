@@ -1,6 +1,6 @@
 namespace Ryujinx.HLE.HOS.Kernel.Common
 {
-    enum MemoryArrange : byte
+    public enum MemoryArrange : byte
     {
         MemoryArrange4GB,
         MemoryArrange4GBAppletDev,

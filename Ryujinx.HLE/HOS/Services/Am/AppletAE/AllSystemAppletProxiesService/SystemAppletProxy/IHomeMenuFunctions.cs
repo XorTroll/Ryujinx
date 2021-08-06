@@ -9,13 +9,10 @@ namespace Ryujinx.HLE.HOS.Services.Am.AppletAE.AllSystemAppletProxiesService.Sys
 {
     class IHomeMenuFunctions : IpcService
     {
-        private KEvent _channelEvent;
         private int    _channelEventHandle;
 
         public IHomeMenuFunctions()
         {
-            // TODO: Signal this Event somewhere in future.
-            _channelEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(10)]
@@ -51,7 +48,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.AppletAE.AllSystemAppletProxiesService.Sys
         {
             if (_channelEventHandle == 0)
             {
-                if (context.Process.HandleTable.GenerateHandle(_channelEvent.ReadableEvent, out _channelEventHandle) != KernelResult.Success)
+                if (context.Process.HandleTable.GenerateHandle(Horizon.Instance.AppletState.PopFromGeneralChannelEvent.ReadableEvent, out _channelEventHandle) != KernelResult.Success)
                 {
                     throw new InvalidOperationException("Out of handles!");
                 }

@@ -7,6 +7,7 @@ using LibHac.FsSystem.NcaUtils;
 using Ryujinx.Common;
 using Ryujinx.Common.Logging;
 using Ryujinx.HLE.FileSystem;
+using Ryujinx.HLE.Utilities;
 using Ryujinx.Cpu;
 using System;
 using System.IO;
@@ -25,55 +26,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         {
             if(!_firmwareVersionLoaded)
             {
-                const ulong SystemVersionTitleId = 0x0100000000000809;
-
-                var contentPath = Horizon.Instance.ContentManager.GetInstalledContentPath(SystemVersionTitleId, StorageId.NandSystem, NcaContentType.Data);
-
-                if (string.IsNullOrWhiteSpace(contentPath))
-                {
-                    return false;
-                }
-
-                string firmwareTitlePath = Horizon.Instance.Device.FileSystem.SwitchPathToSystemPath(contentPath);
-
-                using (IStorage firmwareStorage = new LocalStorage(firmwareTitlePath, FileAccess.Read))
-                {
-                    Nca firmwareContent = new Nca(Horizon.Instance.KeySet, firmwareStorage);
-
-                    if (!firmwareContent.CanOpenSection(NcaSectionType.Data))
-                    {
-                        return false;
-                    }
-
-                    IFileSystem firmwareRomFs = firmwareContent.OpenFileSystem(NcaSectionType.Data, Horizon.Instance.FsIntegrityCheckLevel);
-
-                    Result result = firmwareRomFs.OpenFile(out IFile firmwareFile, "/file".ToU8Span(), OpenMode.Read);
-                    if (result.IsFailure())
-                    {
-                        return false;
-                    }
-
-                    result = firmwareFile.GetSize(out long fileSize);
-                    if (result.IsFailure())
-                    {
-                        return false;
-                    }
-                    if(fileSize < 0x100)
-                    {
-                        return false;
-                    }
-
-                    var fwData = new byte[fileSize];
-
-                    result = firmwareFile.Read(out _, 0, fwData);
-                    if (result.IsFailure())
-                    {
-                        return false;
-                    }
-
-                    _firmwareVersion = MemoryMarshal.Read<FirmwareVersion>(fwData);
-                    _firmwareVersionLoaded = true;
-                }
+                _firmwareVersionLoaded = Horizon.Instance.ContentManager.TryGetCurrentFirmwareVersion(out _firmwareVersion);
             }
 
             return _firmwareVersionLoaded;
@@ -123,7 +76,6 @@ namespace Ryujinx.HLE.HOS.Services.Settings
             }
 
             context.Memory.Write(fwVersionBuf.Position, _firmwareVersion);
-
             return ResultCode.Success;
         }
 
@@ -136,11 +88,29 @@ namespace Ryujinx.HLE.HOS.Services.Settings
             return ResultCode.Success;
         }
 
+        [CommandHipc(8)]
+        // SetLockScreenFlag(bool)
+        public ResultCode SetLockScreenFlag(ServiceCtx context)
+        {
+            Horizon.Instance.State.LockScreenFlag = context.RequestData.ReadBoolean();
+
+            return ResultCode.Success;
+        }
+
         [CommandHipc(17)]
         // GetAccountSettings() -> nn::settings::system::AccountSettings
         public ResultCode GetAccountSettings(ServiceCtx context)
         {
             context.ResponseData.WriteStruct(Horizon.Instance.State.AccountSettings);
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(18)]
+        // SetAccountSettings(nn::settings::system::AccountSettings)
+        public ResultCode SetAccountSettings(ServiceCtx context)
+        {
+            Horizon.Instance.State.AccountSettings = context.RequestData.ReadStruct<AccountSettings>();
 
             return ResultCode.Success;
         }
@@ -213,7 +183,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         // GetAccountNotificationSettings() -> (u32, buffer<nn::settings::system::AccountNotificationSettings, 6>)
         public ResultCode GetAccountNotificationSettings(ServiceCtx context)
         {
-            var accountNotifSettingsBuf = context.Request.RecvListBuff[0];
+            var accountNotifSettingsBuf = context.Request.ReceiveBuff[0];
 
             ulong offset = 0;
             foreach (var accountNotifSettings in Horizon.Instance.State.AccountNotificationSettings)
