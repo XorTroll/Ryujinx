@@ -519,10 +519,12 @@ namespace Ryujinx.HLE.HOS
 
                 codeFs.OpenFile(out IFile nsoFile, $"/{name}".ToU8Span(), OpenMode.Read).ThrowIfFailure();
 
+                /*
                 nsoFile.GetSize(out var size);
                 var span = new Span<byte>(new byte[size]);
                 nsoFile.Read(out var read, 0, span);
                 File.WriteAllBytes("E:\\" + TitleId.ToString("X16") + "." + name, span.ToArray());
+                */
 
                 nsos[i] = new NsoExecutable(nsoFile.AsStorage(), name);
             }

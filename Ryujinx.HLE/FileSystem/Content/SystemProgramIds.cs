@@ -15,8 +15,11 @@ namespace Ryujinx.HLE.FileSystem.Content
             public const ulong Qlaunch = 0x0100000000001000;
             public const ulong OverlayDisp = 0x010000000000100C;
             public const ulong Controller = 0x0100000000001003;
+            public const ulong Swkbd = 0x0100000000001008;
             public const ulong MiiEdit = 0x0100000000001009;
+            public const ulong Shop = 0x010000000000100B;
             public const ulong PhotoViewer = 0x010000000000100D;
+            public const ulong MyPage = 0x0100000000001013;
         }
 
         public static class SystemArchives

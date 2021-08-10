@@ -1,7 +1,9 @@
+using Ryujinx.Common;
 using Ryujinx.Common.Logging;
 using Ryujinx.HLE.HOS.Ipc;
 using Ryujinx.HLE.HOS.Kernel.Common;
 using Ryujinx.HLE.HOS.Kernel.Threading;
+using Ryujinx.HLE.HOS.Services.Am.Applet;
 using System;
 
 namespace Ryujinx.HLE.HOS.Services.Nifm.StaticService
@@ -92,6 +94,15 @@ namespace Ryujinx.HLE.HOS.Services.Nifm.StaticService
             return ResultCode.Success;
         }
 
+        [CommandHipc(6)]
+        // SetRequirement(0x2 (,3.0.0+ 0x4))
+        public ResultCode SetRequirement(ServiceCtx context)
+        {
+            Logger.Stub?.PrintStub(LogClass.ServiceNifm);
+
+            return ResultCode.Success;
+        }
+
         [CommandHipc(11)]
         // SetConnectionConfirmationOption(i8)
         public ResultCode SetConnectionConfirmationOption(ServiceCtx context)
@@ -121,8 +132,8 @@ namespace Ryujinx.HLE.HOS.Services.Nifm.StaticService
             // libraryAppletMode seems to be 0 for all applets supported.
 
             // TODO: check order
-            context.ResponseData.Write(0xe); // Use error applet as default for now
-            context.ResponseData.Write(0); // libraryAppletMode
+            context.ResponseData.WriteStruct(AppletId.LibraryAppletError); // Use error applet as default for now
+            context.ResponseData.WriteStruct(LibraryAppletMode.AllForeground); // libraryAppletMode
             context.ResponseData.Write(0); // outSize
 
             return ResultCode.Success;

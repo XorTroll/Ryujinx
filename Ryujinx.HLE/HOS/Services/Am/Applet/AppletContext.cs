@@ -7,6 +7,8 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
 {
     public class AppletContext
     {
+        private AppletSession _contextSession;
+
         public AppletId AppletId { get; }
 
         public long ProcessId { get; }
@@ -49,11 +51,14 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
         {
             return appletId switch
             {
-                AppletId.OverlayDisp => onlyLibraryAppletsAllowed ? 0x0 : SystemProgramIds.Applets.OverlayDisp,
-                AppletId.QLaunch => onlyLibraryAppletsAllowed ? 0x0 : SystemProgramIds.Applets.Qlaunch,
-                AppletId.Controller => SystemProgramIds.Applets.Controller,
-                AppletId.MiiEdit => SystemProgramIds.Applets.MiiEdit,
-                AppletId.PhotoViewer => SystemProgramIds.Applets.PhotoViewer,
+                AppletId.OverlayApplet => onlyLibraryAppletsAllowed ? 0x0 : SystemProgramIds.Applets.OverlayDisp,
+                AppletId.SystemAppletMenu => onlyLibraryAppletsAllowed ? 0x0 : SystemProgramIds.Applets.Qlaunch,
+                AppletId.LibraryAppletController => SystemProgramIds.Applets.Controller,
+                AppletId.LibraryAppletSwkbd => SystemProgramIds.Applets.Swkbd,
+                AppletId.LibraryAppletMiiEdit => SystemProgramIds.Applets.MiiEdit,
+                AppletId.LibAppletShop => SystemProgramIds.Applets.Shop,
+                AppletId.LibraryAppletPhotoViewer => SystemProgramIds.Applets.PhotoViewer,
+                AppletId.LibraryAppletMyPage =>SystemProgramIds.Applets.MyPage,
                 // TODO: add more
                 _ => 0x0
             };
@@ -80,6 +85,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
             ScreenShotImageOrientation = AlbumImageOrientation.Degrees0;
             AutoSleepDisabled = true;
             AlbumImageTakenNotificationEnabled = true;
+            _contextSession = new AppletSession();
 
             if(LibraryAppletContext != null)
             {
@@ -108,6 +114,16 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
 
                 SendMessages(AppletMessage.FocusStateChanged, isFocused ? AppletMessage.ChangeIntoForeground : AppletMessage.ChangeIntoBackground);
             }
+        }
+
+        public void PushContext(byte[] data)
+        {
+            _contextSession.Push(data);
+        }
+
+        public bool TryPopContext(out byte[] data)
+        {
+            return _contextSession.TryPop(out data);
         }
     }
 }

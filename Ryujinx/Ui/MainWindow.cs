@@ -588,22 +588,19 @@ namespace Ryujinx.Ui
 
                 SetupProgressUiHandlers();
 
-                /*
-                TODO:
-
-                Horizon.Instance.Device.LoadApplet(_contentManager, AppletId.OverlayDisp);
-
+                /* TODO
+                Horizon.Instance.Device.Application.LoadApplet(AppletId.OverlayApplet);
                 */
 
-                /*
-                var miiContext = new LibraryAppletContext(AppletId.QLaunch, LibraryAppletMode.AllForeground);
+                /* Test
+                var miiContext = new LibraryAppletContext(0x0, LibraryAppletMode.AllForeground);
                 byte[] miiEditInputData = new byte[0x100];
                 miiEditInputData[0] = 0x03; // Hardcoded unknown value.
                 miiContext.PushInData(miiEditInputData, false);
-                Horizon.Instance.Device.Application.LoadApplet(AppletId.MiiEdit, miiContext);
+                Horizon.Instance.Device.Application.LoadApplet(AppletId.LibraryAppletMiiEdit, miiContext);
                 */
 
-                Horizon.Instance.Device.Application.LoadApplet(AppletId.QLaunch);
+                Horizon.Instance.Device.Application.LoadApplet(AppletId.SystemAppletMenu);
 
                 _deviceExitStatus.Reset();
 

@@ -3,6 +3,7 @@ using Ryujinx.Common;
 using Ryujinx.Common.Logging;
 using Ryujinx.Common.Memory;
 using Ryujinx.Common.Utilities;
+using Ryujinx.HLE.Utilities;
 using Ryujinx.HLE.HOS.Ipc;
 using Ryujinx.HLE.HOS.Kernel.Common;
 using Ryujinx.HLE.HOS.Kernel.Threading;
@@ -354,6 +355,20 @@ namespace Ryujinx.HLE.HOS.Services.Friend.ServiceCreator
             return ResultCode.Success;
         }
 
+        [CommandHipc(20600)]
+        // GetUserPresenceView(nn::account::Uid) -> buffer<nn::friends::detail::UserPresenceViewImpl, 0x1a>
+        public ResultCode GetUserPresenceView(ServiceCtx context)
+        {
+            var userId = context.RequestData.ReadStruct<UserId>();
+            var userPresenceViewBuf = context.Request.RecvListBuff[0];
+
+            var userPresenceView = new UserPresenceViewImpl();
+
+            context.Memory.Write(userPresenceViewBuf.Position, userPresenceView);
+
+            return ResultCode.Success;
+        }
+
         [CommandHipc(20701)]
         // GetPlayHistoryStatistics(nn::account::Uid) -> nn::friends::PlayHistoryStatistics
         public ResultCode GetPlayHistoryStatistics(ServiceCtx context)
@@ -363,6 +378,44 @@ namespace Ryujinx.HLE.HOS.Services.Friend.ServiceCreator
             var userId = context.RequestData.ReadStruct<UserId>();
 
             context.ResponseData.WriteStruct(PlayHistoryStatistics.Default);
+
+            Logger.Stub?.PrintStub(LogClass.ServiceFriend);
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(20800)]
+        // LoadUserSetting(nn::account::Uid) -> buffer<nn::friends::detail::UserSettingImpl, 0x1a>
+        public ResultCode LoadUserSetting(ServiceCtx context)
+        {
+            var userId = context.RequestData.ReadStruct<UserId>();
+            var userSettingBuf = context.Request.RecvListBuff[0];
+
+            var userSetting = new UserSettingImpl()
+            {
+                UserId = userId,
+                PresencePermission = 0,
+                PlayLogPermission = 0,
+                FriendRequestReception = 0,
+                FriendCode = new Array32<byte>(),
+                FriendCodeNextIssuableTime = 0
+            };
+
+            var friendCode = "SW-6969-6969-6969";
+            var srcSpan = StringUtils.ToSpan(friendCode, 0x20);
+            var dstSpan = userSetting.FriendCode.ToSpan();
+            srcSpan.CopyTo(dstSpan);
+
+            context.Memory.Write(userSettingBuf.Position, userSetting);
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(30100)]
+        // DropFriendNewlyFlags(nn::account::Uid)
+        public ResultCode DropFriendNewlyFlags(ServiceCtx context)
+        {
+            var userId = context.RequestData.ReadStruct<UserId>();
 
             Logger.Stub?.PrintStub(LogClass.ServiceFriend);
 

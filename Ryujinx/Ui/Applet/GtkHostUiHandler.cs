@@ -1,7 +1,6 @@
 using Gtk;
 using Ryujinx.HLE;
 using Ryujinx.HLE.HOS;
-using Ryujinx.HLE.HOS.Applets;
 using Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy;
 using Ryujinx.Ui.Widgets;
 using System;
@@ -16,19 +15,6 @@ namespace Ryujinx.Ui.Applet
         public GtkHostUiHandler(Window parent)
         {
             _parent = parent;
-        }
-
-        public bool DisplayMessageDialog(ControllerAppletUiArgs args)
-        {
-            string playerCount = args.PlayerCountMin == args.PlayerCountMax ? $"exactly {args.PlayerCountMin}" : $"{args.PlayerCountMin}-{args.PlayerCountMax}";
-
-            string message = $"Application requests <b>{playerCount}</b> player(s) with:\n\n"
-                           + $"<tt><b>TYPES:</b> {args.SupportedStyles}</tt>\n\n"
-                           + $"<tt><b>PLAYERS:</b> {string.Join(", ", args.SupportedPlayers)}</tt>\n\n"
-                           + (args.IsDocked ? "Docked mode set. <tt>Handheld</tt> is also invalid.\n\n" : "")
-                           + "<i>Please reconfigure Input now and then press OK.</i>";
-
-            return DisplayMessageDialog("Controller Applet", message);
         }
 
         public bool DisplayMessageDialog(string title, string message)
@@ -76,58 +62,6 @@ namespace Ryujinx.Ui.Applet
             dialogCloseEvent.WaitOne();
 
             return okPressed;
-        }
-
-        public bool DisplayInputDialog(SoftwareKeyboardUiArgs args, out string userText)
-        {
-            ManualResetEvent dialogCloseEvent = new ManualResetEvent(false);
-
-            bool   okPressed = false;
-            bool   error     = false;
-            string inputText = args.InitialText ?? "";
-
-            Application.Invoke(delegate
-            {
-                try
-                {
-                    var swkbdDialog = new SwkbdAppletDialog(_parent)
-                    {
-                        Title         = "Software Keyboard",
-                        Text          = args.HeaderText,
-                        SecondaryText = args.SubtitleText
-                    };
-
-                    swkbdDialog.InputEntry.Text            = inputText;
-                    swkbdDialog.InputEntry.PlaceholderText = args.GuideText;
-                    swkbdDialog.OkButton.Label             = args.SubmitText;
-
-                    swkbdDialog.SetInputLengthValidation(args.StringLengthMin, args.StringLengthMax);
-
-                    if (swkbdDialog.Run() == (int)ResponseType.Ok)
-                    {
-                        inputText = swkbdDialog.InputEntry.Text;
-                        okPressed = true;
-                    }
-
-                    swkbdDialog.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    error = true;
-
-                    GtkDialog.CreateErrorDialog($"Error displaying Software Keyboard: {ex}");
-                }
-                finally
-                {
-                    dialogCloseEvent.Set();
-                }
-            });
-
-            dialogCloseEvent.WaitOne();
-
-            userText = error ? null : inputText;
-
-            return error || okPressed;
         }
 
         public void ExecuteProgram(ProgramSpecifyKind kind, ulong value)

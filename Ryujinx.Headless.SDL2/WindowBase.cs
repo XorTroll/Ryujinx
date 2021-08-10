@@ -5,7 +5,6 @@ using Ryujinx.Common.Logging;
 using Ryujinx.Graphics.GAL;
 using Ryujinx.HLE;
 using Ryujinx.HLE.HOS;
-using Ryujinx.HLE.HOS.Applets;
 using Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy;
 using Ryujinx.Input;
 using Ryujinx.Input.HLE;
@@ -306,32 +305,11 @@ namespace Ryujinx.Headless.SDL2
             Exit();
         }
 
-        public bool DisplayInputDialog(SoftwareKeyboardUiArgs args, out string userText)
-        {
-            // SDL2 doesn't support input dialogs
-            userText = "Ryujinx";
-
-            return true;
-        }
-
         public bool DisplayMessageDialog(string title, string message)
         {
             SDL_ShowSimpleMessageBox(SDL_MessageBoxFlags.SDL_MESSAGEBOX_INFORMATION, title, message, WindowHandle);
 
             return true;
-        }
-
-        public bool DisplayMessageDialog(ControllerAppletUiArgs args)
-        {
-            string playerCount = args.PlayerCountMin == args.PlayerCountMax ? $"exactly {args.PlayerCountMin}" : $"{args.PlayerCountMin}-{args.PlayerCountMax}";
-
-            string message = $"Application requests {playerCount} player(s) with:\n\n"
-                           + $"TYPES: {args.SupportedStyles}\n\n"
-                           + $"PLAYERS: {string.Join(", ", args.SupportedPlayers)}\n\n"
-                           + (args.IsDocked ? "Docked mode set. Handheld is also invalid.\n\n" : "")
-                           + "Please reconfigure Input now and then press OK.";
-
-            return DisplayMessageDialog("Controller Applet", message);
         }
 
         public void ExecuteProgram(ProgramSpecifyKind kind, ulong value)

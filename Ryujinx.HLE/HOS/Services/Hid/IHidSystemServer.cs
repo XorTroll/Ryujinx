@@ -14,9 +14,17 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         private KEvent _joyDetachOnBluetoothOffEvent;
         private int _joyDetachOnBluetoothOffEventHandle;
 
+        private KEvent _deviceRegisteredEventForControllerSupport;
+        private int _deviceRegisteredEventForControllerSupportHandle;
+
+        private KEvent _connectionTriggerTimeoutEvent;
+        private int _connectionTriggerTimeoutEventHandle;
+
         public IHidSystemServer()
         {
             _joyDetachOnBluetoothOffEvent = new KEvent(Horizon.Instance.KernelContext);
+            _deviceRegisteredEventForControllerSupport = new KEvent(Horizon.Instance.KernelContext);
+            _connectionTriggerTimeoutEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
         [CommandHipc(303)]
@@ -69,6 +77,44 @@ namespace Ryujinx.HLE.HOS.Services.Hid
             return resultCode;
         }
 
+        [CommandHipc(544)]
+        // AcquireConnectionTriggerTimeoutEvent() -> handle<copy>
+        public ResultCode AcquireConnectionTriggerTimeoutEvent(ServiceCtx context)
+        {
+            if (_connectionTriggerTimeoutEventHandle == 0)
+            {
+                if (context.Process.HandleTable.GenerateHandle(_connectionTriggerTimeoutEvent.ReadableEvent, out _connectionTriggerTimeoutEventHandle) != KernelResult.Success)
+                {
+                    throw new InvalidOperationException("Out of handles!");
+                }
+            }
+
+            context.Response.HandleDesc = IpcHandleDesc.MakeCopy(_connectionTriggerTimeoutEventHandle);
+
+            Logger.Stub?.PrintStub(LogClass.ServiceHid);
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(546)]
+        // AcquireDeviceRegisteredEventForControllerSupport() -> handle<copy>
+        public ResultCode AcquireDeviceRegisteredEventForControllerSupport(ServiceCtx context)
+        {
+            if (_deviceRegisteredEventForControllerSupportHandle == 0)
+            {
+                if (context.Process.HandleTable.GenerateHandle(_deviceRegisteredEventForControllerSupport.ReadableEvent, out _deviceRegisteredEventForControllerSupportHandle) != KernelResult.Success)
+                {
+                    throw new InvalidOperationException("Out of handles!");
+                }
+            }
+
+            context.Response.HandleDesc = IpcHandleDesc.MakeCopy(_deviceRegisteredEventForControllerSupportHandle);
+
+            Logger.Stub?.PrintStub(LogClass.ServiceHid);
+
+            return ResultCode.Success;
+        }
+
         [CommandHipc(703)]
         // GetUniquePadIds() -> u64, buffer
         public ResultCode GetUniquePadIds(ServiceCtx context)
@@ -116,6 +162,15 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 
             context.ResponseData.Write(false);
 
+            Logger.Stub?.PrintStub(LogClass.ServiceHid);
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(1000)]
+        // InitializeFirmwareUpdate()
+        public ResultCode InitializeFirmwareUpdate(ServiceCtx context)
+        {
             Logger.Stub?.PrintStub(LogClass.ServiceHid);
 
             return ResultCode.Success;

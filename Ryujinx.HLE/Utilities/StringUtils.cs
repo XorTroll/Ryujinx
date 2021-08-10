@@ -80,6 +80,14 @@ namespace Ryujinx.HLE.Utilities
             return Encoding.UTF8.GetString(span.Slice(0, span.IndexOf((byte)0)));
         }
 
+        public static ReadOnlySpan<byte> ToSpan(string str, int maxLen)
+        {
+            var strData = Encoding.UTF8.GetBytes(str);
+            var spanData = new byte[0x20];
+            strData.CopyTo(spanData, 0);
+            return spanData.AsSpan();
+        }
+
         public static U8Span ReadUtf8Span(ServiceCtx context, int index = 0)
         {
             ulong position = (ulong)context.Request.PtrBuff[index].Position;

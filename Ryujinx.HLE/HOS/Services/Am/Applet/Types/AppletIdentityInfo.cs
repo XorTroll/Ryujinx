@@ -7,6 +7,6 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
     {
         public AppletId AppletId;
         public uint     Padding;
-        public ulong    TitleId;
+        public ulong    ApplicationId;
     }
 }

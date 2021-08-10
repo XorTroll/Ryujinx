@@ -781,7 +781,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
                 NpadIdType.Player6  => 0b0101,
                 NpadIdType.Player7  => 0b1101,
                 NpadIdType.Player8  => 0b0110,
-                NpadIdType.Unknown  => 0b0000,
+                NpadIdType.Other    => 0b0000,
                 NpadIdType.Handheld => 0b0000,
                 _ => throw new ArgumentOutOfRangeException(nameof(npadId))
             };

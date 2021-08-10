@@ -11,7 +11,9 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
         private AppletSession _interactiveSession;
         private KEvent _stateChangedEvent;
         private KEvent _normalOutDataEvent;
+        private KEvent _normalInDataEvent;
         private KEvent _interactiveOutDataEvent;
+        private KEvent _interactiveInDataEvent;
         private AppletContext _baseContext;
 
         public long CallerProcessId { get; private set; }
@@ -31,7 +33,9 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
             _interactiveSession = new();
             _stateChangedEvent = new KEvent(Horizon.Instance.KernelContext);
             _normalOutDataEvent = new KEvent(Horizon.Instance.KernelContext);
+            _normalInDataEvent = new KEvent(Horizon.Instance.KernelContext);
             _interactiveOutDataEvent = new KEvent(Horizon.Instance.KernelContext);
+            _interactiveInDataEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
         public void SetBaseContext(AppletContext context)
@@ -42,6 +46,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
         public void PushInData(byte[] data, bool interactive)
         {
             (interactive ? _interactiveSession : _normalSession).Push(data);
+            (interactive ? _interactiveInDataEvent : _normalInDataEvent).ReadableEvent.Signal();
         }
 
         public bool TryPopOutData(out byte[] data, bool interactive)
@@ -58,7 +63,13 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
         public bool TryPopInData(out byte[] data, bool interactive)
         {
             var consumerSession = (interactive ? _interactiveSession : _normalSession).GetConsumer();
-            return consumerSession.TryPop(out data);
+            if(consumerSession.TryPop(out data))
+            {
+                (interactive ? _interactiveInDataEvent : _normalInDataEvent).ReadableEvent.Clear();
+                return true;
+            }
+
+            return false;
         }
 
         public void PushOutData(byte[] data, bool interactive)
@@ -89,9 +100,19 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
             return TryCreateEventHandle(process, _normalOutDataEvent, out handle);
         }
 
+        public bool TryCreatePopInDataEventHandle(KProcess process, out int handle)
+        {
+            return TryCreateEventHandle(process, _normalInDataEvent, out handle);
+        }
+
         public bool TryCreatePopInteractiveOutDataEventHandle(KProcess process, out int handle)
         {
             return TryCreateEventHandle(process, _interactiveOutDataEvent, out handle);
+        }
+
+        public bool TryCreatePopInteractiveInDataEventHandle(KProcess process, out int handle)
+        {
+            return TryCreateEventHandle(process, _interactiveInDataEvent, out handle);
         }
 
         public void Terminate()

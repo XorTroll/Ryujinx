@@ -16,10 +16,30 @@ namespace Ryujinx.HLE.HOS.Services.BluetoothManager.BtmSystem
             _radioEvent = new KEvent(Horizon.Instance.KernelContext);
         }
 
+        [CommandHipc(0)]
+        // StartGamepadPairing()
+        public ResultCode StartGamepadPairing(ServiceCtx context)
+        {
+            Logger.Stub?.PrintStub(LogClass.ServiceBtm);
+
+            return ResultCode.Success;
+        }
+
+        [CommandHipc(1)]
+        // CancelGamepadPairing()
+        public ResultCode CancelGamepadPairing(ServiceCtx context)
+        {
+            Logger.Stub?.PrintStub(LogClass.ServiceBtm);
+
+            return ResultCode.Success;
+        }
+
         [CommandHipc(4)]
         // EnableRadio()
         public ResultCode EnableRadio(ServiceCtx context)
         {
+            Logger.Stub?.PrintStub(LogClass.ServiceBtm);
+
             return ResultCode.Success;
         }
 

@@ -1,11 +1,6 @@
 ﻿using Ryujinx.Common.Logging;
-using Ryujinx.HLE.FileSystem.Content;
 using Ryujinx.HLE.HOS.Ipc;
-using Ryujinx.HLE.HOS.Kernel;
-using Ryujinx.HLE.HOS.Kernel.Common;
-using Ryujinx.HLE.HOS.Kernel.Threading;
 using System;
-using System.Collections.Concurrent;
 
 namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy.LibraryAppletCreator
 {

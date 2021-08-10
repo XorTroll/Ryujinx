@@ -15,8 +15,8 @@ namespace Ryujinx.HLE.HOS.Services.Hid.Server
             NpadIdType.Player6  => PlayerIndex.Player6,
             NpadIdType.Player7  => PlayerIndex.Player7,
             NpadIdType.Player8  => PlayerIndex.Player8,
+            NpadIdType.Other    => PlayerIndex.Other,
             NpadIdType.Handheld => PlayerIndex.Handheld,
-            NpadIdType.Unknown  => PlayerIndex.Unknown,
             _                   => throw new ArgumentOutOfRangeException(nameof(npadIdType))
         };
 
@@ -31,8 +31,8 @@ namespace Ryujinx.HLE.HOS.Services.Hid.Server
             PlayerIndex.Player6  => NpadIdType.Player6,
             PlayerIndex.Player7  => NpadIdType.Player7,
             PlayerIndex.Player8  => NpadIdType.Player8,
+            PlayerIndex.Other    => NpadIdType.Other,
             PlayerIndex.Handheld => NpadIdType.Handheld,
-            PlayerIndex.Unknown  => NpadIdType.Unknown,
             _                    => throw new ArgumentOutOfRangeException(nameof(index))
         };
     }

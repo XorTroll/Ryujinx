@@ -16,7 +16,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         private int _activeCount;
         private long _lastNotifyTimestamp;
 
-        public const int MaxControllers = 9; // Players 1-8 and Handheld
+        public const int MaxControllers = (int)PlayerIndex.Auto; // Players 1-8 and Handheld
         private ControllerType[] _configuredTypes;
         private KEvent[] _styleSetUpdateEvents;
         private bool[] _supportedPlayers;
@@ -75,7 +75,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 
         public bool Validate(int playerMin, int playerMax, ControllerType acceptedTypes, out int configuredCount, out PlayerIndex primaryIndex)
         {
-            primaryIndex = PlayerIndex.Unknown;
+            primaryIndex = PlayerIndex.Other;
             configuredCount = 0;
 
             for (int i = 0; i < MaxControllers; ++i)
@@ -92,14 +92,14 @@ namespace Ryujinx.HLE.HOS.Services.Hid
                 if (currentType != ControllerType.None && (npad & acceptedTypes) != 0 && _supportedPlayers[i])
                 {
                     configuredCount++;
-                    if (primaryIndex == PlayerIndex.Unknown)
+                    if (primaryIndex == PlayerIndex.Other)
                     {
                         primaryIndex = (PlayerIndex)i;
                     }
                 }
             }
 
-            if (configuredCount < playerMin || configuredCount > playerMax || primaryIndex == PlayerIndex.Unknown)
+            if (configuredCount < playerMin || configuredCount > playerMax || primaryIndex == PlayerIndex.Other)
             {
                 return false;
             }
@@ -374,7 +374,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 
         private void UpdateInput(GamepadInput state)
         {
-            if (state.PlayerId == PlayerIndex.Unknown)
+            if (state.PlayerId == PlayerIndex.Other)
             {
                 return;
             }
@@ -511,7 +511,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 
         private bool SetSixAxisState(SixAxisInput state, bool isRightPair = false)
         {
-            if (state.PlayerId == PlayerIndex.Unknown)
+            if (state.PlayerId == PlayerIndex.Other)
             {
                 return false;
             }

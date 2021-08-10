@@ -43,5 +43,12 @@ namespace Ryujinx.HLE.HOS.Services.Account.Acc.AccountService
         {
             return _managerServer.LoadIdTokenCache(context);
         }
+
+        [CommandHipc(130)]
+        // GetNintendoAccountUserResourceCache() -> (nn::account::NintendoAccountId, buffer<nn::account::nas::NasUserBase, 0x1a>, buffer<bytes, 6>)
+        public ResultCode GetNintendoAccountUserResourceCache(ServiceCtx context)
+        {
+            return (ResultCode)0x234A7C;
+        }
     }
 }

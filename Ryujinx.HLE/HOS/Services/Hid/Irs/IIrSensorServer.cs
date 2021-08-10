@@ -59,7 +59,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid.Irs
             NpadIdType npadIdType = (NpadIdType)context.RequestData.ReadUInt32();
 
             if (npadIdType >  NpadIdType.Player8 && 
-                npadIdType != NpadIdType.Unknown && 
+                npadIdType != NpadIdType.Other && 
                 npadIdType != NpadIdType.Handheld)
             {
                 return ResultCode.NpadIdOutOfRange;

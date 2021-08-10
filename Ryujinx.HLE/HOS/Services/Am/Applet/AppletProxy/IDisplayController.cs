@@ -17,6 +17,17 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
             _transferMem = Horizon.Instance.AppletCaptureBufferTransfer;
         }
 
+        [CommandHipc(7)]
+        // GetCallerAppletCaptureImageEx() -> (b8, buffer<bytes, 6>)
+        public ResultCode GetCallerAppletCaptureImageEx(ServiceCtx context)
+        {
+            context.ResponseData.Write(false);
+
+            Logger.Stub?.PrintStub(LogClass.ServiceAm);
+
+            return ResultCode.Success;
+        }
+
         [CommandHipc(8)] // 2.0.0+
         // TakeScreenShotOfOwnLayer(b8, s32)
         public ResultCode TakeScreenShotOfOwnLayer(ServiceCtx context)

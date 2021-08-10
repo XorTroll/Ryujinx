@@ -67,8 +67,8 @@ namespace Ryujinx.Modules
             {
                 Assets = new Assets
                 {
-                    LargeImageKey = "game",
-                    LargeImageText = "Whatdafucc",
+                    LargeImageKey = "game", // TODO: some other image more related to the system?
+                    LargeImageText = "HOME menu", // TODO: applet/process name?
                     SmallImageKey = "ryujinx",
                     SmallImageText = Description,
                 },
