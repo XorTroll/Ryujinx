@@ -366,6 +366,8 @@ namespace Ryujinx.HLE.HOS.Services.Friend.ServiceCreator
 
             context.Memory.Write(userPresenceViewBuf.Position, userPresenceView);
 
+            Logger.Stub?.PrintStub(LogClass.ServiceFriend);
+
             return ResultCode.Success;
         }
 
@@ -373,8 +375,6 @@ namespace Ryujinx.HLE.HOS.Services.Friend.ServiceCreator
         // GetPlayHistoryStatistics(nn::account::Uid) -> nn::friends::PlayHistoryStatistics
         public ResultCode GetPlayHistoryStatistics(ServiceCtx context)
         {
-            // TODO
-
             var userId = context.RequestData.ReadStruct<UserId>();
 
             context.ResponseData.WriteStruct(PlayHistoryStatistics.Default);
@@ -407,6 +407,8 @@ namespace Ryujinx.HLE.HOS.Services.Friend.ServiceCreator
             srcSpan.CopyTo(dstSpan);
 
             context.Memory.Write(userSettingBuf.Position, userSetting);
+
+            Logger.Stub?.PrintStub(LogClass.ServiceFriend);
 
             return ResultCode.Success;
         }

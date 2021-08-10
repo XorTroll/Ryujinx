@@ -9,11 +9,6 @@ namespace Ryujinx.Common.Memory
         public int Length => 1;
         public ref T this[int index] => ref ToSpan()[index];
         public Span<T> ToSpan() => MemoryMarshal.CreateSpan(ref _e0, 1);
-
-        public Array1(Span<T> span)
-        {
-            _e0 = span[0];
-        }
     }
     public struct Array2<T> : IArray<T> where T : unmanaged
     {

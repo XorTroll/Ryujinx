@@ -64,9 +64,16 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         {
             long appletResourceUserId = context.RequestData.ReadInt64();
 
-            MakeObject(context, new IAppletResource(Horizon.Instance.HidSharedMem));
+            if (Horizon.Instance.RegisterHidSharedMemory(appletResourceUserId, out var shmem))
+            {
+                MakeObject(context, new IAppletResource(shmem));
 
-            return ResultCode.Success;
+                return ResultCode.Success;
+            }
+            else
+            {
+                return ResultCode.InvalidNpadIdType;
+            }
         }
 
         [CommandHipc(1)]

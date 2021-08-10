@@ -46,14 +46,14 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
         public void PushInData(byte[] data, bool interactive)
         {
             (interactive ? _interactiveSession : _normalSession).Push(data);
-            (interactive ? _interactiveInDataEvent : _normalInDataEvent).ReadableEvent.Signal();
+            (interactive ? _interactiveInDataEvent : _normalInDataEvent).WritableEvent.Signal();
         }
 
         public bool TryPopOutData(out byte[] data, bool interactive)
         {
             if ((interactive ? _interactiveSession : _normalSession).TryPop(out data))
             {
-                (interactive ? _interactiveOutDataEvent : _normalOutDataEvent).ReadableEvent.Clear();
+                (interactive ? _interactiveOutDataEvent : _normalOutDataEvent).WritableEvent.Clear();
                 return true;
             }
 
@@ -65,7 +65,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
             var consumerSession = (interactive ? _interactiveSession : _normalSession).GetConsumer();
             if(consumerSession.TryPop(out data))
             {
-                (interactive ? _interactiveInDataEvent : _normalInDataEvent).ReadableEvent.Clear();
+                (interactive ? _interactiveInDataEvent : _normalInDataEvent).WritableEvent.Clear();
                 return true;
             }
 
@@ -77,12 +77,12 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
             var consumerSession = (interactive ? _interactiveSession : _normalSession).GetConsumer();
             consumerSession.Push(data);
             Ryujinx.Common.Logging.Logger.Warning?.Print(Common.Logging.LogClass.ServiceAm, "Pushing out data from applet " + AppletId + " of size " + data.Length);
-            (interactive ? _interactiveOutDataEvent : _normalOutDataEvent).ReadableEvent.Signal();
+            (interactive ? _interactiveOutDataEvent : _normalOutDataEvent).WritableEvent.Signal();
         }
 
         public void NotifyStateChanged()
         {
-            _stateChangedEvent.ReadableEvent.Signal();
+            _stateChangedEvent.WritableEvent.Signal();
         }
 
         private bool TryCreateEventHandle(KProcess process, KEvent evt, out int handle)
@@ -122,13 +122,19 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
             // Change state
             NotifyStateChanged();
 
+            Horizon.Instance.AppletState.TerminateApplet(_baseContext.AppletResourceUserId);
+
             // Set caller applet focused
-            Horizon.Instance.AppletState.SetFocusedApplet(CallerProcessId);
+            Horizon.Instance.AppletState.SetFocusedApplet(CallerProcessId, true);
+
+            // Remove the HID shmem the applet may have created
+            Horizon.Instance.RemoveHidSharedMemory(_baseContext.AppletResourceUserId);
 
             // Terminate process
-            if (Horizon.Instance.KernelContext.Processes.TryGetValue(_baseContext.ProcessId, out var process))
+            if (Horizon.Instance.KernelContext.Processes.TryRemove(_baseContext.ProcessId, out var process))
             {
                 process.Terminate();
+                process.DecrementReferenceCount();
             }
         }
     }

@@ -76,6 +76,7 @@ using Ryujinx.HLE.Loaders.Executables;
 using Ryujinx.HLE.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -211,7 +212,8 @@ namespace Ryujinx.HLE.HOS
             Bcat
         };
 
-        internal KSharedMemory HidSharedMem  { get; private set; }
+        private KPageList _hidPageList;
+        internal ConcurrentDictionary<long, KSharedMemory> HidSharedMems { get; private set; }
         internal KSharedMemory FontSharedMem { get; private set; }
         internal KSharedMemory IirsSharedMem { get; private set; }
 
@@ -237,12 +239,31 @@ namespace Ryujinx.HLE.HOS
 
         public int GlobalAccessLogMode { get; set; }
 
-        internal SharedMemoryStorage HidStorage { get; private set; }
-
         internal NvHostSyncpt HostSyncpoint { get; private set; }
 
         internal LibHac.Horizon LibHacHorizonServer { get; private set; }
         internal HorizonClient LibHacHorizonClient { get; private set; }
+
+        internal bool RegisterHidSharedMemory(long appletResourceUserId, out KSharedMemory shmem)
+        {
+            var storage = new SharedMemoryStorage(KernelContext, _hidPageList);
+            shmem = new KSharedMemory(KernelContext, storage, 0, 0, KMemoryPermission.Read);
+            if (HidSharedMems.TryAdd(appletResourceUserId, shmem))
+            {
+                Device.Hid.RegisterSharedMemory(storage);
+                return true;
+            }
+
+            return false;
+        }
+
+        internal void RemoveHidSharedMemory(long appletResourceUserId)
+        {
+            if (HidSharedMems.Remove(appletResourceUserId, out var shmem))
+            {
+                Device.Hid.RegisterSharedMemory(shmem.Storage);
+            }
+        }
 
         public Horizon(Switch device)
         {
@@ -270,27 +291,25 @@ namespace Ryujinx.HLE.HOS
             ulong timePa                = region.Address + HidSize + FontSize + IirsSize;
             ulong appletCaptureBufferPa = region.Address + HidSize + FontSize + IirsSize + TimeSize;
 
-            KPageList hidPageList                 = new KPageList();
+            _hidPageList                         = new KPageList();
             KPageList fontPageList                = new KPageList();
             KPageList iirsPageList                = new KPageList();
             KPageList timePageList                = new KPageList();
             KPageList appletCaptureBufferPageList = new KPageList();
 
-            hidPageList.AddRange(hidPa, HidSize / KPageTableBase.PageSize);
+            _hidPageList.AddRange(hidPa, HidSize / KPageTableBase.PageSize);
             fontPageList.AddRange(fontPa, FontSize / KPageTableBase.PageSize);
             iirsPageList.AddRange(iirsPa, IirsSize / KPageTableBase.PageSize);
             timePageList.AddRange(timePa, TimeSize / KPageTableBase.PageSize);
             appletCaptureBufferPageList.AddRange(appletCaptureBufferPa, AppletCaptureBufferSize / KPageTableBase.PageSize);
 
-            var hidStorage = new SharedMemoryStorage(KernelContext, hidPageList);
+            HidSharedMems = new();
+
             var fontStorage = new SharedMemoryStorage(KernelContext, fontPageList);
             var iirsStorage = new SharedMemoryStorage(KernelContext, iirsPageList);
             var timeStorage = new SharedMemoryStorage(KernelContext, timePageList);
             var appletCaptureBufferStorage = new SharedMemoryStorage(KernelContext, appletCaptureBufferPageList);
 
-            HidStorage = hidStorage;
-
-            HidSharedMem  = new KSharedMemory(KernelContext, hidStorage,  0, 0, KMemoryPermission.Read);
             FontSharedMem = new KSharedMemory(KernelContext, fontStorage, 0, 0, KMemoryPermission.Read);
             IirsSharedMem = new KSharedMemory(KernelContext, iirsStorage, 0, 0, KMemoryPermission.Read);
 

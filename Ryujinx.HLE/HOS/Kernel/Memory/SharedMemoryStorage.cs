@@ -65,11 +65,33 @@ namespace Ryujinx.HLE.HOS.Kernel.Memory
                     return ref _context.Memory.GetRef<T>(address + offset);
                 }
 
-                throw new NotImplementedException("Non-contiguous shared memory is not yet supported.");
+                throw new NotImplementedException("References from non-contiguous shared memory are not yet supported.");
             }
             else
             {
                 return ref _borrowerMemory.GetRef<T>(_borrowerVa + offset);
+            }
+        }
+
+        public void Write(ulong offset, ReadOnlySpan<byte> data)
+        {
+            if (_borrowerMemory == null)
+            {
+                ulong currentOffset = 0;
+                var currentRemainingSize = (ulong)data.Length;
+                foreach (var node in _pageList.Nodes)
+                {
+                    ulong address = node.Address - DramMemoryMap.DramBase;
+                    var nodeSize = node.PagesCount * KPageTableBase.PageSize;
+                    var currentSize = (nodeSize > currentRemainingSize) ? currentRemainingSize : nodeSize;
+                    _context.Memory.Write(address + offset, data.Slice((int)currentOffset, (int)currentSize));
+                    currentOffset += currentSize;
+                    currentRemainingSize -= currentSize;
+                }
+            }
+            else
+            {
+                _borrowerMemory.Write(_borrowerVa + offset, data);
             }
         }
 

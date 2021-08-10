@@ -124,6 +124,8 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         // RequestToAcquireSleepLock()
         public ResultCode RequestToAcquireSleepLock(ServiceCtx context)
         {
+            _acquiredSleepLockEvent.ReadableEvent.Signal();
+
             Logger.Stub?.PrintStub(LogClass.ServiceAm);
 
             return ResultCode.Success;
@@ -142,8 +144,6 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
             }
 
             context.Response.HandleDesc = IpcHandleDesc.MakeCopy(_acquiredSleepLockEventHandle);
-            // (for qlaunch) insta-signal the event so that qlaunch knows it has acquired sleep lock
-            _acquiredSleepLockEvent.WritableEvent.Signal();
 
             Logger.Stub?.PrintStub(LogClass.ServiceAm);
 

@@ -290,7 +290,7 @@ namespace Ryujinx.HLE.HOS
                     Horizon.Instance.AppletState.RegisterNewApplet(processId, appletId, launchReason, libraryAppletContext);
 
                     // TODO: set focused only when necessary
-                    Horizon.Instance.AppletState.SetFocusedApplet(processId);
+                    Horizon.Instance.AppletState.SetFocusedApplet(processId, true);
                 }
                 return processId;
             }

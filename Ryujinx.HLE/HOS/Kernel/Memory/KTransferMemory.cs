@@ -26,6 +26,8 @@ namespace Ryujinx.HLE.HOS.Kernel.Memory
         private bool _hasBeenInitialized;
         private bool _isMapped;
 
+        public SharedMemoryStorage Storage => _storage;
+
         public KTransferMemory(KernelContext context) : base(context)
         {
             _ranges = new List<HostMemoryRange>();

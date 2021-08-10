@@ -21,6 +21,8 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
 
         public KEvent MessageEvent { get; }
 
+        public KEvent LibraryAppletLaunchableEvent { get; }
+
         public FocusState FocusState { get; private set; }
 
         public AppletProcessLaunchReason LaunchReason { get; }
@@ -72,6 +74,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
             LibraryAppletContext = libraryAppletContext;
             Messages = new ConcurrentQueue<AppletMessage>();
             MessageEvent = new KEvent(Horizon.Instance.KernelContext);
+            LibraryAppletLaunchableEvent = new KEvent(Horizon.Instance.KernelContext);
             FocusState = FocusState.OutOfFocus;
             LaunchReason = launchReason;
             ScreenShotPermission = ScreenShotPermission.Enable;
@@ -124,6 +127,11 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
         public bool TryPopContext(out byte[] data)
         {
             return _contextSession.TryPop(out data);
+        }
+
+        public void NotifyLibraryAppletLaunchable()
+        {
+            LibraryAppletLaunchableEvent.ReadableEvent.Signal();
         }
     }
 }

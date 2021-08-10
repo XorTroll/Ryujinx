@@ -10,7 +10,6 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
 {
     class ISelfController : IpcService
     {
-        private KEvent _libraryAppletLaunchableEvent;
         private int    _libraryAppletLaunchableEventHandle;
 
         private KEvent _accumulatedSuspendedTickChangedEvent;
@@ -31,7 +30,6 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
 
         public ISelfController(AppletContext self)
         {
-            _libraryAppletLaunchableEvent = new KEvent(Horizon.Instance.KernelContext);
             _self = self;
         }
 
@@ -102,11 +100,9 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         // GetLibraryAppletLaunchableEvent() -> handle<copy>
         public ResultCode GetLibraryAppletLaunchableEvent(ServiceCtx context)
         {
-            _libraryAppletLaunchableEvent.ReadableEvent.Signal();
-
             if (_libraryAppletLaunchableEventHandle == 0)
             {
-                if (context.Process.HandleTable.GenerateHandle(_libraryAppletLaunchableEvent.ReadableEvent, out _libraryAppletLaunchableEventHandle) != KernelResult.Success)
+                if (context.Process.HandleTable.GenerateHandle(_self.LibraryAppletLaunchableEvent.ReadableEvent, out _libraryAppletLaunchableEventHandle) != KernelResult.Success)
                 {
                     throw new InvalidOperationException("Out of handles!");
                 }

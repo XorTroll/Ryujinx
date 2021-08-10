@@ -36,7 +36,7 @@ namespace Ryujinx.HLE.HOS.Services.SurfaceFlinger
 
         private readonly object Lock = new object();
 
-        public long RenderLayerId { get; private set; }
+        public List<long> RenderLayerIds { get; private set; }
 
         private class Layer
         {
@@ -56,8 +56,8 @@ namespace Ryujinx.HLE.HOS.Services.SurfaceFlinger
         public SurfaceFlinger(Switch device)
         {
             _device = device;
-            _layers = new Dictionary<long, Layer>();
-            RenderLayerId = 0;
+            _layers = new();
+            RenderLayerIds = new();
 
             _composerThread = new Thread(HandleComposition)
             {
@@ -165,7 +165,9 @@ namespace Ryujinx.HLE.HOS.Services.SurfaceFlinger
                 }
 
                 bool removed = _layers.Remove(layerId);
+                RenderLayerIds.Remove(layerId);
 
+                /*
                 // If the layer was removed and the current in use, we need to change the current layer in use.
                 if (removed && RenderLayerId == layerId)
                 {
@@ -179,6 +181,7 @@ namespace Ryujinx.HLE.HOS.Services.SurfaceFlinger
                         SetRenderLayer(_layers.Last().Key);
                     }
                 }
+                */
 
                 return removed;
             }
@@ -188,7 +191,7 @@ namespace Ryujinx.HLE.HOS.Services.SurfaceFlinger
         {
             lock (Lock)
             {
-                RenderLayerId = layerId;
+                RenderLayerIds.Add(layerId);
             }
         }
 
@@ -284,36 +287,35 @@ namespace Ryujinx.HLE.HOS.Services.SurfaceFlinger
         {
             lock (Lock)
             {
-                // TODO: support multilayers (& multidisplay ?)
-                if (RenderLayerId == 0)
+                // TODO: Z
+
+                foreach (var layerId in RenderLayerIds)
                 {
-                    return;
-                }
+                    Layer layer = GetLayerByIdLocked(layerId);
 
-                Layer layer = GetLayerByIdLocked(RenderLayerId);
+                    Status acquireStatus = layer.Consumer.AcquireBuffer(out BufferItem item, 0);
 
-                Status acquireStatus = layer.Consumer.AcquireBuffer(out BufferItem item, 0);
-
-                if (acquireStatus == Status.Success)
-                {
-                    // If device vsync is disabled, reflect the change.
-                    if (!_device.EnableDeviceVsync)
+                    if (acquireStatus == Status.Success)
                     {
-                        if (_swapInterval != 0)
+                        // If device vsync is disabled, reflect the change.
+                        if (!_device.EnableDeviceVsync)
                         {
-                            UpdateSwapInterval(0);
+                            if (_swapInterval != 0)
+                            {
+                                UpdateSwapInterval(0);
+                            }
                         }
-                    }
-                    else if (item.SwapInterval != _swapInterval)
-                    {
-                        UpdateSwapInterval(item.SwapInterval);
-                    }
+                        else if (item.SwapInterval != _swapInterval)
+                        {
+                            UpdateSwapInterval(item.SwapInterval);
+                        }
 
-                    PostFrameBuffer(layer, item);
-                }
-                else if (acquireStatus != Status.NoBufferAvailaible && acquireStatus != Status.InvalidOperation)
-                {
-                    throw new InvalidOperationException();
+                        PostFrameBuffer(layer, item);
+                    }
+                    else if (acquireStatus != Status.NoBufferAvailaible && acquireStatus != Status.InvalidOperation)
+                    {
+                        throw new InvalidOperationException();
+                    }
                 }
             }
         }

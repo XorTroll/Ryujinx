@@ -9,20 +9,23 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 
         public void Update()
         {
-            ref RingLifo<DebugPadState> lifo = ref Horizon.Instance.Device.Hid.SharedMemory.DebugPad;
-
-            ref DebugPadState previousEntry = ref lifo.GetCurrentEntryRef();
-
-            DebugPadState newState = new DebugPadState();
-
-            if (Active)
+            Horizon.Instance.Device.Hid.DoForEachSharedMemory((ref SharedMemory.SharedMemory shmem) =>
             {
-                // TODO: This is a debug device only present in dev environment, do we want to support it?
-            }
+                ref RingLifo<DebugPadState> lifo = ref shmem.DebugPad;
 
-            newState.SamplingNumber = previousEntry.SamplingNumber + 1;
+                ref DebugPadState previousEntry = ref lifo.GetCurrentEntryRef();
 
-            lifo.Write(ref newState);
+                DebugPadState newState = new DebugPadState();
+
+                if (Active)
+                {
+                    // TODO: This is a debug device only present in dev environment, do we want to support it?
+                }
+
+                newState.SamplingNumber = previousEntry.SamplingNumber + 1;
+
+                lifo.Write(ref newState);
+            });
         }
     }
 }

@@ -73,6 +73,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
             }
         }
 
+        /*
         public bool Validate(int playerMin, int playerMax, ControllerType acceptedTypes, out int configuredCount, out PlayerIndex primaryIndex)
         {
             primaryIndex = PlayerIndex.Other;
@@ -106,6 +107,7 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 
             return true;
         }
+        */
 
         public void Configure(params ControllerConfig[] configs)
         {
@@ -136,25 +138,28 @@ namespace Ryujinx.HLE.HOS.Services.Hid
         {
             Remap();
 
-            Span<bool> updated = stackalloc bool[10];
-
-            // Update configured inputs
-            for (int i = 0; i < states.Count; ++i)
+            Horizon.Instance.Device.Hid.DoForEachSharedMemory((ref SharedMemory.SharedMemory shmem) =>
             {
-                GamepadInput state = states[i];
+                Span<bool> updated = stackalloc bool[10];
 
-                updated[(int)state.PlayerId] = true;
-
-                UpdateInput(state);
-            }
-
-            for (int i = 0; i < updated.Length; i++)
-            {
-                if (!updated[i])
+                // Update configured inputs
+                for (int i = 0; i < states.Count; ++i)
                 {
-                    UpdateDisconnectedInput((PlayerIndex)i);
+                    GamepadInput state = states[i];
+
+                    updated[(int)state.PlayerId] = true;
+
+                    UpdateInput(state, ref shmem);
                 }
-            }
+
+                for (int i = 0; i < updated.Length; i++)
+                {
+                    if (!updated[i])
+                    {
+                        UpdateDisconnectedInput((PlayerIndex)i, ref shmem);
+                    }
+                }
+            });
         }
 
         private void Remap()
@@ -186,7 +191,10 @@ namespace Ryujinx.HLE.HOS.Services.Hid
                     config = ControllerType.None;
                 }
 
-                SetupNpad((PlayerIndex)i, config);
+                Horizon.Instance.Device.Hid.DoForEachSharedMemory((ref SharedMemory.SharedMemory shmem) =>
+                {
+                    SetupNpad((PlayerIndex)i, config, ref shmem);
+                });
             }
 
             if (_activeCount == 0 && PerformanceCounter.ElapsedMilliseconds > _lastNotifyTimestamp + NoMatchNotifyFrequencyMs)
@@ -196,9 +204,9 @@ namespace Ryujinx.HLE.HOS.Services.Hid
             }
         }
 
-        private void SetupNpad(PlayerIndex player, ControllerType type)
+        private void SetupNpad(PlayerIndex player, ControllerType type, ref SharedMemory.SharedMemory shmem)
         {
-            ref NpadInternalState controller = ref Horizon.Instance.Device.Hid.SharedMemory.Npads[(int)player].InternalState;
+            ref NpadInternalState controller = ref shmem.Npads[(int)player].InternalState;
 
             ControllerType oldType = (ControllerType)controller.StyleSet;
 
@@ -372,14 +380,14 @@ namespace Ryujinx.HLE.HOS.Services.Hid
             lifo.Write(ref state);
         }
 
-        private void UpdateInput(GamepadInput state)
+        private void UpdateInput(GamepadInput state, ref SharedMemory.SharedMemory shmem)
         {
             if (state.PlayerId == PlayerIndex.Other)
             {
                 return;
             }
 
-            ref NpadInternalState currentNpad = ref Horizon.Instance.Device.Hid.SharedMemory.Npads[(int)state.PlayerId].InternalState;
+            ref NpadInternalState currentNpad = ref shmem.Npads[(int)state.PlayerId].InternalState;
 
             if (currentNpad.StyleSet == NpadStyleTag.None)
             {
@@ -439,9 +447,9 @@ namespace Ryujinx.HLE.HOS.Services.Hid
             UpdateUnusedInputIfNotEqual(ref lifo, ref currentNpad.Palma);
         }
 
-        private void UpdateDisconnectedInput(PlayerIndex index)
+        private void UpdateDisconnectedInput(PlayerIndex index, ref SharedMemory.SharedMemory shmem)
         {
-            ref NpadInternalState currentNpad = ref Horizon.Instance.Device.Hid.SharedMemory.Npads[(int)index].InternalState;
+            ref NpadInternalState currentNpad = ref shmem.Npads[(int)index].InternalState;
 
             NpadCommonState newState = new NpadCommonState();
 
@@ -455,32 +463,35 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 
         public void UpdateSixAxis(IList<SixAxisInput> states)
         {
-            Span<bool> updated = stackalloc bool[10];
-
-            for (int i = 0; i < states.Count; ++i)
+            Horizon.Instance.Device.Hid.DoForEachSharedMemory((ref SharedMemory.SharedMemory shmem) =>
             {
-                updated[(int)states[i].PlayerId] = true;
+                Span<bool> updated = stackalloc bool[10];
 
-                if (SetSixAxisState(states[i]))
+                for (int i = 0; i < states.Count; ++i)
                 {
-                    i++;
+                    updated[(int)states[i].PlayerId] = true;
 
-                    if (i >= states.Count)
+                    if (SetSixAxisState(states[i], ref shmem))
                     {
-                        return;
+                        i++;
+
+                        if (i >= states.Count)
+                        {
+                            return;
+                        }
+
+                        SetSixAxisState(states[i], ref shmem, true);
                     }
-
-                    SetSixAxisState(states[i], true);
                 }
-            }
 
-            for (int i = 0; i < updated.Length; i++)
-            {
-                if (!updated[i])
+                for (int i = 0; i < updated.Length; i++)
                 {
-                    UpdateDisconnectedInputSixAxis((PlayerIndex)i);
+                    if (!updated[i])
+                    {
+                        UpdateDisconnectedInputSixAxis((PlayerIndex)i, ref shmem);
+                    }
                 }
-            }
+            });
         }
 
         private ref RingLifo<SixAxisSensorState> GetSixAxisSensorLifo(ref NpadInternalState npad, bool isRightPair)
@@ -509,14 +520,14 @@ namespace Ryujinx.HLE.HOS.Services.Hid
             }
         }
 
-        private bool SetSixAxisState(SixAxisInput state, bool isRightPair = false)
+        private bool SetSixAxisState(SixAxisInput state, ref SharedMemory.SharedMemory shmem, bool isRightPair = false)
         {
             if (state.PlayerId == PlayerIndex.Other)
             {
                 return false;
             }
 
-            ref NpadInternalState currentNpad = ref Horizon.Instance.Device.Hid.SharedMemory.Npads[(int)state.PlayerId].InternalState;
+            ref NpadInternalState currentNpad = ref shmem.Npads[(int)state.PlayerId].InternalState;
 
             if (currentNpad.StyleSet == NpadStyleTag.None)
             {
@@ -581,9 +592,9 @@ namespace Ryujinx.HLE.HOS.Services.Hid
             return needUpdateRight;
         }
 
-        private void UpdateDisconnectedInputSixAxis(PlayerIndex index)
+        private void UpdateDisconnectedInputSixAxis(PlayerIndex index, ref SharedMemory.SharedMemory shmem)
         {
-            ref NpadInternalState currentNpad = ref Horizon.Instance.Device.Hid.SharedMemory.Npads[(int)index].InternalState;
+            ref NpadInternalState currentNpad = ref shmem.Npads[(int)index].InternalState;
 
             SixAxisSensorState newState = new SixAxisSensorState();
 

@@ -25,8 +25,13 @@ namespace Ryujinx.HLE.HOS.SystemState
 
         public void RegisterNewApplet(long processId, AppletId appletId, AppletProcessLaunchReason launchReason, LibraryAppletContext libraryAppletContext)
         {
-            var appletResourceUserId = _appletResourceUserIds.Add(processId);
+            var appletResourceUserId = (long)_appletResourceUserIds.Add(processId);
             Applets.TryAdd(processId, new AppletContext(appletId, processId, appletResourceUserId, launchReason, libraryAppletContext));
+        }
+
+        public void TerminateApplet(long appletResourceUserId)
+        {
+            _appletResourceUserIds.Delete((int)appletResourceUserId);
         }
 
         public void PushToGeneralChannel(byte[] data)
@@ -62,12 +67,23 @@ namespace Ryujinx.HLE.HOS.SystemState
             }
         }
 
-        public void SetFocusedApplet(long processId)
+        public void SetFocusedApplet(long processId, bool canLaunchLibraryApplets)
         {
             foreach (var (appletProcessId, applet) in Applets)
             {
                 Ryujinx.Common.Logging.Logger.Error?.Print(Common.Logging.LogClass.ServiceAm, "Applet " + applet.AppletId + " in focus -> " + (appletProcessId == processId));
-                applet.SetFocus(appletProcessId == processId);
+                if(appletProcessId == processId)
+                {
+                    applet.SetFocus(true);
+                    if(canLaunchLibraryApplets)
+                    {
+                        applet.NotifyLibraryAppletLaunchable();
+                    }
+                }
+                else
+                {
+                    applet.SetFocus(false);
+                }
             }
         }
     }

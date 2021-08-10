@@ -83,7 +83,7 @@ namespace Ryujinx.HLE.Utilities
         public static ReadOnlySpan<byte> ToSpan(string str, int maxLen)
         {
             var strData = Encoding.UTF8.GetBytes(str);
-            var spanData = new byte[0x20];
+            var spanData = new byte[maxLen];
             strData.CopyTo(spanData, 0);
             return spanData.AsSpan();
         }

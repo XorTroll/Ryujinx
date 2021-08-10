@@ -10,26 +10,29 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 
         public unsafe void Update(KeyboardInput keyState)
         {
-            ref RingLifo<KeyboardState> lifo = ref Horizon.Instance.Device.Hid.SharedMemory.Keyboard;
-
-            if (!Active)
+            Horizon.Instance.Device.Hid.DoForEachSharedMemory((ref SharedMemory.SharedMemory shmem) =>
             {
-                lifo.Clear();
+                ref RingLifo<KeyboardState> lifo = ref shmem.Keyboard;
 
-                return;
-            }
+                if (!Active)
+                {
+                    lifo.Clear();
 
-            ref KeyboardState previousEntry = ref lifo.GetCurrentEntryRef();
+                    return;
+                }
 
-            KeyboardState newState = new KeyboardState
-            {
-                SamplingNumber = previousEntry.SamplingNumber + 1,
-            };
+                ref KeyboardState previousEntry = ref lifo.GetCurrentEntryRef();
 
-            keyState.Keys.AsSpan().CopyTo(newState.Keys.RawData.ToSpan());
-            newState.Modifiers = (KeyboardModifier)keyState.Modifier;
+                KeyboardState newState = new KeyboardState
+                {
+                    SamplingNumber = previousEntry.SamplingNumber + 1,
+                };
 
-            lifo.Write(ref newState);
+                keyState.Keys.AsSpan().CopyTo(newState.Keys.RawData.ToSpan());
+                newState.Modifiers = (KeyboardModifier)keyState.Modifier;
+
+                lifo.Write(ref newState);
+            });
         }
     }
 }

@@ -69,14 +69,18 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         private ResultCode GetFirmwareVersionImpl(ServiceCtx context)
         {
             var fwVersionBuf = context.Request.RecvListBuff[0];
+            
+            if (EnsureFirmwareVersionLoaded())
+            {
+                context.Response.PtrBuff[0] = context.Response.PtrBuff[0].WithSize((ulong)Marshal.SizeOf<FirmwareVersion>());
+                context.Memory.Write(fwVersionBuf.Position, _firmwareVersion);
 
-            if (!EnsureFirmwareVersionLoaded())
+                return ResultCode.Success;
+            }
+            else
             {
                 return ResultCode.NullFirmwareVersionBuffer;
             }
-
-            context.Memory.Write(fwVersionBuf.Position, _firmwareVersion);
-            return ResultCode.Success;
         }
 
         [CommandHipc(7)]

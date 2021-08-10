@@ -3,6 +3,7 @@ using Ryujinx.HLE.HOS.Ipc;
 using Ryujinx.HLE.HOS.Kernel.Common;
 using Ryujinx.HLE.HOS.Kernel.Memory;
 using System;
+using System.Runtime.InteropServices;
 
 namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
 {
@@ -17,13 +18,32 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
             _transferMem = Horizon.Instance.AppletCaptureBufferTransfer;
         }
 
+        private byte[] UpdateBuffer()
+        {
+            // Test
+
+            var buf = new byte[0x384000];
+            var color_buf = MemoryMarshal.Cast<byte, uint>(buf);
+            for (var i = 0; i < color_buf.Length; i++)
+            {
+                color_buf[i] = 0xFF00FF00; // ARGB
+            }
+
+            return buf;
+        }
+
         [CommandHipc(7)]
         // GetCallerAppletCaptureImageEx() -> (b8, buffer<bytes, 6>)
         public ResultCode GetCallerAppletCaptureImageEx(ServiceCtx context)
         {
-            context.ResponseData.Write(false);
+            var imageBuf = context.Request.ReceiveBuff[0];
 
             Logger.Stub?.PrintStub(LogClass.ServiceAm);
+
+            var buf = UpdateBuffer();
+            context.Memory.Write(imageBuf.Position, buf);
+
+            context.ResponseData.Write(true);
 
             return ResultCode.Success;
         }
@@ -104,6 +124,8 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
             {
                 throw new InvalidOperationException("Out of handles!");
             }
+
+            // _transferMem.Storage.Write(0, UpdateBuffer());
 
             context.Response.HandleDesc = IpcHandleDesc.MakeCopy(handle);
 

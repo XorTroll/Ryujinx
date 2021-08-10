@@ -221,7 +221,8 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy.LibraryAppletCreator
             {
                 if (_stateChangedEventHandle != 0)
                 {
-                    Horizon.Instance.KernelContext.Syscall.CloseHandle(_stateChangedEventHandle);
+                    Logger.Error?.Print(LogClass.ServiceAm, "Disposing state changed event handle!");
+                    // Horizon.Instance.KernelContext.Syscall.CloseHandle(_stateChangedEventHandle);
                 }
 
                 if (_normalOutDataEventHandle != 0)

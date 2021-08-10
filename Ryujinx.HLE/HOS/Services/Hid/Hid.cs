@@ -1,8 +1,6 @@
 using Ryujinx.Common;
 using Ryujinx.HLE.Exceptions;
 using Ryujinx.Common.Configuration.Hid;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Ryujinx.Common.Memory;
 using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Common;
 using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Mouse;
@@ -11,6 +9,9 @@ using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.DebugPad;
 using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.TouchScreen;
 using Ryujinx.HLE.HOS.Services.Hid.SharedMemory.Npad;
 using Ryujinx.HLE.HOS.Kernel.Memory;
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 using Shmem = Ryujinx.HLE.HOS.Services.Hid.SharedMemory.SharedMemory;
 
@@ -18,9 +19,23 @@ namespace Ryujinx.HLE.HOS.Services.Hid
 {
     public class Hid
     {
-        private readonly SharedMemoryStorage _storage;
+        private object _storagesLock;
 
-        internal ref Shmem SharedMemory => ref _storage.GetRef<Shmem>(0);
+        private readonly List<SharedMemoryStorage> _storages;
+
+        internal delegate void ShmemAction(ref Shmem shmem);
+
+        internal void DoForEachSharedMemory(ShmemAction fn)
+        {
+            lock (_storagesLock)
+            {
+                foreach (var storage in _storages)
+                {
+                    ref var shmem = ref storage.GetRef<Shmem>(0);
+                    fn.Invoke(ref shmem);
+                }
+            }
+        }
 
         internal const int SharedMemEntryCount = 17;
 
@@ -48,11 +63,26 @@ namespace Ryujinx.HLE.HOS.Services.Hid
             CheckTypeSizeOrThrow<Shmem>(Horizon.HidSize);
         }
 
-        internal Hid(SharedMemoryStorage storage)
+        internal Hid()
         {
-            _storage = storage;
+            _storages = new();
+            _storagesLock = new object();
+        }
 
-            SharedMemory = Shmem.Create();
+        internal void RegisterSharedMemory(SharedMemoryStorage storage)
+        {
+            lock (_storagesLock)
+            {
+                _storages.Add(storage);
+            }
+        }
+
+        internal void RemoveSharedMemory(SharedMemoryStorage storage)
+        {
+            lock (_storagesLock)
+            {
+                _storages.Remove(storage);
+            }
         }
 
         public void InitDevices()

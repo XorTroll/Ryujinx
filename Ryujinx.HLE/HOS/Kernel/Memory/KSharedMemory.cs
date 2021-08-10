@@ -13,6 +13,8 @@ namespace Ryujinx.HLE.HOS.Kernel.Memory
         private readonly KMemoryPermission _ownerPermission;
         private readonly KMemoryPermission _userPermission;
 
+        public SharedMemoryStorage Storage => _storage;
+
         public KSharedMemory(
             KernelContext context,
             SharedMemoryStorage storage,
