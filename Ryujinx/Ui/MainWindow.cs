@@ -69,6 +69,7 @@ namespace Ryujinx.Ui
 
         private bool _updatingGameTable;
         private bool _gameLoaded;
+        private bool _systemLoaded;
         private bool _ending;
 
         private string _currentEmulatedGamePath = null;
@@ -592,12 +593,12 @@ namespace Ryujinx.Ui
                 Horizon.Instance.Device.Application.LoadApplet(AppletId.OverlayApplet);
                 */
 
-                /* Test
-                var miiContext = new LibraryAppletContext(0x0, LibraryAppletMode.AllForeground);
+                /*
+                var miiContext = new LibraryAppletContext(0x0, AppletId.LibraryAppletMiiEdit, LibraryAppletMode.AllForeground);
                 byte[] miiEditInputData = new byte[0x100];
                 miiEditInputData[0] = 0x03; // Hardcoded unknown value.
                 miiContext.PushInData(miiEditInputData, false);
-                Horizon.Instance.Device.Application.LoadApplet(AppletId.LibraryAppletMiiEdit, miiContext);
+                Horizon.Instance.Device.Application.LoadLibraryApplet(miiContext);
                 */
 
                 Horizon.Instance.Device.Application.LoadApplet(AppletId.SystemAppletMenu);
@@ -619,7 +620,7 @@ namespace Ryujinx.Ui
                 windowThread.Start();
 #endif
 
-                _gameLoaded = true;
+                _systemLoaded = true;
                 _actionMenu.Sensitive = true;
 
                 _lastScannedAmiiboId = "";
@@ -636,6 +637,10 @@ namespace Ryujinx.Ui
             if (_gameLoaded)
             {
                 GtkDialog.CreateInfoDialog("A game has already been loaded", "Please stop emulation or close the emulator before launching another game.");
+            }
+            else if (_systemLoaded)
+            {
+                // TODO: load as gamecart
             }
             else
             {

@@ -14,7 +14,7 @@ namespace Ryujinx.Configuration
         /// <summary>
         /// The current version of the file format
         /// </summary>
-        public const int CurrentVersion = 28;
+        public const int CurrentVersion = 29;
 
         public int Version { get; set; }
 
@@ -252,6 +252,11 @@ namespace Ryujinx.Configuration
         /// Input configurations
         /// </summary>
         public List<InputConfig> InputConfig { get; set; }
+
+        /// <summary>
+        /// Default start mode, controlling what to do when Ryujinx is opened without any input arguments
+        /// </summary>
+        public DefaultStartMode DefaultStartMode { get; set; }
 
         /// <summary>
         /// Loads a configuration file from disk

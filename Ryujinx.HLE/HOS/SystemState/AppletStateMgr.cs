@@ -23,10 +23,35 @@ namespace Ryujinx.HLE.HOS.SystemState
             PopFromGeneralChannelEvent = new KEvent(context);
         }
 
-        public void RegisterNewApplet(long processId, AppletId appletId, AppletProcessLaunchReason launchReason, LibraryAppletContext libraryAppletContext)
+        public bool IsApplicationRunning()
+        {
+            foreach (var (_, applet) in Applets)
+            {
+                if (applet.IsApplication)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void RegisterNewApplet(long processId, AppletId appletId, AppletProcessLaunchReason launchReason)
         {
             var appletResourceUserId = (long)_appletResourceUserIds.Add(processId);
-            Applets.TryAdd(processId, new AppletContext(appletId, processId, appletResourceUserId, launchReason, libraryAppletContext));
+            Applets.TryAdd(processId, new AppletContext(appletId, processId, appletResourceUserId, launchReason));
+        }
+        
+        public void RegisterNewLibraryApplet(long processId, AppletProcessLaunchReason launchReason, LibraryAppletContext libraryAppletContext)
+        {
+            var appletResourceUserId = (long)_appletResourceUserIds.Add(processId);
+            Applets.TryAdd(processId, new AppletContext(processId, appletResourceUserId, launchReason, libraryAppletContext));
+        }
+
+        public void RegisterApplication(long processId, AppletProcessLaunchReason launchReason, ApplicationContext applicationContext)
+        {
+            var appletResourceUserId = (long)_appletResourceUserIds.Add(processId);
+            Applets.TryAdd(processId, new AppletContext(processId, appletResourceUserId, launchReason, applicationContext));
         }
 
         public void TerminateApplet(long appletResourceUserId)

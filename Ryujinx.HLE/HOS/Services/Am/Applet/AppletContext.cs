@@ -8,24 +8,27 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
     public class AppletContext
     {
         private AppletSession _contextSession;
+        private AppletContextBase _contextBase;
 
-        public AppletId AppletId { get; }
+        public AppletId AppletId { get; private set; }
 
-        public long ProcessId { get; }
+        public long ProcessId { get; private set; }
 
-        public long AppletResourceUserId { get; }
+        public long AppletResourceUserId { get; private set; }
 
-        public LibraryAppletContext LibraryAppletContext { get; }
+        public LibraryAppletContext LibraryAppletContext => _contextBase as LibraryAppletContext;
 
-        public ConcurrentQueue<AppletMessage> Messages { get; }
+        public ApplicationContext ApplicationContext => _contextBase as ApplicationContext;
 
-        public KEvent MessageEvent { get; }
+        public ConcurrentQueue<AppletMessage> Messages { get; private set; }
 
-        public KEvent LibraryAppletLaunchableEvent { get; }
+        public KEvent MessageEvent { get; private set; }
+
+        public KEvent LibraryAppletLaunchableEvent { get; private set; }
 
         public FocusState FocusState { get; private set; }
 
-        public AppletProcessLaunchReason LaunchReason { get; }
+        public AppletProcessLaunchReason LaunchReason { get; private set; }
 
         public ScreenShotPermission ScreenShotPermission { get; set; }
 
@@ -66,12 +69,11 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
             };
         }
 
-        public AppletContext(AppletId appletId, long processId, long appletResourceUserId, AppletProcessLaunchReason launchReason, LibraryAppletContext libraryAppletContext)
+        private void Initialize(AppletId appletId, long processId, long appletResourceUserId, AppletProcessLaunchReason launchReason)
         {
             AppletId = appletId;
             ProcessId = processId;
             AppletResourceUserId = appletResourceUserId;
-            LibraryAppletContext = libraryAppletContext;
             Messages = new ConcurrentQueue<AppletMessage>();
             MessageEvent = new KEvent(Horizon.Instance.KernelContext);
             LibraryAppletLaunchableEvent = new KEvent(Horizon.Instance.KernelContext);
@@ -89,14 +91,32 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
             AutoSleepDisabled = true;
             AlbumImageTakenNotificationEnabled = true;
             _contextSession = new AppletSession();
+        }
+        
+        public AppletContext(AppletId appletId, long processId, long appletResourceUserId, AppletProcessLaunchReason launchReason)
+        {
+            Initialize(appletId, processId, appletResourceUserId, launchReason);
+        }
+        
+        public AppletContext(long processId, long appletResourceUserId, AppletProcessLaunchReason launchReason, LibraryAppletContext libraryAppletContext)
+        {
+            Initialize(libraryAppletContext.AppletId, processId, appletResourceUserId, launchReason);
 
-            if(LibraryAppletContext != null)
-            {
-                LibraryAppletContext.SetBaseContext(this);
-            }
+            _contextBase = libraryAppletContext;
+            _contextBase.SetBaseContext(this);
         }
 
-        public bool IsLibraryApplet() => LibraryAppletContext != null;
+        public AppletContext(long processId, long appletResourceUserId, AppletProcessLaunchReason launchReason, ApplicationContext applicationContext)
+        {
+            Initialize(applicationContext.AppletId, processId, appletResourceUserId, launchReason);
+
+            _contextBase = applicationContext;
+            _contextBase.SetBaseContext(this);
+        }
+
+        public bool IsLibraryApplet => _contextBase is LibraryAppletContext;
+
+        public bool IsApplication => _contextBase is ApplicationContext;
 
         public void SendMessages(params AppletMessage[] messages)
         {

@@ -12,7 +12,7 @@ namespace Ryujinx.HLE.HOS.Services.Settings
 
         public static InitialLaunchSettings Default = new InitialLaunchSettings
         {
-            InitialLaunchFlags = InitialLaunchFlag.CompletionFlag | InitialLaunchFlag.UserAdditionFlag | InitialLaunchFlag.TimestampFlag,
+            InitialLaunchFlags = InitialLaunchFlag.None, // InitialLaunchFlag.CompletionFlag | InitialLaunchFlag.UserAdditionFlag | InitialLaunchFlag.TimestampFlag,
             TimeStamp = new SteadyClockContext()
         };
     }

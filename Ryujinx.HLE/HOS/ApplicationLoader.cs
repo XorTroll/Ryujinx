@@ -276,9 +276,9 @@ namespace Ryujinx.HLE.HOS
             return LoadExeFs(nsp);
         }
 
-        public long LoadApplet(AppletId appletId, LibraryAppletContext libraryAppletContext = null)
+        public long LoadApplet(AppletId appletId)
         {
-            var programId = AppletContext.GetProgramIdFromAppletId(appletId, libraryAppletContext != null);
+            var programId = AppletContext.GetProgramIdFromAppletId(appletId, false);
             if (programId != 0x0)
             {
                 var processId = LoadSystemTitle(programId);
@@ -287,7 +287,29 @@ namespace Ryujinx.HLE.HOS
                     // TODO: launch reason
                     var launchReason = new AppletProcessLaunchReason();
 
-                    Horizon.Instance.AppletState.RegisterNewApplet(processId, appletId, launchReason, libraryAppletContext);
+                    Horizon.Instance.AppletState.RegisterNewApplet(processId, appletId, launchReason);
+
+                    // TODO: set focused only when necessary
+                    Horizon.Instance.AppletState.SetFocusedApplet(processId, true);
+                }
+                return processId;
+            }
+
+            return -1;
+        }
+        
+        public long LoadLibraryApplet(LibraryAppletContext libraryAppletContext)
+        {
+            var programId = AppletContext.GetProgramIdFromAppletId(libraryAppletContext.AppletId, true);
+            if (programId != 0x0)
+            {
+                var processId = LoadSystemTitle(programId);
+                if (processId != -1)
+                {
+                    // TODO: launch reason
+                    var launchReason = new AppletProcessLaunchReason();
+
+                    Horizon.Instance.AppletState.RegisterNewLibraryApplet(processId, launchReason, libraryAppletContext);
 
                     // TODO: set focused only when necessary
                     Horizon.Instance.AppletState.SetFocusedApplet(processId, true);
@@ -298,6 +320,51 @@ namespace Ryujinx.HLE.HOS
             return -1;
         }
 
+        public long LoadApplication(ApplicationContext applicationContext)
+        {
+            if (Horizon.Instance.AppletState.IsApplicationRunning())
+            {
+                // Can't run two apps at the same time
+
+                return -1;
+            }
+
+            string contentPath = null;
+            if (applicationContext.IsSystem)
+            {
+                contentPath = Horizon.Instance.ContentManager.GetInstalledContentPath(applicationContext.ApplicationId, StorageId.NandSystem, NcaContentType.Program);
+            }
+            else
+            {
+                contentPath = Horizon.Instance.ContentManager.GetInstalledContentPath(applicationContext.ApplicationId, StorageId.GameCard, NcaContentType.Program);
+                if(string.IsNullOrEmpty(contentPath))
+                {
+                    contentPath = Horizon.Instance.ContentManager.GetInstalledContentPath(applicationContext.ApplicationId, StorageId.SdCard, NcaContentType.Program);
+                }
+                if(string.IsNullOrEmpty(contentPath))
+                {
+                    contentPath = Horizon.Instance.ContentManager.GetInstalledContentPath(applicationContext.ApplicationId, StorageId.NandUser, NcaContentType.Program);
+                }
+            }
+            
+            if(!string.IsNullOrEmpty(contentPath))
+            {
+                var processId = LoadSystemTitle(contentPath);
+                if (processId != -1)
+                {
+                    // TODO: launch reason, is it even used with applications?
+                    var launchReason = new AppletProcessLaunchReason();
+
+                    Horizon.Instance.AppletState.RegisterApplication(processId, launchReason, applicationContext);
+
+                    Horizon.Instance.AppletState.SetFocusedApplet(processId, true);
+                }
+                return processId;
+            }
+
+            return -1;
+        }
+        
         public long LoadSystemTitle(ulong programId)
         {
             var contentPath = Horizon.Instance.ContentManager.GetInstalledContentPath(programId, StorageId.NandSystem, NcaContentType.Program);

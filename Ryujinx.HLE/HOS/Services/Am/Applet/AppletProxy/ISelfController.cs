@@ -37,7 +37,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
         // Exit()
         public ResultCode Exit(ServiceCtx context)
         {
-            if (_self.IsLibraryApplet())
+            if (_self.IsLibraryApplet)
             {
                 _self.LibraryAppletContext.Terminate();
             }

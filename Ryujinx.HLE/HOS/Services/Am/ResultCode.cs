@@ -1,6 +1,6 @@
 namespace Ryujinx.HLE.HOS.Services.Am
 {
-    enum ResultCode
+    public enum ResultCode
     {
         ModuleId       = 128,
         ErrorCodeShift = 9,

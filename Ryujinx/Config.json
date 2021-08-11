@@ -106,5 +106,6 @@
       "controller_type": "JoyconPair",
       "player_index": "Player1"
     }
-  ]
+  ],
+  "default_start_mode": "Idle"
 }

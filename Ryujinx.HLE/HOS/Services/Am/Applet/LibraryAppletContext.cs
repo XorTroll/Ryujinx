@@ -5,42 +5,26 @@ using System;
 
 namespace Ryujinx.HLE.HOS.Services.Am.Applet
 {
-    public class LibraryAppletContext
+    public class LibraryAppletContext : AppletContextBase
     {
         private AppletSession _normalSession;
         private AppletSession _interactiveSession;
-        private KEvent _stateChangedEvent;
         private KEvent _normalOutDataEvent;
         private KEvent _normalInDataEvent;
         private KEvent _interactiveOutDataEvent;
         private KEvent _interactiveInDataEvent;
-        private AppletContext _baseContext;
-
-        public long CallerProcessId { get; private set; }
-
-        public AppletId AppletId => _baseContext.AppletId;
 
         public LibraryAppletMode LibraryAppletMode { get; private set; }
 
-        public uint Result { get; set; }
-
-        public LibraryAppletContext(long callerProcessId, LibraryAppletMode libraryAppletMode)
+        public LibraryAppletContext(long callerProcessId, AppletId appletId, LibraryAppletMode libraryAppletMode) : base(callerProcessId, appletId)
         {
-            CallerProcessId = callerProcessId;
             LibraryAppletMode = libraryAppletMode;
-            Result = 0;
             _normalSession = new();
             _interactiveSession = new();
-            _stateChangedEvent = new KEvent(Horizon.Instance.KernelContext);
             _normalOutDataEvent = new KEvent(Horizon.Instance.KernelContext);
             _normalInDataEvent = new KEvent(Horizon.Instance.KernelContext);
             _interactiveOutDataEvent = new KEvent(Horizon.Instance.KernelContext);
             _interactiveInDataEvent = new KEvent(Horizon.Instance.KernelContext);
-        }
-
-        public void SetBaseContext(AppletContext context)
-        {
-            _baseContext = context;
         }
 
         public void PushInData(byte[] data, bool interactive)
@@ -80,19 +64,19 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
             (interactive ? _interactiveOutDataEvent : _normalOutDataEvent).WritableEvent.Signal();
         }
 
-        public void NotifyStateChanged()
+        public override ResultCode Start()
         {
-            _stateChangedEvent.WritableEvent.Signal();
-        }
+            // Logger.Info?.Print(LogClass.ServiceAm, "Starting applet...");
 
-        private bool TryCreateEventHandle(KProcess process, KEvent evt, out int handle)
-        {
-            return process.HandleTable.GenerateHandle(evt.ReadableEvent, out handle) == KernelResult.Success;
-        }
-
-        public bool TryCreateStateChangedEventHandle(KProcess process, out int handle)
-        {
-            return TryCreateEventHandle(process, _stateChangedEvent, out handle);
+            var processId = Horizon.Instance.Device.Application.LoadLibraryApplet(this);
+            if (processId < 0)
+            {
+                return ResultCode.AppletLaunchFailed;
+            }
+            else
+            {
+                return ResultCode.Success;
+            }
         }
 
         public bool TryCreatePopOutDataEventHandle(KProcess process, out int handle)
@@ -113,29 +97,6 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
         public bool TryCreatePopInteractiveInDataEventHandle(KProcess process, out int handle)
         {
             return TryCreateEventHandle(process, _interactiveInDataEvent, out handle);
-        }
-
-        public void Terminate()
-        {
-            Ryujinx.Common.Logging.Logger.Error?.Print(Common.Logging.LogClass.ServiceAm, "Terminating applet " + AppletId);
-
-            // Change state
-            NotifyStateChanged();
-
-            Horizon.Instance.AppletState.TerminateApplet(_baseContext.AppletResourceUserId);
-
-            // Set caller applet focused
-            Horizon.Instance.AppletState.SetFocusedApplet(CallerProcessId, true);
-
-            // Remove the HID shmem the applet may have created
-            Horizon.Instance.RemoveHidSharedMemory(_baseContext.AppletResourceUserId);
-
-            // Terminate process
-            if (Horizon.Instance.KernelContext.Processes.TryRemove(_baseContext.ProcessId, out var process))
-            {
-                process.Terminate();
-                process.DecrementReferenceCount();
-            }
         }
     }
 }
