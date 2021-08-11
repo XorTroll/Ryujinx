@@ -1497,12 +1497,13 @@ namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
             }
             else
             {
+                uint? result = null;
                 var data = new byte[size];
-                if(KernelTransfer.UserToKernelBytes(_context, address, data))
+                if (KernelTransfer.UserToKernelBytes(_context, address, data))
                 {
                     if (size == 4)
                     {
-                        var result = BitConverter.ToUInt32(data);
+                        result = BitConverter.ToUInt32(data);
                         Logger.Error?.Print(LogClass.KernelSvc, $"Break result: 0x{result:X}");
                     }
                 }
@@ -1525,7 +1526,7 @@ namespace Ryujinx.HLE.HOS.Kernel.SupervisorCall
                 // TODO: Debug events.
                 currentThread.Owner.TerminateCurrentProcess();
 
-                throw new GuestBrokeExecutionException();
+                throw new GuestBrokeExecutionException(GuestBrokeExecutionException.ExecutionBreakKind.SvcBreak, currentThread.Owner.Pid, result);
             }
         }
 

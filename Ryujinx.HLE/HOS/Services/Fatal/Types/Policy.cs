@@ -1,6 +1,6 @@
 ﻿namespace Ryujinx.HLE.HOS.Services.Fatal.Types
 {
-    enum Policy
+    public enum Policy : uint
     {
         ErrorReportAndErrorScreen = 0,
         ErrorReport = 1,

@@ -69,57 +69,5 @@ namespace Ryujinx.Ui.Applet
             Horizon.Instance.Device.Configuration.UserChannelPersistence.ExecuteProgram(kind, value);
             ((MainWindow)_parent).RendererWidget?.Exit();
         }
-
-        public bool DisplayErrorAppletDialog(string title, string message, string[] buttons)
-        {
-            ManualResetEvent dialogCloseEvent = new ManualResetEvent(false);
-
-            bool showDetails = false;
-
-            Application.Invoke(delegate
-            {
-                try
-                {
-                    ErrorAppletDialog msgDialog = new ErrorAppletDialog(_parent, DialogFlags.DestroyWithParent, MessageType.Error, buttons)
-                    {
-                        Title          = title,
-                        Text           = message,
-                        UseMarkup      = true,
-                        WindowPosition = WindowPosition.CenterAlways
-                    };
-
-                    msgDialog.SetDefaultSize(400, 0);
-
-                    msgDialog.Response += (object o, ResponseArgs args) =>
-                    {
-                        if (buttons != null)
-                        {
-                            if (buttons.Length > 1)
-                            {
-                                if (args.ResponseId != (ResponseType)(buttons.Length - 1))
-                                {
-                                    showDetails = true;
-                                }
-                            }
-                        }
-
-                        dialogCloseEvent.Set();
-                        msgDialog?.Dispose();
-                    };
-
-                    msgDialog.Show();
-                }
-                catch (Exception ex)
-                {
-                    GtkDialog.CreateErrorDialog($"Error displaying ErrorApplet Dialog: {ex}");
-
-                    dialogCloseEvent.Set();
-                }
-            });
-
-            dialogCloseEvent.WaitOne();
-
-            return showDetails;
-        }
     }
 }

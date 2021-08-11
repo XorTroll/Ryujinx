@@ -1,4 +1,6 @@
-﻿using Ryujinx.HLE.HOS.Services.Fatal.Types;
+﻿using Ryujinx.Common;
+using Ryujinx.HLE.HOS.Services.Fatal.Types;
+using Ryujinx.HLE.Exceptions;
 
 namespace Ryujinx.HLE.HOS.Services.Fatal
 {
@@ -10,7 +12,7 @@ namespace Ryujinx.HLE.HOS.Services.Fatal
         public ResultCode ThrowWithPolicy(ServiceCtx context)
         {
             var result = context.RequestData.ReadUInt32();
-            var policy = (Policy)context.RequestData.ReadUInt32();
+            var policy = context.RequestData.ReadStruct<Policy>();
 
             HandleResultThrow(context, result, policy);
 
@@ -27,14 +29,14 @@ namespace Ryujinx.HLE.HOS.Services.Fatal
 
         private void HandleResultThrow(ServiceCtx context, uint result, Policy policy)
         {
-            if(result == 0)
+            if (result == 0)
             {
                 // Program aborted
                 result = 0x4a2;
             }
 
             context.Process.TerminateCurrentProcess();
-            Horizon.Instance.Device.UiHandler.DisplayMessageDialog("Fatal", "Process " + context.Process.Pid.ToString("X16") + " fataled with error 0x" + result.ToString("X"));
+            throw new GuestBrokeExecutionException(GuestBrokeExecutionException.ExecutionBreakKind.FatalThrow, context.Request.HandleDesc.PId, result);
         }
     }
 }

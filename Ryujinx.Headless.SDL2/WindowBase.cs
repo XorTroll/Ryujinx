@@ -319,31 +319,6 @@ namespace Ryujinx.Headless.SDL2
             Exit();
         }
 
-        public bool DisplayErrorAppletDialog(string title, string message, string[] buttonsText)
-        {
-            SDL_MessageBoxData data = new SDL_MessageBoxData
-            {
-                title = title,
-                message = message,
-                buttons = new SDL_MessageBoxButtonData[buttonsText.Length],
-                numbuttons = buttonsText.Length,
-                window = WindowHandle
-            };
-
-            for (int i = 0; i < buttonsText.Length; i++)
-            {
-                data.buttons[i] = new SDL_MessageBoxButtonData
-                {
-                    buttonid = i,
-                    text = buttonsText[i]
-                };
-            }
-
-            SDL_ShowMessageBox(ref data, out int _);
-
-            return true;
-        }
-
         public void Dispose()
         {
             Dispose(true);
