@@ -5,6 +5,7 @@ using Ryujinx.Common.Configuration.Hid.Keyboard;
 using Ryujinx.Common.Logging;
 using Ryujinx.Configuration.System;
 using Ryujinx.Configuration.Ui;
+using LibHac.FsSystem;
 using System;
 using System.Collections.Generic;
 
@@ -234,6 +235,16 @@ namespace Ryujinx.Configuration
             /// </summary>
             public ReactiveObject<bool> IgnoreMissingServices { get; private set; }
 
+            /// <summary>
+            /// Default start mode when being opened without arguments
+            /// </summary>
+            public ReactiveObject<DefaultStartMode> DefaultStartMode { get; private set; }
+
+            /// <summary>
+            /// Firmware version used when there's no firmware installed
+            /// </summary>
+            public ReactiveObject<string> DefaultFirmwareVersion { get; private set; }
+
             public SystemSection()
             {
                 Language                      = new ReactiveObject<Language>();
@@ -256,7 +267,13 @@ namespace Ryujinx.Configuration
                 ExpandRam.Event               += static (sender, e) => LogValueChange(sender, e, nameof(ExpandRam));
                 IgnoreMissingServices         = new ReactiveObject<bool>();
                 IgnoreMissingServices.Event   += static (sender, e) => LogValueChange(sender, e, nameof(IgnoreMissingServices));
+                DefaultStartMode              = new ReactiveObject<DefaultStartMode>();
+                DefaultStartMode.Event        += static (sender, e) => LogValueChange(sender, e, nameof(DefaultStartMode));
+                DefaultFirmwareVersion        = new ReactiveObject<string>();
+                DefaultFirmwareVersion.Event  += static (sender, e) => LogValueChange(sender, e, nameof(DefaultFirmwareVersion));
             }
+
+            public IntegrityCheckLevel FsIntegrityCheckLevel => EnableFsIntegrityChecks ? IntegrityCheckLevel.ErrorOnInvalid : IntegrityCheckLevel.None;
         }
 
         /// <summary>
@@ -454,6 +471,8 @@ namespace Ryujinx.Configuration
                 MemoryManagerMode         = System.MemoryManagerMode,
                 ExpandRam                 = System.ExpandRam,
                 IgnoreMissingServices     = System.IgnoreMissingServices,
+                DefaultStartMode          = System.DefaultStartMode,
+                DefaultFirmwareVersion    = System.DefaultFirmwareVersion,
                 GuiColumns                = new GuiColumns
                 {
                     FavColumn        = Ui.GuiColumns.FavColumn,
@@ -522,6 +541,8 @@ namespace Ryujinx.Configuration
             System.MemoryManagerMode.Value         = MemoryManagerMode.HostMappedUnsafe;
             System.ExpandRam.Value                 = false;
             System.IgnoreMissingServices.Value     = false;
+            System.DefaultStartMode.Value          = DefaultStartMode.Idle;
+            System.DefaultFirmwareVersion.Value    = "12.1.0";
             Ui.GuiColumns.FavColumn.Value          = true;
             Ui.GuiColumns.IconColumn.Value         = true;
             Ui.GuiColumns.AppColumn.Value          = true;
@@ -864,6 +885,7 @@ namespace Ryujinx.Configuration
                 Common.Logging.Logger.Warning?.Print(LogClass.Application, $"Outdated configuration version {configurationFileFormat.Version}, migrating to version 29.");
 
                 configurationFileFormat.DefaultStartMode = DefaultStartMode.Idle;
+                configurationFileFormat.DefaultFirmwareVersion = "12.1.0";
 
                 configurationFileUpdated = true;
             }
@@ -901,6 +923,8 @@ namespace Ryujinx.Configuration
             System.MemoryManagerMode.Value         = configurationFileFormat.MemoryManagerMode;
             System.ExpandRam.Value                 = configurationFileFormat.ExpandRam;
             System.IgnoreMissingServices.Value     = configurationFileFormat.IgnoreMissingServices;
+            System.DefaultStartMode.Value          = configurationFileFormat.DefaultStartMode;
+            System.DefaultFirmwareVersion.Value    = configurationFileFormat.DefaultFirmwareVersion;
             Ui.GuiColumns.FavColumn.Value          = configurationFileFormat.GuiColumns.FavColumn;
             Ui.GuiColumns.IconColumn.Value         = configurationFileFormat.GuiColumns.IconColumn;
             Ui.GuiColumns.AppColumn.Value          = configurationFileFormat.GuiColumns.AppColumn;

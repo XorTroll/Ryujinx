@@ -1,5 +1,6 @@
 ﻿using Ryujinx.Common.Logging;
 using Ryujinx.HLE.FileSystem.Content;
+using Ryujinx.HLE.HOS.Services.Settings;
 using Ryujinx.Ui.Widgets;
 using System;
 using System.IO;
@@ -29,18 +30,21 @@ namespace Ryujinx.Ui.Helper
             }
         }
 
-        public static bool CanFixStartApplication(ContentManager contentManager, string baseApplicationPath, UserError error, out SystemVersion firmwareVersion)
+        public static bool CanFixStartApplication(ContentManager contentManager, string baseApplicationPath, UserError error, out FirmwareVersion firmwareVersion)
         {
+            firmwareVersion = new FirmwareVersion();
+            bool ok;
+
             try
             {
-                firmwareVersion = contentManager.VerifyFirmwarePackage(baseApplicationPath);
+                ok = contentManager.VerifyFirmwarePackage(baseApplicationPath, out firmwareVersion);
             }
             catch (Exception)
             {
-                firmwareVersion = null;
+                ok = false;
             }
 
-            return error == UserError.NoFirmware && Path.GetExtension(baseApplicationPath).ToLowerInvariant() == ".xci" && firmwareVersion != null;
+            return error == UserError.NoFirmware && Path.GetExtension(baseApplicationPath).ToLowerInvariant() == ".xci" && ok;
         }
 
         public static bool TryFixStartApplication(ContentManager contentManager, string baseApplicationPath, UserError error, out UserError outError)
@@ -52,27 +56,30 @@ namespace Ryujinx.Ui.Helper
                 // If the target app to start is a XCI, try to install firmware from it
                 if (baseApplicationExtension == ".xci")
                 {
-                    SystemVersion firmwareVersion;
+                    FirmwareVersion firmwareVersion;
+                    bool ok = false;
 
                     try
                     {
-                        firmwareVersion = contentManager.VerifyFirmwarePackage(baseApplicationPath);
+                        ok = contentManager.VerifyFirmwarePackage(baseApplicationPath, out firmwareVersion);
                     }
                     catch (Exception)
                     {
-                        firmwareVersion = null;
+                        firmwareVersion = new FirmwareVersion();
                     }
 
                     // The XCI is a valid firmware package, try to install the firmware from it!
-                    if (firmwareVersion != null)
+                    if (ok)
                     {
                         try
                         {
-                            Logger.Info?.Print(LogClass.Application, $"Installing firmware {firmwareVersion.VersionString}");
+                            var displayVersion = firmwareVersion.GetDisplayVersion();
+
+                            Logger.Info?.Print(LogClass.Application, $"Installing firmware {displayVersion}");
 
                             contentManager.InstallFirmware(baseApplicationPath);
 
-                            Logger.Info?.Print(LogClass.Application, $"System version {firmwareVersion.VersionString} successfully installed.");
+                            Logger.Info?.Print(LogClass.Application, $"System version {displayVersion} successfully installed.");
 
                             outError = UserError.Success;
 

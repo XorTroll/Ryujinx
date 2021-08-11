@@ -168,8 +168,16 @@ namespace Ryujinx
             }
             else
             {
-                // Load system titles
-                mainWindow.LoadSystem(startFullscreenArg);
+                switch (ConfigurationState.Instance.System.DefaultStartMode.Value)
+                {
+                    case DefaultStartMode.BootSystem:
+                        mainWindow.LoadSystem(startFullscreenArg);
+                        break;
+
+                    case DefaultStartMode.Idle:
+                    default:
+                        break;
+                }
             }
 
             if (ConfigurationState.Instance.CheckUpdatesOnStart.Value && Updater.CanUpdate(false))

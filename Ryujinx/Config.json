@@ -1,5 +1,5 @@
 {
-  "version": 28,
+  "version": 29,
   "enable_file_log": true,
   "res_scale": 1,
   "res_scale_custom": 1,
@@ -107,5 +107,6 @@
       "player_index": "Player1"
     }
   ],
-  "default_start_mode": "Idle"
+  "default_start_mode": "Idle",
+  "default_firmware_version": "12.1.0"
 }

@@ -19,24 +19,6 @@ namespace Ryujinx.HLE.HOS.Services.Settings
     [Service("set:sys")]
     class ISystemSettingsServer : IpcService
     {
-        private FirmwareVersion _firmwareVersion;
-        private bool _firmwareVersionLoaded;
-
-        private bool EnsureFirmwareVersionLoaded()
-        {
-            if(!_firmwareVersionLoaded)
-            {
-                _firmwareVersionLoaded = Horizon.Instance.ContentManager.TryGetCurrentFirmwareVersion(out _firmwareVersion);
-            }
-
-            return _firmwareVersionLoaded;
-        }
-
-        public ISystemSettingsServer()
-        {
-            _firmwareVersionLoaded = false;
-        }
-
         [CommandHipc(0)]
         // SetLanguageCode(nn::settings::LanguageCode)
         public ResultCode SetLanguageCode(ServiceCtx context)
@@ -70,17 +52,10 @@ namespace Ryujinx.HLE.HOS.Services.Settings
         {
             var fwVersionBuf = context.Request.RecvListBuff[0];
             
-            if (EnsureFirmwareVersionLoaded())
-            {
-                context.Response.PtrBuff[0] = context.Response.PtrBuff[0].WithSize((ulong)Marshal.SizeOf<FirmwareVersion>());
-                context.Memory.Write(fwVersionBuf.Position, _firmwareVersion);
+            context.Response.PtrBuff[0] = context.Response.PtrBuff[0].WithSize((ulong)Marshal.SizeOf<FirmwareVersion>());
+            context.Memory.Write(fwVersionBuf.Position, Horizon.Instance.ContentManager.FirmwareVersion);
 
-                return ResultCode.Success;
-            }
-            else
-            {
-                return ResultCode.NullFirmwareVersionBuffer;
-            }
+            return ResultCode.Success;
         }
 
         [CommandHipc(7)]

@@ -51,7 +51,6 @@ namespace Ryujinx.HLE.HOS.Services.Ns
             {
                 case StorageId.SdCard:
                 default: // TODO: implement others instead of returning SD values...
-                    // SD card
                     var fsProxy = Horizon.Instance.Device.FileSystem.FsServer.CreateFileSystemProxyService();
 
                     // TODO: check result codes here

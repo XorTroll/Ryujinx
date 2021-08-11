@@ -60,7 +60,7 @@ namespace Ryujinx.Headless.SDL2
             AppDataManager.Initialize(null);
 
             _virtualFileSystem = VirtualFileSystem.CreateInstance();
-            _contentManager = new ContentManager(_virtualFileSystem);
+            _contentManager = new ContentManager(_virtualFileSystem, new Version("12.1.0"));
             _accountManager = new AccountManager();
             _userChannelPersistence = new UserChannelPersistence();
 
@@ -476,9 +476,7 @@ namespace Ryujinx.Headless.SDL2
 
             SetupProgressHandler();
 
-            SystemVersion firmwareVersion = _contentManager.GetCurrentFirmwareVersion();
-
-            Logger.Notice.Print(LogClass.Application, $"Using Firmware Version: {firmwareVersion?.VersionString}");
+            Logger.Notice.Print(LogClass.Application, $"Using Firmware Version: {_contentManager.FirmwareVersion.GetDisplayVersion()}");
 
             if (Directory.Exists(path))
             {
@@ -492,12 +490,12 @@ namespace Ryujinx.Headless.SDL2
                 if (romFsFiles.Length > 0)
                 {
                     Logger.Info?.Print(LogClass.Application, "Loading as cart with RomFS.");
-                    Horizon.Instance.Device.LoadCart(path, romFsFiles[0]);
+                    Horizon.Instance.Device.Application.LoadCart(path, romFsFiles[0]);
                 }
                 else
                 {
                     Logger.Info?.Print(LogClass.Application, "Loading as cart WITHOUT RomFS.");
-                    Horizon.Instance.Device.LoadCart(path);
+                    Horizon.Instance.Device.Application.LoadCart(path);
                 }
             }
             else if (File.Exists(path))
@@ -506,22 +504,22 @@ namespace Ryujinx.Headless.SDL2
                 {
                     case ".xci":
                         Logger.Info?.Print(LogClass.Application, "Loading as XCI.");
-                        Horizon.Instance.Device.LoadXci(path);
+                        Horizon.Instance.Device.Application.LoadXci(path);
                         break;
                     case ".nca":
                         Logger.Info?.Print(LogClass.Application, "Loading as NCA.");
-                        Horizon.Instance.Device.LoadNca(path);
+                        Horizon.Instance.Device.Application.LoadNca(path);
                         break;
                     case ".nsp":
                     case ".pfs0":
                         Logger.Info?.Print(LogClass.Application, "Loading as NSP.");
-                        Horizon.Instance.Device.LoadNsp(path);
+                        Horizon.Instance.Device.Application.LoadNsp(path);
                         break;
                     default:
                         Logger.Info?.Print(LogClass.Application, "Loading as Homebrew.");
                         try
                         {
-                            Horizon.Instance.Device.LoadProgram(path);
+                            Horizon.Instance.Device.Application.LoadProgram(path);
                         }
                         catch (ArgumentOutOfRangeException)
                         {

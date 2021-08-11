@@ -51,7 +51,14 @@ namespace Ryujinx.HLE.FileSystem.Content
 
         private readonly object _lock = new object();
 
-        public ContentManager(VirtualFileSystem virtualFileSystem)
+        private FirmwareVersion _firmwareVersion;
+        private bool _firmwareVersionLoaded;
+        private object _firmwareVersionLock;
+        private FirmwareVersion _defaultFirmwareVersion;
+
+        private IntegrityCheckLevel _fsIntegrityCheckLevel;
+
+        public ContentManager(VirtualFileSystem virtualFileSystem, Version defaultFirmwareVersion, IntegrityCheckLevel fsIntegrityCheckLevel)
         {
             _contentDictionary = new SortedDictionary<(ulong, NcaContentType), string>();
             _locationEntries   = new Dictionary<StorageId, LinkedList<LocationEntry>>();
@@ -89,6 +96,12 @@ namespace Ryujinx.HLE.FileSystem.Content
             _virtualFileSystem = virtualFileSystem;
 
             _aocData = new SortedList<ulong, AocItem>();
+
+            _firmwareVersionLock = new object();
+            _firmwareVersionLoaded = false;
+            _defaultFirmwareVersion = new FirmwareVersion(defaultFirmwareVersion);
+
+            _fsIntegrityCheckLevel = fsIntegrityCheckLevel;
         }
 
         public void LoadEntries(Switch device = null)
@@ -652,8 +665,44 @@ namespace Ryujinx.HLE.FileSystem.Content
             return dest;
         }
 
-        public SystemVersion VerifyFirmwarePackage(string firmwarePackage)
+        private bool ReadFirmwareVersionFromNca(Nca firmwareContent, out FirmwareVersion firmwareVersion)
         {
+            firmwareVersion = new FirmwareVersion();
+
+            if (!firmwareContent.CanOpenSection(NcaSectionType.Data))
+            {
+                return false;
+            }
+
+            var firmwareRomFs = firmwareContent.OpenFileSystem(NcaSectionType.Data, _fsIntegrityCheckLevel);
+
+            var result = firmwareRomFs.OpenFile(out IFile firmwareFile, "/file".ToU8Span(), OpenMode.Read);
+            if (result.IsSuccess())
+            {
+                result = firmwareFile.GetSize(out long fileSize);
+                if (result.IsSuccess())
+                {
+                    if (fileSize >= Marshal.SizeOf<FirmwareVersion>())
+                    {
+                        var fwData = new byte[fileSize];
+
+                        result = firmwareFile.Read(out _, 0, fwData);
+                        if (result.IsSuccess())
+                        {
+                            firmwareVersion = MemoryMarshal.Read<FirmwareVersion>(fwData);
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public bool VerifyFirmwarePackage(string firmwarePackage, out FirmwareVersion firmwareVersion)
+        {
+            firmwareVersion = new FirmwareVersion();
+
             _virtualFileSystem.Reload();
 
             // LibHac.NcaHeader's DecryptHeader doesn't check if HeaderKey is empty and throws InvalidDataException instead
@@ -667,7 +716,7 @@ namespace Ryujinx.HLE.FileSystem.Content
 
             if (Directory.Exists(firmwarePackage))
             {
-                return VerifyAndGetVersionDirectory(firmwarePackage);
+                return VerifyAndGetVersionDirectory(firmwarePackage, out firmwareVersion);
             }
 
             if (!File.Exists(firmwarePackage))
@@ -684,7 +733,7 @@ namespace Ryujinx.HLE.FileSystem.Content
                     case ".zip":
                         using (ZipArchive archive = ZipFile.OpenRead(firmwarePackage))
                         {
-                            return VerifyAndGetVersionZip(archive);
+                            return VerifyAndGetVersionZip(archive, out firmwareVersion);
                         }
                     case ".xci":
                         Xci xci = new Xci(_virtualFileSystem.KeySet, file.AsStorage());
@@ -693,7 +742,7 @@ namespace Ryujinx.HLE.FileSystem.Content
                         {
                             XciPartition partition = xci.OpenPartition(XciPartitionType.Update);
 
-                            return VerifyAndGetVersion(partition);
+                            return VerifyAndGetVersion(partition, out firmwareVersion);
                         }
                         else
                         {
@@ -704,14 +753,14 @@ namespace Ryujinx.HLE.FileSystem.Content
                 }
             }
 
-            SystemVersion VerifyAndGetVersionDirectory(string firmwareDirectory)
+            bool VerifyAndGetVersionDirectory(string firmwareDirectory, out FirmwareVersion firmwareVersion)
             {
-                return VerifyAndGetVersion(new LocalFileSystem(firmwareDirectory));
+                return VerifyAndGetVersion(new LocalFileSystem(firmwareDirectory), out firmwareVersion);
             }
 
-            SystemVersion VerifyAndGetVersionZip(ZipArchive archive)
+            bool VerifyAndGetVersionZip(ZipArchive archive, out FirmwareVersion firmwareVersion)
             {
-                SystemVersion systemVersion = null;
+                firmwareVersion = new FirmwareVersion();
 
                 foreach (var entry in archive.Entries)
                 {
@@ -780,11 +829,9 @@ namespace Ryujinx.HLE.FileSystem.Content
                         {
                             Nca nca = new Nca(_virtualFileSystem.KeySet, ncaStream.AsStorage());
 
-                            var romfs = nca.OpenFileSystem(NcaSectionType.Data, IntegrityCheckLevel.ErrorOnInvalid);
-
-                            if (romfs.OpenFile(out IFile systemVersionFile, "/file".ToU8Span(), OpenMode.Read).IsSuccess())
+                            if (!ReadFirmwareVersionFromNca(nca, out firmwareVersion))
                             {
-                                systemVersion = new SystemVersion(systemVersionFile.AsStream());
+                                return false;
                             }
                         }
                     }
@@ -867,12 +914,12 @@ namespace Ryujinx.HLE.FileSystem.Content
                     throw new FileNotFoundException("System update title was not found in the firmware package.");
                 }
 
-                return systemVersion;
+                return true;
             }
 
-            SystemVersion VerifyAndGetVersion(IFileSystem filesystem)
+            bool VerifyAndGetVersion(IFileSystem filesystem, out FirmwareVersion firmwareVersion)
             {
-                SystemVersion systemVersion = null;
+                firmwareVersion = new FirmwareVersion();
 
                 CnmtContentMetaEntry[] metaEntries = null;
 
@@ -902,11 +949,9 @@ namespace Ryujinx.HLE.FileSystem.Content
                     }
                     else if (nca.Header.TitleId == SystemProgramIds.SystemArchives.SystemVersion && nca.Header.ContentType == NcaContentType.Data)
                     {
-                        var romfs = nca.OpenFileSystem(NcaSectionType.Data, IntegrityCheckLevel.ErrorOnInvalid);
-
-                        if (romfs.OpenFile(out IFile systemVersionFile, "/file".ToU8Span(), OpenMode.Read).IsSuccess())
+                        if (!ReadFirmwareVersionFromNca(nca, out firmwareVersion))
                         {
-                            systemVersion = new SystemVersion(systemVersionFile.AsStream());
+                            return false;
                         }
                     }
 
@@ -993,10 +1038,10 @@ namespace Ryujinx.HLE.FileSystem.Content
                     throw new InvalidFirmwarePackageException($"Firmware package contains unrelated archives. Please remove these paths: {Environment.NewLine}{extraNcas}");
                 }
 
-                return systemVersion;
+                return true;
             }
 
-            return null;
+            return false;
         }
 
         public bool TryGetCurrentFirmwareVersion(out FirmwareVersion firmwareVersion)
@@ -1012,45 +1057,42 @@ namespace Ryujinx.HLE.FileSystem.Content
                 return false;
             }
 
-            string firmwareTitlePath = HOSHorizon.Instance.Device.FileSystem.SwitchPathToSystemPath(contentPath);
+            string firmwareTitlePath = _virtualFileSystem.SwitchPathToSystemPath(contentPath);
 
             using (IStorage firmwareStorage = new LocalStorage(firmwareTitlePath, FileAccess.Read))
             {
-                Nca firmwareContent = new Nca(HOSHorizon.Instance.KeySet, firmwareStorage);
+                var firmwareContent = new Nca(_virtualFileSystem.KeySet, firmwareStorage);
 
-                if (!firmwareContent.CanOpenSection(NcaSectionType.Data))
+                return ReadFirmwareVersionFromNca(firmwareContent, out firmwareVersion);
+            }
+        }
+
+        public void ResetFirmwareVersionCache()
+        {
+            lock (_firmwareVersionLock)
+            {
+                _firmwareVersionLoaded = false;
+            }
+        }
+
+        public FirmwareVersion FirmwareVersion
+        {
+            get
+            {
+                lock (_firmwareVersionLock)
                 {
-                    return false;
+                    if (!_firmwareVersionLoaded)
+                    {
+                        if (!TryGetCurrentFirmwareVersion(out _firmwareVersion))
+                        {
+                            _firmwareVersion = _defaultFirmwareVersion;
+                        }
+
+                        _firmwareVersionLoaded = true;
+                    }
+
+                    return _firmwareVersion;
                 }
-
-                IFileSystem firmwareRomFs = firmwareContent.OpenFileSystem(NcaSectionType.Data, HOSHorizon.Instance.FsIntegrityCheckLevel);
-
-                Result result = firmwareRomFs.OpenFile(out IFile firmwareFile, "/file".ToU8Span(), OpenMode.Read);
-                if (result.IsFailure())
-                {
-                    return false;
-                }
-
-                result = firmwareFile.GetSize(out long fileSize);
-                if (result.IsFailure())
-                {
-                    return false;
-                }
-                if (fileSize < Marshal.SizeOf<FirmwareVersion>())
-                {
-                    return false;
-                }
-
-                var fwData = new byte[fileSize];
-
-                result = firmwareFile.Read(out _, 0, fwData);
-                if (result.IsFailure())
-                {
-                    return false;
-                }
-
-                firmwareVersion = MemoryMarshal.Read<FirmwareVersion>(fwData);
-                return true;
             }
         }
     }

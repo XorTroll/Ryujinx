@@ -8,7 +8,7 @@ using System;
 namespace Ryujinx.HLE.HOS.Services.Ns
 {
     [Service("ns:am")]
-    class IApplicationManagerInterface : IpcService
+    class IApplicationManagerInterface : IContentManagementInterface
     {
         private KEvent _applicationRecordUpdateEvent;
         private int _applicationRecordUpdateEventHandle;

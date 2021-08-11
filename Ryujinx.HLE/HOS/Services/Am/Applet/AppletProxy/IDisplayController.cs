@@ -24,7 +24,7 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
 
             var buf = new byte[0x384000];
             var colorBuf = MemoryMarshal.Cast<byte, uint>(buf);
-            for (var i = 0; i < color_buf.Length; i++)
+            for (var i = 0; i < colorBuf.Length; i++)
             {
                 colorBuf[i] = 0xFF00FF00; // ARGB
             }

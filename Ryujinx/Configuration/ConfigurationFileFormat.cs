@@ -259,6 +259,11 @@ namespace Ryujinx.Configuration
         public DefaultStartMode DefaultStartMode { get; set; }
 
         /// <summary>
+        /// Default firmware version, which will be used when no firmware is installed
+        /// </summary>
+        public string DefaultFirmwareVersion { get; set; }
+
+        /// <summary>
         /// Loads a configuration file from disk
         /// </summary>
         /// <param name="path">The path to the JSON configuration file</param>

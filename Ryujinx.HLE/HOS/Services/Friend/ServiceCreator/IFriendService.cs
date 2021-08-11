@@ -397,14 +397,9 @@ namespace Ryujinx.HLE.HOS.Services.Friend.ServiceCreator
                 PresencePermission = 0,
                 PlayLogPermission = 0,
                 FriendRequestReception = 0,
-                FriendCode = new Array32<byte>(),
+                FriendCode = StringUtils.ToArray<Array32<byte>>("SW-6969-6969-6969", 0x20),
                 FriendCodeNextIssuableTime = 0
             };
-
-            var friendCode = "SW-6969-6969-6969";
-            var srcSpan = StringUtils.ToSpan(friendCode, 0x20);
-            var dstSpan = userSetting.FriendCode.ToSpan();
-            srcSpan.CopyTo(dstSpan);
 
             context.Memory.Write(userSettingBuf.Position, userSetting);
 

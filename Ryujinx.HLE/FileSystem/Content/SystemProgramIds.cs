@@ -8,7 +8,7 @@ namespace Ryujinx.HLE.FileSystem.Content
 {
     public static class SystemProgramIds
     {
-        // TODO: more
+        // TODO: keep adding more
 
         public static class Applets
         {
@@ -20,6 +20,19 @@ namespace Ryujinx.HLE.FileSystem.Content
             public const ulong Shop = 0x010000000000100B;
             public const ulong PhotoViewer = 0x010000000000100D;
             public const ulong MyPage = 0x0100000000001013;
+
+            public static ulong[] All => new ulong[] { Qlaunch, OverlayDisp, Controller, Swkbd, MiiEdit, Shop, PhotoViewer, MyPage };
+        }
+
+        public static class SystemApplications
+        {
+            public const ulong Starter = 0x0100000000001012;
+
+            public const ulong Flog = 0x01008BB00013C000;
+
+            public const ulong RetailInteractiveDisplayMenu  = 0x0100069000078000;
+
+            public static ulong[] All = new ulong[] { Starter, Flog, RetailInteractiveDisplayMenu };
         }
 
         public static class SystemArchives
@@ -32,6 +45,8 @@ namespace Ryujinx.HLE.FileSystem.Content
             public const ulong FontChineseTraditional = 0x0100000000000813;
             public const ulong FontChineseSimple = 0x0100000000000814;
             public const ulong SystemUpdate = 0x0100000000000816;
+
+            public static ulong[] All => new ulong[] { SystemVersion, TimeZoneBinary, FontNintendoExtension, FontStandard, FontKorean, FontChineseTraditional, FontChineseSimple, SystemUpdate };
         }
     }
 }

@@ -55,7 +55,11 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
         // RequestExit()
         public ResultCode RequestExit(ServiceCtx context)
         {
+            // TODO: do this properly
+
             _contextBase.Terminate();
+
+            Logger.Stub?.PrintStub(LogClass.ServiceAm);
 
             return ResultCode.Success;
         }

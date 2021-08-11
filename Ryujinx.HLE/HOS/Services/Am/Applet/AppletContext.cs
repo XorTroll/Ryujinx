@@ -116,7 +116,15 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
 
         public bool IsLibraryApplet => _contextBase is LibraryAppletContext;
 
-        public bool IsApplication => _contextBase is ApplicationContext;
+        public bool IsAnyApplication => _contextBase is ApplicationContext;
+
+        public bool IsApplication => IsAnyApplication && !ApplicationContext.IsSystem;
+
+        public bool IsSystemApplication => IsAnyApplication && ApplicationContext.IsSystem;
+
+        public bool IsSystemApplet => (_contextBase == null) && (AppletId == AppletId.SystemAppletMenu);
+
+        public bool IsOverlayApplet => (_contextBase == null) && (AppletId == AppletId.OverlayApplet);
 
         public void SendMessages(params AppletMessage[] messages)
         {

@@ -24,6 +24,8 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy
 {
     class IApplicationFunctions : IpcService
     {
+        private AppletContext _self;
+
         private ulong _defaultSaveDataSize        = 200000000;
         private ulong _defaultJournalSaveDataSize = 200000000;
 
@@ -37,8 +39,10 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy
         private int _notificationStorageChannelEventHandle;
         private int _healthWarningDisappearedSystemEventHandle;
 
-        public IApplicationFunctions()
+        public IApplicationFunctions(AppletContext self)
         {
+            _self = self;
+
             // TODO: Find where they are signaled.
             _gpuErrorDetectedSystemEvent         = new KEvent(Horizon.Instance.KernelContext);
             _friendInvitationStorageChannelEvent = new KEvent(Horizon.Instance.KernelContext);
@@ -50,53 +54,29 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.ApplicationProxy
         // PopLaunchParameter(LaunchParameterKind kind) -> object<nn::am::service::IStorage>
         public ResultCode PopLaunchParameter(ServiceCtx context)
         {
-            LaunchParameterKind kind = (LaunchParameterKind)context.RequestData.ReadUInt32();
+            var kind = context.RequestData.ReadStruct<LaunchParameterKind>();
 
-            byte[] storageData;
-
-            switch (kind)
+            if (_self.ApplicationContext.TryPopLaunchParameter(kind, out var data))
             {
-                case LaunchParameterKind.UserChannel:
-                    storageData = Horizon.Instance.Device.Configuration.UserChannelPersistence.Pop();
-                    break;
-                case LaunchParameterKind.PreselectedUser:
-                    // Only the first 0x18 bytes of the Data seems to be actually used.
-                    storageData = StorageHelper.MakeLaunchParams(Horizon.Instance.AccountManager.LastOpenedUser);
-                    break;
-                case LaunchParameterKind.Unknown:
-                    throw new NotImplementedException("Unknown LaunchParameterKind.");
-                default:
-                    return ResultCode.ObjectInvalid;
-            }
+                MakeObject(context, new AppletIStorage(data));
 
-            if (storageData == null)
-            {
-                return ResultCode.NotAvailable;
-            }
-
-            MakeObject(context, new AppletIStorage(storageData));
-
-            return ResultCode.Success;
-        }
-
-        [CommandHipc(12)] // 4.0.0+
-        // CreateApplicationAndRequestToStart(u64 title_id)
-        public ResultCode CreateApplicationAndRequestToStart(ServiceCtx context)
-        {
-            ulong titleId = context.RequestData.ReadUInt64();
-
-            Logger.Stub?.PrintStub(LogClass.ServiceAm, new { titleId });
-
-            if (titleId == 0)
-            {
-                Horizon.Instance.Device.UiHandler.ExecuteProgram(ProgramSpecifyKind.RestartProgram, titleId);
+                return ResultCode.Success;
             }
             else
             {
-                throw new NotImplementedException();
+                return ResultCode.NotAvailable;
             }
+        }
 
-            return ResultCode.Success;
+        [CommandHipc(12)] // 4.0.0+
+        // CreateApplicationAndRequestToStart(nn::ncm::ApplicationId)
+        public ResultCode CreateApplicationAndRequestToStart(ServiceCtx context)
+        {
+            var applicationId = context.RequestData.ReadUInt64();
+
+            Logger.Stub?.PrintStub(LogClass.ServiceAm, new { applicationId });
+
+            throw new NotImplementedException();
         }
 
         [CommandHipc(20)]

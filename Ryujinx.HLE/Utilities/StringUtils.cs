@@ -1,4 +1,5 @@
 ﻿using LibHac.Common;
+using Ryujinx.Common.Memory;
 using Ryujinx.HLE.HOS;
 using System;
 using System.Globalization;
@@ -78,6 +79,20 @@ namespace Ryujinx.HLE.Utilities
         public static string FromSpan(ReadOnlySpan<byte> span)
         {
             return Encoding.UTF8.GetString(span.Slice(0, span.IndexOf((byte)0)));
+        }
+
+        public static A ToArray<A>(string str, int maxLen) where A : IArray<byte>, new()
+        {
+            var array = new A();
+            var srcSpan = ToSpan(str, maxLen);
+            var dstSpan = array.ToSpan();
+            srcSpan.CopyTo(dstSpan);
+            return array;
+        }
+
+        public static string FromArray<A>(A array) where A : IArray<byte>
+        {
+            return FromSpan(array.ToSpan());
         }
 
         public static ReadOnlySpan<byte> ToSpan(string str, int maxLen)

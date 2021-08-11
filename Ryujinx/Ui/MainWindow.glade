@@ -47,6 +47,16 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkMenuItem" id="_loadSystem">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Launch the system, like booting a normal console</property>
+                        <property name="label" translatable="yes">Boot System</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="Load_System" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkMenuItem" id="_appletMenu">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>

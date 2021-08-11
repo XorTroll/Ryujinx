@@ -5,7 +5,7 @@
     [Service("news:m")]
     [Service("news:p")]
     [Service("news:v")]
-    class IServiceCreator : IpcService
+    class IServiceCreator : ServiceCreatorBase
     {
         // TODO: permissions depending on service type
 
@@ -13,45 +13,35 @@
         // CreateNewsService() -> object<nn::news::detail::ipc::INewsService>
         public ResultCode CreateNewsService(ServiceCtx context)
         {
-            MakeObject(context, new INewsService());
-
-            return ResultCode.Success;
+            return CreateNewsServiceImpl(context);
         }
 
         [CommandHipc(1)]
         // CreateNewlyArrivedEventHolder() -> object<nn::news::detail::ipc::ICreateNewlyArrivedEventHolder>
         public ResultCode CreateNewlyArrivedEventHolder(ServiceCtx context)
         {
-            MakeObject(context, new INewlyArrivedEventHolder());
-
-            return ResultCode.Success;
+            return CreateNewlyArrivedEventHolderImpl(context);
         }
 
         [CommandHipc(2)]
         // CreateNewsDataService() -> object<nn::news::detail::ipc::INewsDataService>
         public ResultCode CreateNewsDataService(ServiceCtx context)
         {
-            MakeObject(context, new INewsDataService());
-
-            return ResultCode.Success;
+            return CreateNewsDataServiceImpl(context);
         }
 
         [CommandHipc(3)]
         // CreateNewsDatabaseService() -> object<nn::news::detail::ipc::INewsDatabaseService>
         public ResultCode CreateNewsDatabaseService(ServiceCtx context)
         {
-            MakeObject(context, new INewsDatabaseService());
-
-            return ResultCode.Success;
+            return CreateNewsDatabaseServiceImpl(context);
         }
 
         [CommandHipc(4)]
         // CreateOverwriteEventHolder() -> object<nn::news::detail::ipc::IOverwriteEventHolder>
         public ResultCode CreateOverwriteEventHolder(ServiceCtx context)
         {
-            MakeObject(context, new IOverwriteEventHolder());
-
-            return ResultCode.Success;
+            return CreateOverwriteEventHolderImpl(context);
         }
     }
 }

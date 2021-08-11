@@ -1,4 +1,6 @@
-﻿namespace Ryujinx.Common.Memory
+﻿using System;
+
+namespace Ryujinx.Common.Memory
 {
     /// <summary>
     /// Array interface.
@@ -17,5 +19,7 @@
         /// Number of elements on the array.
         /// </summary>
         int Length { get; }
+
+        Span<T> ToSpan();
     }
 }

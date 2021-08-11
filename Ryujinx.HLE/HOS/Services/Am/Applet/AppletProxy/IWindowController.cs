@@ -28,5 +28,14 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet.AppletProxy
 
             return ResultCode.Success;
         }
+
+        [CommandHipc(11)]
+        // ReleaseForegroundRights()
+        public ResultCode ReleaseForegroundRights(ServiceCtx context)
+        {
+            Logger.Stub?.PrintStub(LogClass.ServiceAm);
+
+            return ResultCode.Success;
+        }
     }
 }

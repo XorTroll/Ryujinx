@@ -96,6 +96,7 @@ namespace Ryujinx.Ui
         [GUI] MenuItem        _fileMenu;
         [GUI] MenuItem        _loadApplicationFile;
         [GUI] MenuItem        _loadApplicationFolder;
+        [GUI] MenuItem        _loadSystem;
         [GUI] MenuItem        _appletMenu;
         [GUI] MenuItem        _actionMenu;
         [GUI] MenuItem        _stopEmulation;
@@ -135,6 +136,8 @@ namespace Ryujinx.Ui
 
 #pragma warning restore CS0649, IDE0044, CS0169
 
+        private bool IsInMenu => !_gameLoaded && !_systemLoaded;
+
         public MainWindow() : this(new Builder("Ryujinx.Ui.MainWindow.glade")) { }
 
         private MainWindow(Builder builder) : base(builder.GetObject("_mainWin").Handle)
@@ -160,7 +163,7 @@ namespace Ryujinx.Ui
 
             // Instanciate HLE objects.
             _virtualFileSystem      = VirtualFileSystem.CreateInstance();
-            _contentManager         = new ContentManager(_virtualFileSystem);
+            _contentManager         = new ContentManager(_virtualFileSystem, new Version(ConfigurationState.Instance.System.DefaultFirmwareVersion.Value), ConfigurationState.Instance.System.FsIntegrityCheckLevel);
             _accountManager         = new AccountManager();
             _userChannelPersistence = new UserChannelPersistence();
 
@@ -263,7 +266,7 @@ namespace Ryujinx.Ui
 
         private void UpdateIgnoreMissingServicesState(object sender, ReactiveEventArgs<bool> args)
         {
-            if (Horizon.Instance.Device != null)
+            if (Horizon.Initialized)
             {
                 Horizon.Instance.Device.Configuration.IgnoreMissingServices = args.NewValue;
             }
@@ -271,7 +274,7 @@ namespace Ryujinx.Ui
 
         private void UpdateAspectRatioState(object sender, ReactiveEventArgs<AspectRatio> args)
         {
-            if (Horizon.Instance.Device != null)
+            if (Horizon.Initialized)
             {
                 Horizon.Instance.Device.Configuration.AspectRatio = args.NewValue;
             }
@@ -279,7 +282,7 @@ namespace Ryujinx.Ui
 
         private void UpdateDockedModeState(object sender, ReactiveEventArgs<bool> e)
         {
-            if (Horizon.Instance.Device != null)
+            if (Horizon.Initialized)
             {
                 Horizon.Instance.Device.System.ChangeDockedModeState(e.NewValue);
             }
@@ -439,8 +442,6 @@ namespace Ryujinx.Ui
                 ? HLE.MemoryConfiguration.MemoryConfiguration6GB
                 : HLE.MemoryConfiguration.MemoryConfiguration4GB;
 
-            IntegrityCheckLevel fsIntegrityCheckLevel = ConfigurationState.Instance.System.EnableFsIntegrityChecks ? IntegrityCheckLevel.ErrorOnInvalid : IntegrityCheckLevel.None;
-
             HLE.HLEConfiguration configuration = new HLE.HLEConfiguration(_virtualFileSystem,
                                                                           _contentManager,
                                                                           _accountManager,
@@ -454,7 +455,7 @@ namespace Ryujinx.Ui
                                                                           ConfigurationState.Instance.Graphics.EnableVsync,
                                                                           ConfigurationState.Instance.System.EnableDockedMode,
                                                                           ConfigurationState.Instance.System.EnablePtc,
-                                                                          fsIntegrityCheckLevel,
+                                                                          ConfigurationState.Instance.System.FsIntegrityCheckLevel,
                                                                           ConfigurationState.Instance.System.FsGlobalAccessLogMode,
                                                                           ConfigurationState.Instance.System.SystemTimeOffset,
                                                                           ConfigurationState.Instance.System.TimeZone,
@@ -658,7 +659,7 @@ namespace Ryujinx.Ui
 
                 SetupProgressUiHandlers();
 
-                _contentManager.TryGetCurrentFirmwareVersion(out var firmwareVersion);
+                var firmwareVersion = _contentManager.FirmwareVersion;
 
                 bool isDirectory     = Directory.Exists(path);
                 bool isFirmwareTitle = false;
@@ -672,11 +673,11 @@ namespace Ryujinx.Ui
 
                 if (!SetupValidator.CanStartApplication(_contentManager, path, out UserError userError))
                 {
-                    if (SetupValidator.CanFixStartApplication(_contentManager, path, userError, out var systemVersion))
+                    if (SetupValidator.CanFixStartApplication(_contentManager, path, userError, out var embeddedFirmwareVersion))
                     {
                         if (userError == UserError.NoFirmware)
                         {
-                            string message = $"Would you like to install the firmware embedded in this game? (Firmware {systemVersion.VersionString})";
+                            string message = $"Would you like to install the firmware embedded in this game? (Firmware {embeddedFirmwareVersion.GetDisplayVersion()})";
 
                             ResponseType responseDialog = (ResponseType)GtkDialog.CreateConfirmationDialog("No Firmware Installed", message).Run();
 
@@ -1005,7 +1006,7 @@ namespace Ryujinx.Ui
 
             _ending = true;
 
-            if (Horizon.Instance.Device != null)
+            if (Horizon.Initialized)
             {
                 UpdateGameMetadata(Horizon.Instance.Device.Application.TitleIdText);
 
@@ -1208,11 +1209,17 @@ namespace Ryujinx.Ui
             }
         }
 
+        private void Load_System(object sender, EventArgs args)
+        {
+            LoadSystem(false);
+        }
+
         private void FileMenu_StateChanged(object o, StateChangedArgs args)
         {
-            _appletMenu.Sensitive = Horizon.Instance.Device == null; // && _contentManager.GetCurrentFirmwareVersion() != null && _contentManager.GetCurrentFirmwareVersion().Major > 3;
-            _loadApplicationFile.Sensitive   = Horizon.Instance.Device == null;
-            _loadApplicationFolder.Sensitive = Horizon.Instance.Device == null;
+            _appletMenu.Sensitive            = IsInMenu && _contentManager.FirmwareVersion.Major > 3;
+            _loadApplicationFile.Sensitive   = IsInMenu;
+            _loadApplicationFolder.Sensitive = IsInMenu;
+            _loadSystem.Sensitive            = IsInMenu;
         }
 
         private void Load_Mii_Edit_Applet(object sender, EventArgs args)
@@ -1289,82 +1296,108 @@ namespace Ryujinx.Ui
 
                     fileChooser.Dispose();
 
-                    SystemVersion firmwareVersion = _contentManager.VerifyFirmwarePackage(filename);
+                    if (_contentManager.VerifyFirmwarePackage(filename, out var firmwarePackageVersion))
+                    {
+                        var displayVersion = firmwarePackageVersion.GetDisplayVersion();
 
-                    string dialogTitle = $"Install Firmware {firmwareVersion.VersionString}";
+                        string dialogTitle = $"Install Firmware {displayVersion}";
 
-                    if (firmwareVersion == null)
+                        string dialogMessage = $"System version {displayVersion} will be installed.";
+
+                        if (_contentManager.TryGetCurrentFirmwareVersion(out var firmwareVersion))
+                        {
+                            dialogMessage += $"\n\nThis will replace the current system version {firmwareVersion.GetDisplayVersion()}. ";
+                        }
+
+                        dialogMessage += "\n\nDo you want to continue?";
+
+                        ResponseType responseInstallDialog = (ResponseType)GtkDialog.CreateConfirmationDialog(dialogTitle, dialogMessage).Run();
+
+                        MessageDialog waitingDialog = GtkDialog.CreateWaitingDialog(dialogTitle, "Installing firmware...");
+
+                        if (responseInstallDialog == ResponseType.Yes)
+                        {
+                            Logger.Info?.Print(LogClass.Application, $"Installing firmware {displayVersion}");
+
+                            Thread thread = new Thread(() =>
+                            {
+                                Application.Invoke(delegate
+                                {
+                                    waitingDialog.Run();
+
+                                });
+
+                                try
+                                {
+                                    _contentManager.InstallFirmware(filename);
+
+                                    Application.Invoke(delegate
+                                    {
+                                        waitingDialog.Dispose();
+
+                                        string message = $"System version {displayVersion} successfully installed.";
+
+                                        GtkDialog.CreateInfoDialog(dialogTitle, message);
+                                        Logger.Info?.Print(LogClass.Application, message);
+
+                                        void PurgeSystemTitleCache(ulong programId)
+                                        {
+                                            var systemTitleCacheFolder = new DirectoryInfo(System.IO.Path.Combine(AppDataManager.GamesDirPath, $"{programId:X16}", "cache"));
+
+                                            if (systemTitleCacheFolder.Exists)
+                                            {
+                                                systemTitleCacheFolder.Delete(true);
+                                            }
+                                        }
+
+                                        // Purge system title cache
+                                        foreach (var programId in SystemProgramIds.Applets.All)
+                                        {
+                                            PurgeSystemTitleCache(programId);
+                                        }
+                                        foreach (var systemApplicationId in SystemProgramIds.SystemApplications.All)
+                                        {
+                                            PurgeSystemTitleCache(systemApplicationId);
+                                        }
+
+                                        if (ConfigurationState.Instance.System.DefaultStartMode.Value != DefaultStartMode.BootSystem)
+                                        {
+                                            var responseStartModeChangeDialog = (ResponseType)GtkDialog.CreateConfirmationDialog("Change start mode", "Would you like to boot this firmware by default?\nIf enabled, this firmware will be launched when Ryujinx is opened with no arguments.").Run();
+                                            if (responseStartModeChangeDialog == ResponseType.Yes)
+                                            {
+                                                ConfigurationState.Instance.System.DefaultStartMode.Value = DefaultStartMode.BootSystem;
+                                                SaveConfig();
+                                            }
+                                        }
+
+                                        _contentManager.ResetFirmwareVersionCache();
+                                        Task.Run(RefreshFirmwareLabel);
+                                    });
+                                }
+                                catch (Exception ex)
+                                {
+                                    Application.Invoke(delegate
+                                    {
+                                        waitingDialog.Dispose();
+
+                                        GtkDialog.CreateErrorDialog(ex.Message);
+                                    });
+                                }
+                                finally
+                                {
+                                    RefreshFirmwareLabel();
+                                }
+                            });
+
+                            thread.Name = "GUI.FirmwareInstallerThread";
+                            thread.Start();
+                        }
+                    }
+                    else
                     {
                         GtkDialog.CreateErrorDialog($"A valid system firmware was not found in {filename}.");
 
                         return;
-                    }
-
-                    string dialogMessage = $"System version {firmwareVersion.VersionString} will be installed.";
-
-                    if (_contentManager.TryGetCurrentFirmwareVersion(out var currentVersion))
-                    {
-                        dialogMessage += $"\n\nThis will replace the current system version {currentVersion.GetDisplayVersion()}. ";
-                    }
-
-                    dialogMessage += "\n\nDo you want to continue?";
-
-                    ResponseType responseInstallDialog = (ResponseType)GtkDialog.CreateConfirmationDialog(dialogTitle, dialogMessage).Run();
-
-                    MessageDialog waitingDialog = GtkDialog.CreateWaitingDialog(dialogTitle, "Installing firmware...");
-
-                    if (responseInstallDialog == ResponseType.Yes)
-                    {
-                        Logger.Info?.Print(LogClass.Application, $"Installing firmware {firmwareVersion.VersionString}");
-
-                        Thread thread = new Thread(() =>
-                        {
-                            Application.Invoke(delegate
-                            {
-                                waitingDialog.Run();
-
-                            });
-
-                            try
-                            {
-                                _contentManager.InstallFirmware(filename);
-
-                                Application.Invoke(delegate
-                                {
-                                    waitingDialog.Dispose();
-
-                                    string message = $"System version {firmwareVersion.VersionString} successfully installed.";
-
-                                    GtkDialog.CreateInfoDialog(dialogTitle, message);
-                                    Logger.Info?.Print(LogClass.Application, message);
-
-                                    // Purge Applet Cache.
-
-                                    DirectoryInfo miiEditorCacheFolder = new DirectoryInfo(System.IO.Path.Combine(AppDataManager.GamesDirPath, "0100000000001009", "cache"));
-
-                                    if (miiEditorCacheFolder.Exists)
-                                    {
-                                        miiEditorCacheFolder.Delete(true);
-                                    }
-                                });
-                            }
-                            catch (Exception ex)
-                            {
-                                Application.Invoke(delegate
-                                {
-                                    waitingDialog.Dispose();
-
-                                    GtkDialog.CreateErrorDialog(ex.Message);
-                                });
-                            }
-                            finally
-                            {
-                                RefreshFirmwareLabel();
-                            }
-                        });
-
-                        thread.Name = "GUI.FirmwareInstallerThread";
-                        thread.Start();
                     }
                 }
                 catch (LibHac.MissingKeyException ex)
@@ -1374,7 +1407,7 @@ namespace Ryujinx.Ui
                 }
                 catch (Exception ex)
                 {
-                    GtkDialog.CreateErrorDialog(ex.Message);
+                    GtkDialog.CreateErrorDialog(ex.Message + "\n" + ex.StackTrace);
                 }
             }
             else
@@ -1385,16 +1418,9 @@ namespace Ryujinx.Ui
 
         private void RefreshFirmwareLabel()
         {
-            var fwVersionText = "<...>";
-
-            if(Horizon.Initialized && _contentManager.TryGetCurrentFirmwareVersion(out var firmwareVersion))
-            {
-                fwVersionText = firmwareVersion.GetDisplayVersion();
-            }
-
             Application.Invoke(delegate
             {
-                _firmwareVersionLabel.Text = fwVersionText;
+                _firmwareVersionLabel.Text = _contentManager.FirmwareVersion.GetDisplayVersion();
             });
         }
 
@@ -1439,7 +1465,7 @@ namespace Ryujinx.Ui
 
         private void OptionMenu_StateChanged(object o, StateChangedArgs args)
         {
-            _manageUserProfiles.Sensitive = Horizon.Instance.Device == null;
+            _manageUserProfiles.Sensitive = Horizon.Initialized;
         }
 
         private void Settings_Pressed(object sender, EventArgs args)
@@ -1465,7 +1491,7 @@ namespace Ryujinx.Ui
 
         private void Simulate_WakeUp_Message_Pressed(object sender, EventArgs args)
         {
-            if (Horizon.Instance.Device != null)
+            if (Horizon.Initialized)
             {
                 Horizon.Instance.Device.System.SimulateWakeUpMessage();
             }
@@ -1473,8 +1499,8 @@ namespace Ryujinx.Ui
 
         private void ActionMenu_StateChanged(object o, StateChangedArgs args)
         {
-            _scanAmiibo.Sensitive     = Horizon.Instance != null && Horizon.Instance.Device != null && Horizon.Instance.Device.System.SearchingForAmiibo(out int _);
-            _takeScreenshot.Sensitive = Horizon.Instance != null && Horizon.Instance.Device != null;
+            _scanAmiibo.Sensitive     = Horizon.Initialized && Horizon.Instance.Device.System.SearchingForAmiibo(out int _);
+            _takeScreenshot.Sensitive = Horizon.Initialized;
         }
 
         private void Scan_Amiibo(object sender, EventArgs args)
@@ -1501,7 +1527,7 @@ namespace Ryujinx.Ui
 
         private void Take_Screenshot(object sender, EventArgs args)
         {
-            if (Horizon.Instance.Device != null && RendererWidget != null)
+            if (Horizon.Initialized && RendererWidget != null)
             {
                 RendererWidget.ScreenshotRequested = true;
             }

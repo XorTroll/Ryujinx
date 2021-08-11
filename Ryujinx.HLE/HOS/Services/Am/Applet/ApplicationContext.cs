@@ -17,11 +17,12 @@ namespace Ryujinx.HLE.HOS.Services.Am.Applet
         {
             ApplicationId = applicationId;
             IsSystem = isSystem;
+            _launchParameters = new();
         }
 
         public void PushLaunchParameter(LaunchParameterKind kind, byte[] data)
         {
-            _launchParameters.AddOrUpdate(kind, (LaunchParameterKind kind) => data, (LaunchParameterKind KContextIdManager, byte[] oldData) => data);
+            _launchParameters.AddOrUpdate(kind, (LaunchParameterKind kind) => data, (LaunchParameterKind kind, byte[] oldData) => data);
         }
 
         public bool TryPopLaunchParameter(LaunchParameterKind kind, out byte[] data)

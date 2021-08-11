@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Ryujinx.HLE.HOS.Services.Bcat.News
 {
-    class INewsService : IpcService
+    class INewsService : ServiceCreatorBase
     {
         public INewsService() { }
 
@@ -57,6 +57,27 @@ namespace Ryujinx.HLE.HOS.Services.Bcat.News
             Logger.Stub?.PrintStub(LogClass.Service);
 
             return ResultCode.Success;
+        }
+
+        [CommandHipc(30900)] // 1.0.0
+        // CreateNewlyArrivedEventHolder() -> object<nn::news::detail::ipc::ICreateNewlyArrivedEventHolder>
+        public ResultCode CreateNewlyArrivedEventHolder(ServiceCtx context)
+        {
+            return CreateNewlyArrivedEventHolderImpl(context);
+        }
+
+        [CommandHipc(30901)] // 1.0.0
+        // CreateNewsDataService() -> object<nn::news::detail::ipc::INewsDataService>
+        public ResultCode CreateNewsDataService(ServiceCtx context)
+        {
+            return CreateNewsDataServiceImpl(context);
+        }
+
+        [CommandHipc(30902)] // 1.0.0
+        // CreateNewsDatabaseService() -> object<nn::news::detail::ipc::INewsDatabaseService>
+        public ResultCode CreateNewsDatabaseService(ServiceCtx context)
+        {
+            return CreateNewsDatabaseServiceImpl(context);
         }
 
         [CommandHipc(40101)]
